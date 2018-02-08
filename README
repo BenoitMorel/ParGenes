@@ -1,0 +1,12 @@
+# Multi-raxml #
+
+Run a high number of raxml instances on a given number of cores.
+Features:
+- Multi-raxml tries to get the best usage of the cores.
+- Multi-raxml is easy to use.
+- Multi-raxml is robust to raxml instances crashes.
+
+
+The project is still under developement. 
+
+
