@@ -31,27 +31,34 @@ public:
 
 using CommandPtr = shared_ptr<Command>;
 
-class CommandManager {
+class CommandsContainer {
 public:
-  CommandManager(const string &commandsFilename,
-      unsigned int availableThreads,
-      const string &outputDir);
-  
-  void addCommand(CommandPtr command);
-  CommandPtr getCommand(string id) const;
-  const string &getOutputDir() const {return _outputDir;}
+  CommandsContainer(const string &commandsFilename);
 
-  void run();
+  CommandPtr getCommand(string id) const;
+  const vector<CommandPtr> &getCommands() {return _commands;}
 private:
-  void checkCommandsFinished();
+  void addCommand(CommandPtr command);
 
   vector<CommandPtr> _commands;
   map<string, CommandPtr> _dicoCommands;
+};
+
+class CommandsRunner {
+public:
+  CommandsRunner(CommandsContainer &commandsContainer,
+      unsigned int availableThreads,
+      const string &outputDir);
+  void run();
+private:
+  void checkCommandsFinished();
+  const string &getOutputDir() const {return _outputDir;}
+  
+  CommandsContainer &_commandsContainer;
   unsigned int _availableThreads;
   string _outputDir;
   unsigned int _threadsInUse;
   unsigned int _cumulatedTime;
 };
-
 
 #endif

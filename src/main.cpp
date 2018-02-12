@@ -44,8 +44,9 @@ int main(int argc, char** argv)
   MPI_Init(&argc, &argv);
   
   ArgumentsParser arg(argc, argv);
-  CommandManager commands(arg.commandsFilename, arg.threadsNumber - 1, arg.outputDir);
-  commands.run(); 
+  CommandsContainer commands(arg.commandsFilename);
+  CommandsRunner runner(commands, arg.threadsNumber - 1, arg.outputDir);
+  runner.run(); 
   MPI_Finalize();
   return 0;
 }

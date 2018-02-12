@@ -74,13 +74,7 @@ bool readNextLine(ifstream &is, string &os)
   return false;
 }
 
-CommandManager::CommandManager(const string &commandsFilename,
-    unsigned int availableThreads,
-    const string &outputDir):
-  _availableThreads(availableThreads),
-  _outputDir(outputDir),
-  _threadsInUse(0),
-  _cumulatedTime(0)
+CommandsContainer::CommandsContainer(const string &commandsFilename)
 {
   ifstream reader(commandsFilename);
   if (!reader)
@@ -96,42 +90,43 @@ CommandManager::CommandManager(const string &commandsFilename,
   }
 }
 
-void CommandManager::addCommand(CommandPtr command)
+void CommandsContainer::addCommand(CommandPtr command)
 {
   _commands.push_back(command); 
   _dicoCommands[command->getId()] = command;
 }
 
-CommandPtr CommandManager::getCommand(string id) const
+CommandPtr CommandsContainer::getCommand(string id) const
 {
-  return _dicoCommands.at(id);
+  auto res =  _dicoCommands.find(id);
+  if (res == _dicoCommands.end())
+    return CommandPtr(0);
+  else 
+    return res->second;
 }
 
-void CommandManager::checkCommandsFinished()
+
+CommandsRunner::CommandsRunner(CommandsContainer &commandsContainer,
+      unsigned int availableThreads,
+      const string &outputDir):
+  _commandsContainer(commandsContainer),
+  _availableThreads(availableThreads),
+  _outputDir(outputDir),
+  _threadsInUse(0),
+  _cumulatedTime(0)
 {
-  vector<string> files;
-  MultiRaxmlCommon::readDirectory(_outputDir, files);
-  for (auto file: files) {
-    auto command = _dicoCommands.find(file);
-    if (_dicoCommands.end() != command) {
-      string fullpath = _outputDir + "/" + file; // todobenoit not portable
-      MultiRaxmlCommon::removefile(fullpath);
-      _threadsInUse -= command->second->getRanksNumber();
-      cout << "Command " << file << " finished after ";
-      cout << command->second->getElapsedMs() << "ms" << endl;
-      _cumulatedTime += command->second->getElapsedMs();
-    }
-  }
+
 }
 
-void CommandManager::run() 
+void CommandsRunner::run() 
 {
+  vector<CommandPtr> commands = _commandsContainer.getCommands();
   Timer timer;
   unsigned int nextCommandIndex = 0;
   _threadsInUse = 0;
-  while (_threadsInUse || nextCommandIndex < _commands.size()) {
-    if (nextCommandIndex < _commands.size()) {
-      auto  nextCommand = _commands[nextCommandIndex];
+  while (_threadsInUse || nextCommandIndex < commands.size()) {
+    if (nextCommandIndex < commands.size()) {
+      auto  nextCommand = commands[nextCommandIndex];
       if (_threadsInUse + nextCommand->getRanksNumber() <= _availableThreads) {
         _threadsInUse += nextCommand->getRanksNumber();
         nextCommand->execute(getOutputDir());
@@ -148,4 +143,22 @@ void CommandManager::run()
   double totalCumulated = double(_cumulatedTime) / double(_availableThreads);
   cout << "Load balance ratio: " << totalCumulated / totalElapsed << endl;
 }
+
+void CommandsRunner::checkCommandsFinished()
+{
+  vector<string> files;
+  MultiRaxmlCommon::readDirectory(_outputDir, files);
+  for (auto file: files) {
+    CommandPtr command = _commandsContainer.getCommand(file);
+    if (command) {
+      string fullpath = _outputDir + "/" + file; // todobenoit not portable
+      MultiRaxmlCommon::removefile(fullpath);
+      _threadsInUse -= command->getRanksNumber();
+      cout << "Command " << file << " finished after ";
+      cout << command->getElapsedMs() << "ms" << endl;
+      _cumulatedTime += command->getElapsedMs();
+    }
+  }
+}
+
 
