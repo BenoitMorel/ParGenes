@@ -7,7 +7,9 @@
 #include <sstream>
 #include <mpi.h>
 #include <iterator>
-const string spawnerScript = "src/spawner.sh";
+
+const string python = "python";
+const string spawnerScript = "src/spawner.py";
 
 Command::Command(const string &id, const string &command):
   _id(id),
@@ -32,15 +34,16 @@ void Command::execute(const string &outputDir)
   istringstream iss(getCommand());
   vector<string> splitCommand(istream_iterator<string>{iss},
                                        istream_iterator<string>());
-  char **argv = new char*[splitCommand.size() + 2];
+  char **argv = new char*[splitCommand.size() + 3];
   string infoFile = outputDir + "/" + getId(); // todobenoit not portable
-  argv[0] = (char*)infoFile.c_str();
+  argv[0] = (char*)spawnerScript.c_str();
+  argv[1] = (char*)infoFile.c_str();
   for(unsigned int i = 0; i < splitCommand.size(); ++i)
-    argv[i + 1] = (char*)splitCommand[i].c_str();
-  argv[splitCommand.size() + 1] = 0;
+    argv[i + 2] = (char*)splitCommand[i].c_str();
+  argv[splitCommand.size() + 2] = 0;
 
   MPI_Comm intercomm;
-  MPI_Comm_spawn((char*)spawnerScript.c_str(), argv, getRanksNumber(),  
+  MPI_Comm_spawn((char*)python.c_str(), argv, getRanksNumber(),  
           MPI_INFO_NULL, 0, MPI_COMM_SELF, &intercomm,  
           MPI_ERRCODES_IGNORE);
   delete[] argv;
