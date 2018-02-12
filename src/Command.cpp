@@ -9,7 +9,16 @@
 #include <iterator>
 
 const string python = "python";
-const string spawnerScript = "src/spawner.py";
+const string pythonUseCommand = "-c";
+const string pythonCommand = 
+"import sys\n"
+"import subprocess\n"
+"import os\n"
+"commands = sys.argv[2:]\n"
+"FNULL = open(os.devnull, 'w')\n"
+"subprocess.check_call(commands, stdout=FNULL, stderr=FNULL)\n"
+"f = open(sys.argv[1], \"w\")\n";
+
 
 Command::Command(const string &id, const string &command):
   _id(id),
@@ -36,11 +45,13 @@ void Command::execute(const string &outputDir)
                                        istream_iterator<string>());
   char **argv = new char*[splitCommand.size() + 3];
   string infoFile = outputDir + "/" + getId(); // todobenoit not portable
-  argv[0] = (char*)spawnerScript.c_str();
-  argv[1] = (char*)infoFile.c_str();
+  argv[0] = (char*)pythonUseCommand.c_str();
+  argv[1] = (char*)pythonCommand.c_str();
+  argv[2] = (char*)infoFile.c_str();
+  unsigned int offset = 3;
   for(unsigned int i = 0; i < splitCommand.size(); ++i)
-    argv[i + 2] = (char*)splitCommand[i].c_str();
-  argv[splitCommand.size() + 2] = 0;
+    argv[i + offset] = (char*)splitCommand[i].c_str();
+  argv[splitCommand.size() + offset] = 0;
 
   MPI_Comm intercomm;
   MPI_Comm_spawn((char*)python.c_str(), argv, getRanksNumber(),  
