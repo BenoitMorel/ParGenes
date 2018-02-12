@@ -2,49 +2,33 @@
 #include <mpi.h>
 #include <iostream>
 #include <string>
+#include <thread> 
+#include <chrono> 
+
+#include "Command.hpp"
 
 
+using namespace std;
 
-void spawn(char *prefix)
+void print_help() 
 {
-  char * raxmlExec = "/home/morelbt/github/raxdog/thirdlib/raxml-ng/bin/raxml-ng-mpi";
-  char *argv[7] = {"--msa", 
-    "/home/morelbt/github/PHYLDOG/benoitdata/DataCarine/FastaFiles/ENSGT00440000039287.fa",
-    "--model", 
-    "GTR", 
-    "--prefix",  
-    prefix,
-    0};
-  MPI_Comm sonComm;
-  std::cerr << "before spawn" << std::endl;
-  MPI_Comm_spawn(raxmlExec,
-      argv,
-      15,
-      MPI_INFO_NULL, 
-      0, 
-      MPI_COMM_WORLD,
-      &sonComm,
-      MPI_ERRCODES_IGNORE);
+  cout << "Usage:" << endl;
+  cout << "mpirun -np 1 multi-raxml command_file" << endl;
 }
 
 int main(int argc, char** argv) {
-  MPI_Init(argc, argv);
-  std::cout << "Plouf" << std::endl;
+  MPI_Init(&argc, &argv);
 
-  int world_size;
-  MPI_Comm_size(MPI_COMM_WORLD, &world_size);
+  if (argc != 2) {
+    cerr << "Invalid syntax" << std::endl;
+    print_help();
+    return 0;
+  }
 
-  int world_rank;
-  MPI_Comm_rank(MPI_COMM_WORLD, &world_rank);
-  
-  std::cout << world_size << " " << world_rank << std::endl;
+  string commandsFilename(argv[1]);
 
-  spawn("/home/morelbt/github/multi-raxml/result/bidon_1");
-  spawn("/home/morelbt/github/multi-raxml/result/bidon_2");
+  CommandManager commands(commandsFilename);
 
-  std::cerr << "spawned" << std::endl;
   MPI_Finalize();
-
-  std::cerr << "end" << std::endl;
   return 0;
 }

@@ -4,7 +4,7 @@ find_package(MPI REQUIRED)
 include_directories(${MPI_INCLUDE_PATH})
 set(CMAKE_BUILD_TYPE Debug)
 
-add_executable(multi-raxml main.cpp)
+add_executable(multi-raxml main.cpp Command.cpp)
 target_link_libraries(multi-raxml ${MPI_LIBRARIES})
 
 if(MPI_COMPILE_FLAGS)
