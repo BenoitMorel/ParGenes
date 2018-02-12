@@ -1,0 +1,19 @@
+# this command should be executed from
+# the root of multi-raxml repository (or paths should be edited)
+
+# HB011006.fasta
+c1 ../raxml-ng/bin/raxml-ng-mpi --model GTR --prefix examples/output/c1 --msa examples/fasta_files/HB011006.fasta --seed 1
+c2 ../raxml-ng/bin/raxml-ng-mpi --model GTR --prefix examples/output/c2 --msa examples/fasta_files/HB011006.fasta --seed 2
+c3 ../raxml-ng/bin/raxml-ng-mpi --model GTR --prefix examples/output/c3 --msa examples/fasta_files/HB011006.fasta --seed 3
+c4 ../raxml-ng/bin/raxml-ng-mpi --model GTR --prefix examples/output/c4 --msa examples/fasta_files/HB011006.fasta --seed 4
+c5 ../raxml-ng/bin/raxml-ng-mpi --model GTR --prefix examples/output/c5 --msa examples/fasta_files/HB011006.fasta --seed 5
+c6 ../raxml-ng/bin/raxml-ng-mpi --model GTR --prefix examples/output/c6 --msa examples/fasta_files/HB011006.fasta --seed 6
+
+# HBG011000.fasta
+c7 ../raxml-ng/bin/raxml-ng-mpi --model GTR --prefix examples/output/c1 --msa examples/fasta_files/HBG011000.fasta --seed 7
+c8 ../raxml-ng/bin/raxml-ng-mpi --model GTR --prefix examples/output/c2 --msa examples/fasta_files/HBG011000.fasta --seed 8
+c9 ../raxml-ng/bin/raxml-ng-mpi --model GTR --prefix examples/output/c3 --msa examples/fasta_files/HBG011000.fasta --seed 9
+c10 ../raxml-ng/bin/raxml-ng-mpi --model GTR --prefix examples/output/c4 --msa examples/fasta_files/HBG011000.fasta --seed 10
+
+
+
