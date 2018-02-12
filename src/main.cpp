@@ -6,29 +6,46 @@
 #include <chrono> 
 
 #include "Command.hpp"
+#include "Common.hpp"
 
 
 using namespace std;
 
-void print_help() 
-{
-  cout << "Usage:" << endl;
-  cout << "mpirun -np 1 multi-raxml command_file" << endl;
-}
 
-int main(int argc, char** argv) {
-  MPI_Init(&argc, &argv);
-
-  if (argc != 2) {
-    cerr << "Invalid syntax" << std::endl;
-    print_help();
-    return 0;
+class ArgumentsParser {
+public:
+  ArgumentsParser(int argc, char** argv):
+    commandsFilename(),
+    threadsNumber(1)
+  {
+    if (argc != 4) {
+      print_help();
+      throw MultiRaxmlException("Error: invalid syntax");
+    }
+    unsigned int i = 1;
+    commandsFilename = string(argv[i++]);
+    outputDir = string(argv[i++]);
+    threadsNumber = atoi(argv[i++]);
+  }
+  
+  void print_help() 
+  {
+    cout << "Usage:" << endl;
+    cout << "mpirun -np 1 multi-raxml command_file output_dir threads_number" << endl;
   }
 
-  string commandsFilename(argv[1]);
+  string commandsFilename;
+  string outputDir;
+  unsigned int threadsNumber;
+};
 
-  CommandManager commands(commandsFilename);
-
+int main(int argc, char** argv) 
+{
+  MPI_Init(&argc, &argv);
+  
+  ArgumentsParser arg(argc, argv);
+  CommandManager commands(arg.commandsFilename, arg.threadsNumber - 1, arg.outputDir);
+  commands.run(); 
   MPI_Finalize();
   return 0;
 }
