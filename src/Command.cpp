@@ -43,7 +43,6 @@ void Command::execute(const string &outputDir, int startingRank, int ranksNumber
   if (ranksNumber == 0) {
     throw MultiRaxmlException("Error in Command::execute: invalid number of ranks ", to_string(ranksNumber));
   }
-  _beginTime = Common::getTime();
   _startRank = startingRank;
   _ranksNumber = ranksNumber;
   istringstream iss(getCommand());
@@ -66,6 +65,7 @@ void Command::execute(const string &outputDir, int startingRank, int ranksNumber
           MPI_ERRCODES_IGNORE);
   cout << "submit time " << t.getElapsedMs() << endl;
   delete[] argv;
+  _beginTime = Common::getTime();
 }
   
 void Command::onFinished()
@@ -215,11 +215,11 @@ void CommandsRunner::checkCommandsFinished()
 
 void CommandsRunner::onCommandFinished(CommandPtr command)
 {
-  command->onFinished();
   string fullpath = _outputDir + "/" + command->getId(); // todobenoit not portable
   Common::removefile(fullpath);
   _allocator.freeRanks(command->getStartRank(), command->getRanksNumber());
   cout << "Command " << command->getId() << " finished after ";
+  command->onFinished();
   cout << command->getElapsedMs() << "ms" << endl;
 }
 
