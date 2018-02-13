@@ -20,13 +20,15 @@ public:
   int getRanksNumber() const {return _ranksNumber;}
 
   void execute(const string &outputDir);
-  int getElapsedMs() const {return _timer.getElapsedMs();}
+  void onFinished();
+  int getElapsedMs() const {return Common::getElapsedMs(_beginTime, _endTime);}
   string toString() const;
 public:
   string _id;
   string _command;
   int _ranksNumber;
-  Timer _timer;
+  Time _beginTime;
+  Time _endTime;
 };
 
 using CommandPtr = shared_ptr<Command>;
@@ -37,6 +39,7 @@ public:
 
   CommandPtr getCommand(string id) const;
   vector<CommandPtr> &getCommands() {return _commands;}
+  const vector<CommandPtr> &getCommands() const {return _commands;}
 private:
   void addCommand(CommandPtr command);
 
@@ -67,7 +70,21 @@ private:
   unsigned int _availableThreads;
   string _outputDir;
   unsigned int _threadsInUse;
-  unsigned int _cumulatedTime;
+};
+
+class CommandsStatistics {
+public:
+  CommandsStatistics(const CommandsContainer &commands, 
+      Time begin, 
+      Time end,
+      int availableThreads);
+  void printGeneralStatistics();
+  void exportSVG(const string &svgfile);
+private:
+  const CommandsContainer &_commands;
+  Time _begin;
+  Time _end;
+  int _availableThreads;
 };
 
 #endif

@@ -44,9 +44,13 @@ int main(int argc, char** argv)
   MPI_Init(&argc, &argv);
   
   ArgumentsParser arg(argc, argv);
+  Time begin = Common::getTime();
   CommandsContainer commands(arg.commandsFilename);
   CommandsRunner runner(commands, arg.threadsNumber - 1, arg.outputDir);
   runner.run(); 
+  Time end = Common::getTime();
+  CommandsStatistics statistics(commands, begin, end, arg.threadsNumber - 1);
+  statistics.printGeneralStatistics();
   MPI_Finalize();
   return 0;
 }

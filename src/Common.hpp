@@ -22,7 +22,9 @@ private:
   string msg_;
 };
 
-class MultiRaxmlCommon {
+using Time = chrono::time_point<chrono::system_clock>;
+
+class Common {
 public:
   static void sleep(unsigned int ms) {
     this_thread::sleep_for(chrono::milliseconds(ms));
@@ -49,7 +51,17 @@ public:
     remove(name.c_str());
   }
 
+  static Time getTime() {
+    return chrono::system_clock::now();
+  }
+
+  static long getElapsedMs(Time begin, Time end) {
+    return chrono::duration_cast<chrono::milliseconds>
+      (end-begin).count();
+  }
+
 };
+
 
 class Timer {
 public:
@@ -58,16 +70,15 @@ public:
   }
 
   int getElapsedMs() const {
-    auto end = chrono::system_clock::now();
-    return chrono::duration_cast<chrono::milliseconds>
-      (end-_start).count();
+    auto end = Common::getTime();
+    return Common::getElapsedMs(_start, end);
   }
 
   void reset() {
     _start = chrono::system_clock::now();
   }
 private:
-  chrono::time_point<chrono::system_clock> _start;
+  Time _start;
 };
 
 #endif

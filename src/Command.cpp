@@ -7,6 +7,7 @@
 #include <sstream>
 #include <mpi.h>
 #include <iterator>
+#include <algorithm>
 
 const string python = "python";
 const string pythonUseCommand = "-c";
@@ -38,8 +39,7 @@ string Command::toString() const
   
 void Command::execute(const string &outputDir)
 {
-  cout << "Executing command " << toString() << endl;
-  _timer.reset();
+  _beginTime = Common::getTime();
   istringstream iss(getCommand());
   vector<string> splitCommand(istream_iterator<string>{iss},
                                        istream_iterator<string>());
@@ -58,6 +58,11 @@ void Command::execute(const string &outputDir)
           MPI_INFO_NULL, 0, MPI_COMM_SELF, &intercomm,  
           MPI_ERRCODES_IGNORE);
   delete[] argv;
+}
+  
+void Command::onFinished()
+{
+  _endTime = Common::getTime();
 }
 
 // Read a line in a commands file and skip comments
@@ -113,8 +118,7 @@ CommandsRunner::CommandsRunner(CommandsContainer &commandsContainer,
   _commandIterator(commandsContainer.getCommands().begin()),
   _availableThreads(availableThreads),
   _outputDir(outputDir),
-  _threadsInUse(0),
-  _cumulatedTime(0)
+  _threadsInUse(0)
 {
 
 }
@@ -133,18 +137,14 @@ void CommandsRunner::run()
       }
     }
     checkCommandsFinished();
-    MultiRaxmlCommon::sleep(100);
+    Common::sleep(100);
   }
-  cout << "Finished running commands. Total elasped time: " 
-    << timer.getElapsedMs() << "ms" << endl;
-  double totalElapsed = double(timer.getElapsedMs());
-  double totalCumulated = double(_cumulatedTime) / double(_availableThreads);
-  cout << "Load balance ratio: " << totalCumulated / totalElapsed << endl;
 }
   
 void CommandsRunner::executePendingCommand()
 {
   auto command = getPendingCommand();
+  cout << "Executing command " << command->toString() << endl;
   command->execute(getOutputDir());
   _threadsInUse += command->getRanksNumber();
   _commandIterator++;
@@ -153,7 +153,7 @@ void CommandsRunner::executePendingCommand()
 void CommandsRunner::checkCommandsFinished()
 {
   vector<string> files;
-  MultiRaxmlCommon::readDirectory(_outputDir, files);
+  Common::readDirectory(_outputDir, files);
   for (auto file: files) {
     CommandPtr command = _commandsContainer.getCommand(file);
     if (command) {
@@ -164,12 +164,48 @@ void CommandsRunner::checkCommandsFinished()
 
 void CommandsRunner::onCommandFinished(CommandPtr command)
 {
+  command->onFinished();
   string fullpath = _outputDir + "/" + command->getId(); // todobenoit not portable
-  MultiRaxmlCommon::removefile(fullpath);
+  Common::removefile(fullpath);
   _threadsInUse -= command->getRanksNumber();
   cout << "Command " << command->getId() << " finished after ";
   cout << command->getElapsedMs() << "ms" << endl;
-  _cumulatedTime += command->getElapsedMs();
+}
+
+CommandsStatistics::CommandsStatistics(const CommandsContainer &commands,
+    Time begin,
+    Time end,
+    int availableThreads):
+  _commands(commands),
+  _begin(begin),
+  _end(end),
+  _availableThreads(availableThreads)
+{
 
 }
+
+void CommandsStatistics::printGeneralStatistics()
+{
+  int totalElapsedTime = Common::getElapsedMs(_begin, _end);
+  int cumulatedTime = 0;
+  int longestTime = 0;
+  for (auto command: _commands.getCommands()) {
+    cumulatedTime += command->getElapsedMs() * command->getRanksNumber();
+    longestTime = max(longestTime, command->getElapsedMs());
+  }
+  double ratio = double(cumulatedTime) / double(_availableThreads * totalElapsedTime);
+  
+  cout << "Finished running commands. Total elasped time: ";
+  cout << totalElapsedTime << "ms" << endl;
+  cout << "The longest command took " << longestTime << "ms" << endl;
+  cout << "Load balance ratio: " << ratio << endl;
+}
+
+void CommandsStatistics::exportSVG(const string &svgfile) 
+{
+
+}
+
+
+
 
