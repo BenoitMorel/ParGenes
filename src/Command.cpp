@@ -24,7 +24,8 @@ const string pythonCommand =
 Command::Command(const string &id, const string &command):
   _id(id),
   _command(command),
-  _ranksNumber(1)
+  _ranksNumber(1),
+  _startRank(0)
 {
 
 }
@@ -201,11 +202,41 @@ void CommandsStatistics::printGeneralStatistics()
   cout << "Load balance ratio: " << ratio << endl;
 }
 
-void CommandsStatistics::exportSVG(const string &svgfile) 
+string get_random_hex()
 {
-
+  static const char *buff = "0123456789abcdef";
+  char res[8];
+  res[0] = '#';
+  res[7] = 0;
+  for (int i = 0; i < 6; ++i) {
+    res[i+1] = buff[rand() % 16];
+  }
+  return string(res);
 }
 
-
-
+void CommandsStatistics::exportSVG(const string &svgfile) 
+{
+  cout << "Saving svg output in " << svgfile << endl;
+  ofstream os(svgfile, std::ofstream::out);
+  if (!os) {
+    cerr << "Warning: cannot open  " << svgfile << ". Skipping svg export." << endl;
+    return; 
+  }
+  int totalWidth = _availableThreads;
+  int totalHeight = Common::getElapsedMs(_begin, _end);
+  double ratioWidth = 500.0 / double(totalWidth);
+  double ratioHeight = 500.0 / double(totalHeight);
+  
+  os << "<svg  xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\">" << endl;
+  for (auto command: _commands.getCommands()) {
+    os << "  <svg x=\"" << ratioWidth * command->getStartRank()
+       << "\" y=\"" << ratioHeight * Common::getElapsedMs(_begin, command->getStartTime()) << "\" "
+       << "width=\"" << ratioWidth * command->getRanksNumber() << "\" " 
+       << "height=\""  << ratioHeight * command->getElapsedMs() << "\" >" << endl;
+    string color = get_random_hex(); //hex(random.randrange(0, 16777216))[2:]
+    os << "    <rect x=\"0%\" y=\"0%\" height=\"100%\" width=\"100%\" style=\"fill: "
+       << color  <<  "\"/>" << endl;
+  }
+  os << "</svg>" << endl;
+}
 

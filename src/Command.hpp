@@ -18,15 +18,21 @@ public:
   const string &getCommand() const {return _command;}
   void setRanksNumber(int ranksNumber) {_ranksNumber = ranksNumber;}
   int getRanksNumber() const {return _ranksNumber;}
-
+  string toString() const;
+  
   void execute(const string &outputDir);
   void onFinished();
+  Time getStartTime() const {return _beginTime;} 
   int getElapsedMs() const {return Common::getElapsedMs(_beginTime, _endTime);}
-  string toString() const;
+  int getStartRank() const {return _startRank;} 
 public:
+  // initial information
   string _id;
   string _command;
   int _ranksNumber;
+  
+  // execution information
+  int _startRank;
   Time _beginTime;
   Time _endTime;
 };
