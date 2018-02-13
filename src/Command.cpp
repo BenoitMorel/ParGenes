@@ -21,11 +21,15 @@ const string pythonCommand =
 "f = open(sys.argv[1], \"w\")\n";
 
 
-Command::Command(const string &id, const string &command):
+Command::Command(const string &id, 
+    const vector<string> &command,
+    unsigned int ranks,
+    unsigned int estimatedCost):
   _id(id),
   _command(command),
-  _ranksNumber(1),
-  _startRank(0)
+  _ranksNumber(ranks),
+  _startRank(0),
+  _estimatedCost(estimatedCost)
 {
 
 }
@@ -33,11 +37,18 @@ Command::Command(const string &id, const string &command):
 string Command::toString() const 
 {
   string res;
-  res = getId() + " " + getCommand();
-  res += " {ranks: " + to_string(getRanksNumber()) + "}";
+  res = getId() + " ";
+  for (auto str: _command) {
+    res += str + " ";
+  }
+  res += "{ranks: " + to_string(getRanksNumber()) + ", estimated cost: "; 
+  res += to_string(getEstimatedCost()) + "}";
   return res;
 }
-  
+ 
+
+
+
 void Command::execute(const string &outputDir, int startingRank, int ranksNumber)
 {
   if (ranksNumber == 0) {
@@ -45,25 +56,22 @@ void Command::execute(const string &outputDir, int startingRank, int ranksNumber
   }
   _startRank = startingRank;
   _ranksNumber = ranksNumber;
-  istringstream iss(getCommand());
-  vector<string> splitCommand(istream_iterator<string>{iss},
-                                       istream_iterator<string>());
-  char **argv = new char*[splitCommand.size() + 3];
+  char **argv = new char*[_command.size() + 3];
   string infoFile = outputDir + "/" + getId(); // todobenoit not portable
   argv[0] = (char*)pythonUseCommand.c_str();
   argv[1] = (char*)pythonCommand.c_str();
   argv[2] = (char*)infoFile.c_str();
   unsigned int offset = 3;
-  for(unsigned int i = 0; i < splitCommand.size(); ++i)
-    argv[i + offset] = (char*)splitCommand[i].c_str();
-  argv[splitCommand.size() + offset] = 0;
+  for(unsigned int i = 0; i < _command.size(); ++i)
+    argv[i + offset] = (char*)_command[i].c_str();
+  argv[_command.size() + offset] = 0;
 
-  Timer t;
+  //Timer t;
   MPI_Comm intercomm;
   MPI_Comm_spawn((char*)python.c_str(), argv, getRanksNumber(),  
           MPI_INFO_NULL, 0, MPI_COMM_SELF, &intercomm,  
           MPI_ERRCODES_IGNORE);
-  cout << "submit time " << t.getElapsedMs() << endl;
+  //cout << "submit time " << t.getElapsedMs() << endl;
   delete[] argv;
   _beginTime = Common::getTime();
 }
@@ -95,10 +103,22 @@ CommandsContainer::CommandsContainer(const string &commandsFilename)
   
   string line;
   while (readNextLine(reader, line)) {
-    auto firstSpace = line.find(" ");
-    if (string::npos == firstSpace) 
-      throw MultiRaxmlException("Invalid syntax in commands file ", commandsFilename);
-    CommandPtr command(new Command(line.substr(0, firstSpace), line.substr(firstSpace + 1)));
+    string id;
+    int ranks;
+    int estimatedCost;
+    vector<string> commandVector;
+    
+    istringstream iss(line);
+    iss >> id;
+    iss >> ranks;
+    iss >> estimatedCost;
+    
+    while (!iss.eof()) {
+      string plop;
+      iss >> plop;
+      commandVector.push_back(plop);
+    }
+    CommandPtr command(new Command(id, commandVector, ranks, estimatedCost));
     addCommand(command);
   }
 }
@@ -168,10 +188,11 @@ CommandsRunner::CommandsRunner(const CommandsContainer &commandsContainer,
   _availableRanks(availableRanks),
   _outputDir(outputDir),
   _allocator(availableRanks),
-  _commandsVector(commandsContainer.getCommands()),
-  _commandIterator(_commandsVector.begin())
+  _commandsVector(commandsContainer.getCommands())
 {
-  
+  sort(_commandsVector.begin(), _commandsVector.end(), compareCommands);
+  _commandIterator = _commandsVector.begin();
+
 }
 
 void CommandsRunner::run() 
@@ -189,6 +210,15 @@ void CommandsRunner::run()
     //Common::sleep(10);
   }
 }
+
+bool CommandsRunner::compareCommands(CommandPtr c1, CommandPtr c2)
+{
+  if (c2->getRanksNumber() == c1->getRanksNumber()) {
+    return c2->getEstimatedCost() < c1->getEstimatedCost();
+  }
+  return c2->getRanksNumber() < c1->getRanksNumber();
+}
+
   
 void CommandsRunner::executePendingCommand()
 {
@@ -196,7 +226,7 @@ void CommandsRunner::executePendingCommand()
   int startingRank;
   int allocatedRanks;
   _allocator.allocateRanks(command->getRanksNumber(), startingRank, allocatedRanks);
-  cout << "Executing command " << command->toString() << " on " << allocatedRanks << " ranks"  << endl;
+  cout << "Executing command " << command->toString() << " on ranks [" << startingRank << ":" <<  startingRank + allocatedRanks - 1 << "]"  << endl;
   command->execute(getOutputDir(), startingRank, allocatedRanks);
   _commandIterator++;
 }

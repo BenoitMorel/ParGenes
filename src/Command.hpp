@@ -12,13 +12,16 @@ using namespace std;
 
 class Command {
 public:
-  Command(const string &id, const string &command);
+  Command(const string &id, 
+      const vector<string> &command,
+      unsigned int ranks,
+      unsigned int estimatedCost);
   virtual ~Command() {}
  
   const string &getId() const {return _id;}
-  const string &getCommand() const {return _command;}
   void setRanksNumber(int ranksNumber) {_ranksNumber = ranksNumber;}
   int getRanksNumber() const {return _ranksNumber;}
+  int getEstimatedCost() const {return _estimatedCost;}
   string toString() const;
   
   void execute(const string &outputDir, int startingRank, int ranksNumber);
@@ -29,8 +32,9 @@ public:
 public:
   // initial information
   const string _id;
-  const string _command;
+  const vector<string> _command;
   int _ranksNumber;
+  int _estimatedCost;
   
   // execution information
   int _startRank;
@@ -82,6 +86,7 @@ public:
   void run();
 private:
   
+  static bool compareCommands(CommandPtr c1, CommandPtr c2);
   CommandPtr getPendingCommand() {return *_commandIterator;}
   bool isCommandsEmpty() {return _commandIterator == _commandsVector.end();}
   const string &getOutputDir() const {return _outputDir;}
