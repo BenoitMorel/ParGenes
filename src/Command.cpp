@@ -38,9 +38,14 @@ string Command::toString() const
   return res;
 }
   
-void Command::execute(const string &outputDir)
+void Command::execute(const string &outputDir, int startingRank, int ranksNumber)
 {
+  if (ranksNumber == 0) {
+    throw MultiRaxmlException("Error in Command::execute: invalid number of ranks ", to_string(ranksNumber));
+  }
   _beginTime = Common::getTime();
+  _startRank = startingRank;
+  _ranksNumber = ranksNumber;
   istringstream iss(getCommand());
   vector<string> splitCommand(istream_iterator<string>{iss},
                                        istream_iterator<string>());
@@ -54,10 +59,12 @@ void Command::execute(const string &outputDir)
     argv[i + offset] = (char*)splitCommand[i].c_str();
   argv[splitCommand.size() + offset] = 0;
 
+  Timer t;
   MPI_Comm intercomm;
   MPI_Comm_spawn((char*)python.c_str(), argv, getRanksNumber(),  
           MPI_INFO_NULL, 0, MPI_COMM_SELF, &intercomm,  
           MPI_ERRCODES_IGNORE);
+  cout << "submit time " << t.getElapsedMs() << endl;
   delete[] argv;
 }
   
@@ -111,43 +118,86 @@ CommandPtr CommandsContainer::getCommand(string id) const
     return res->second;
 }
 
+RanksAllocator::RanksAllocator(int availableRanks):
+  _ranksInUse(0)
+{
+  _slots.push(std::pair<int,int>(1, availableRanks));
+}
 
-CommandsRunner::CommandsRunner(CommandsContainer &commandsContainer,
-      unsigned int availableThreads,
+
+bool RanksAllocator::ranksAvailable()
+{
+  return !_slots.empty();
+}
+ 
+bool RanksAllocator::allRanksAvailable()
+{
+  return _ranksInUse == 0;
+}
+ 
+void RanksAllocator::allocateRanks(int requestedRanks, 
+      int &startingRank,
+      int &threadsNumber)
+{
+  std::pair<int, int> result = _slots.top();
+  _slots.pop();
+  startingRank = result.first;
+  threadsNumber = requestedRanks; 
+  // border case around the first rank
+  if (result.first == 1 && requestedRanks != 1) {
+    threadsNumber -= 1; 
+  }
+  if (result.second > threadsNumber) {
+    result.first += threadsNumber;
+    result.second -= threadsNumber;
+    _slots.push(result);
+  }
+  _ranksInUse += threadsNumber;
+}
+  
+void RanksAllocator::freeRanks(int startingRank, int ranksNumber)
+{
+  _ranksInUse -= ranksNumber;
+  _slots.push(std::pair<int,int>(startingRank, ranksNumber));
+}
+
+CommandsRunner::CommandsRunner(const CommandsContainer &commandsContainer,
+      unsigned int availableRanks,
       const string &outputDir):
   _commandsContainer(commandsContainer),
-  _commandIterator(commandsContainer.getCommands().begin()),
-  _availableThreads(availableThreads),
+  _availableRanks(availableRanks),
   _outputDir(outputDir),
-  _threadsInUse(0)
+  _allocator(availableRanks),
+  _commandsVector(commandsContainer.getCommands()),
+  _commandIterator(_commandsVector.begin())
 {
-
+  
 }
 
 void CommandsRunner::run() 
 {
   Timer timer;
-  unsigned int nextCommandIndex = 0;
-  _threadsInUse = 0;
-  while (_threadsInUse || !isCommandsEmpty()) {
+  while (!_allocator.allRanksAvailable() || !isCommandsEmpty()) {
     if (!isCommandsEmpty()) {
       auto  nextCommand = getPendingCommand();
-      if (_threadsInUse + nextCommand->getRanksNumber() <= _availableThreads) {
+      if (_allocator.ranksAvailable()) {
         executePendingCommand();
         continue;
       }
     }
     checkCommandsFinished();
-    Common::sleep(100);
+    //Common::sleep(10);
   }
 }
   
 void CommandsRunner::executePendingCommand()
 {
   auto command = getPendingCommand();
-  cout << "Executing command " << command->toString() << endl;
-  command->execute(getOutputDir());
-  _threadsInUse += command->getRanksNumber();
+  int startingRank;
+  int allocatedRanks;
+  _allocator.allocateRanks(command->getRanksNumber(), startingRank, allocatedRanks);
+  cout << "Executing command " << command->toString() << " on " << allocatedRanks << " ranks"  << endl;
+  command->execute(getOutputDir(), startingRank, allocatedRanks);
   _commandIterator++;
 }
 
@@ -168,7 +218,7 @@ void CommandsRunner::onCommandFinished(CommandPtr command)
   command->onFinished();
   string fullpath = _outputDir + "/" + command->getId(); // todobenoit not portable
   Common::removefile(fullpath);
-  _threadsInUse -= command->getRanksNumber();
+  _allocator.freeRanks(command->getStartRank(), command->getRanksNumber());
   cout << "Command " << command->getId() << " finished after ";
   cout << command->getElapsedMs() << "ms" << endl;
 }
@@ -176,11 +226,11 @@ void CommandsRunner::onCommandFinished(CommandPtr command)
 CommandsStatistics::CommandsStatistics(const CommandsContainer &commands,
     Time begin,
     Time end,
-    int availableThreads):
+    int availableRanks):
   _commands(commands),
   _begin(begin),
   _end(end),
-  _availableThreads(availableThreads)
+  _availableRanks(availableRanks)
 {
 
 }
@@ -194,7 +244,7 @@ void CommandsStatistics::printGeneralStatistics()
     cumulatedTime += command->getElapsedMs() * command->getRanksNumber();
     longestTime = max(longestTime, command->getElapsedMs());
   }
-  double ratio = double(cumulatedTime) / double(_availableThreads * totalElapsedTime);
+  double ratio = double(cumulatedTime) / double(_availableRanks * totalElapsedTime);
   
   cout << "Finished running commands. Total elasped time: ";
   cout << totalElapsedTime << "ms" << endl;
@@ -222,20 +272,25 @@ void CommandsStatistics::exportSVG(const string &svgfile)
     cerr << "Warning: cannot open  " << svgfile << ". Skipping svg export." << endl;
     return; 
   }
-  int totalWidth = _availableThreads;
+  int totalWidth = _availableRanks + 1;
   int totalHeight = Common::getElapsedMs(_begin, _end);
   double ratioWidth = 500.0 / double(totalWidth);
   double ratioHeight = 500.0 / double(totalHeight);
-  
+   
   os << "<svg  xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\">" << endl;
+  os << "  <svg x=\"0\" y=\"0.0\" width=\"" << ratioWidth << "\" height=\"500.0\" >" << endl;
+  os << "    <rect x=\"0%\" y=\"0%\" height=\"100%\" width=\"100%\" style=\"fill: #ffffff\"/>" << endl;
+  os << "  </svg>" << endl;
+
   for (auto command: _commands.getCommands()) {
     os << "  <svg x=\"" << ratioWidth * command->getStartRank()
        << "\" y=\"" << ratioHeight * Common::getElapsedMs(_begin, command->getStartTime()) << "\" "
        << "width=\"" << ratioWidth * command->getRanksNumber() << "\" " 
        << "height=\""  << ratioHeight * command->getElapsedMs() << "\" >" << endl;
-    string color = get_random_hex(); //hex(random.randrange(0, 16777216))[2:]
+    string color = get_random_hex(); 
     os << "    <rect x=\"0%\" y=\"0%\" height=\"100%\" width=\"100%\" style=\"fill: "
        << color  <<  "\"/>" << endl;
+    os << "  </svg>" << endl;
   }
   os << "</svg>" << endl;
 }

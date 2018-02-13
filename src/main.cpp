@@ -51,6 +51,7 @@ int main(int argc, char** argv)
   Time end = Common::getTime();
   CommandsStatistics statistics(commands, begin, end, arg.threadsNumber - 1);
   statistics.printGeneralStatistics();
+  statistics.exportSVG(arg.outputDir + "/statistics.svg"); // todobenoit not portable
   MPI_Finalize();
   return 0;
 }
