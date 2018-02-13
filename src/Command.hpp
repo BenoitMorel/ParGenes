@@ -36,7 +36,7 @@ public:
   CommandsContainer(const string &commandsFilename);
 
   CommandPtr getCommand(string id) const;
-  const vector<CommandPtr> &getCommands() {return _commands;}
+  vector<CommandPtr> &getCommands() {return _commands;}
 private:
   void addCommand(CommandPtr command);
 
@@ -51,10 +51,19 @@ public:
       const string &outputDir);
   void run();
 private:
-  void checkCommandsFinished();
+  
+  CommandPtr getPendingCommand() {return *_commandIterator;}
+  bool isCommandsEmpty() {return _commandIterator == _commandsContainer.getCommands().end();}
   const string &getOutputDir() const {return _outputDir;}
   
+
+  void executePendingCommand();
+  void checkCommandsFinished();
+  void onCommandFinished(CommandPtr command);
+  
   CommandsContainer &_commandsContainer;
+  vector<CommandPtr>::iterator _commandIterator;
+  
   unsigned int _availableThreads;
   string _outputDir;
   unsigned int _threadsInUse;

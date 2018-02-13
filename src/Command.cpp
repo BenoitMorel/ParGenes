@@ -110,6 +110,7 @@ CommandsRunner::CommandsRunner(CommandsContainer &commandsContainer,
       unsigned int availableThreads,
       const string &outputDir):
   _commandsContainer(commandsContainer),
+  _commandIterator(commandsContainer.getCommands().begin()),
   _availableThreads(availableThreads),
   _outputDir(outputDir),
   _threadsInUse(0),
@@ -120,17 +121,14 @@ CommandsRunner::CommandsRunner(CommandsContainer &commandsContainer,
 
 void CommandsRunner::run() 
 {
-  vector<CommandPtr> commands = _commandsContainer.getCommands();
   Timer timer;
   unsigned int nextCommandIndex = 0;
   _threadsInUse = 0;
-  while (_threadsInUse || nextCommandIndex < commands.size()) {
-    if (nextCommandIndex < commands.size()) {
-      auto  nextCommand = commands[nextCommandIndex];
+  while (_threadsInUse || !isCommandsEmpty()) {
+    if (!isCommandsEmpty()) {
+      auto  nextCommand = getPendingCommand();
       if (_threadsInUse + nextCommand->getRanksNumber() <= _availableThreads) {
-        _threadsInUse += nextCommand->getRanksNumber();
-        nextCommand->execute(getOutputDir());
-        nextCommandIndex++;
+        executePendingCommand();
         continue;
       }
     }
@@ -143,6 +141,14 @@ void CommandsRunner::run()
   double totalCumulated = double(_cumulatedTime) / double(_availableThreads);
   cout << "Load balance ratio: " << totalCumulated / totalElapsed << endl;
 }
+  
+void CommandsRunner::executePendingCommand()
+{
+  auto command = getPendingCommand();
+  command->execute(getOutputDir());
+  _threadsInUse += command->getRanksNumber();
+  _commandIterator++;
+}
 
 void CommandsRunner::checkCommandsFinished()
 {
@@ -151,14 +157,19 @@ void CommandsRunner::checkCommandsFinished()
   for (auto file: files) {
     CommandPtr command = _commandsContainer.getCommand(file);
     if (command) {
-      string fullpath = _outputDir + "/" + file; // todobenoit not portable
-      MultiRaxmlCommon::removefile(fullpath);
-      _threadsInUse -= command->getRanksNumber();
-      cout << "Command " << file << " finished after ";
-      cout << command->getElapsedMs() << "ms" << endl;
-      _cumulatedTime += command->getElapsedMs();
+      onCommandFinished(command);
     }
   }
 }
 
+void CommandsRunner::onCommandFinished(CommandPtr command)
+{
+  string fullpath = _outputDir + "/" + command->getId(); // todobenoit not portable
+  MultiRaxmlCommon::removefile(fullpath);
+  _threadsInUse -= command->getRanksNumber();
+  cout << "Command " << command->getId() << " finished after ";
+  cout << command->getElapsedMs() << "ms" << endl;
+  _cumulatedTime += command->getElapsedMs();
+
+}
 
