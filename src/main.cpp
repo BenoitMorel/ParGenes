@@ -4,6 +4,9 @@
 #include <string>
 #include <thread> 
 #include <chrono> 
+#include <cstdlib>
+#include <fstream>
+
 
 #include "Command.hpp"
 #include "Common.hpp"
@@ -39,7 +42,21 @@ public:
   unsigned int threadsNumber;
 };
 
-int main(int argc, char** argv) 
+void spawned(int argc, char** argv) 
+{
+  // MPI_Init(&argc, &argv);
+  string str;
+  for (unsigned int i = 3; i < argc; ++i) {
+    str += string(argv[i]) + " ";
+  }
+  str += " > /dev/null ";
+  system(str.c_str());
+  //MPI_Finalize();
+  ofstream out(argv[2]);
+  out.close();
+}
+
+void spawner(int argc, char** argv)
 {
   MPI_Init(&argc, &argv);
   ArgumentsParser arg(argc, argv);
@@ -52,5 +69,18 @@ int main(int argc, char** argv)
   statistics.printGeneralStatistics();
   statistics.exportSVG(arg.outputDir + "/statistics.svg"); // todobenoit not portable
   MPI_Finalize();
+}
+
+int main(int argc, char** argv) 
+{
+  if (argc < 2) {
+    cerr << "Invalid number of parameters. Aborting." << endl;
+    return 1;
+  }
+  if (string(argv[1]) == "--spawned") {
+    spawned(argc, argv);
+  } else {
+    spawner(argc, argv);
+  }
   return 0;
 }

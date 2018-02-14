@@ -38,12 +38,12 @@ string Command::toString() const
   return res;
 }
 
-std::string get_selfpath() {
+// todobenoit not portable
+string getSelfpath() {
   char buff[1000];
   ssize_t len = ::readlink("/proc/self/exe", buff, sizeof(buff)-1);
   buff[len] = '\0';
-  std::string res (buff);
-  return res.substr(0, res.size() - 11);
+  return string(buff);
 }
 
 void Command::execute(const string &outputDir, int startingRank, int ranksNumber)
@@ -55,15 +55,17 @@ void Command::execute(const string &outputDir, int startingRank, int ranksNumber
   _ranksNumber = ranksNumber;
   char **argv = new char*[_command.size() + 3];
   string infoFile = outputDir + "/" + getId(); // todobenoit not portable
-  argv[0] = (char *)infoFile.c_str();
-  unsigned int offset = 1;
+  string spawnedArg = "--spawned";
+  argv[0] = (char *)spawnedArg.c_str();
+  argv[1] = (char *)infoFile.c_str();
+  unsigned int offset = 2;
   for(unsigned int i = 0; i < _command.size(); ++i)
     argv[i + offset] = (char*)_command[i].c_str();
   argv[_command.size() + offset] = 0;
 
   Timer t;
 
-  string wrapperExec =  get_selfpath() + "wrapper"; //todobenoit ugly and not portable
+  string wrapperExec = getSelfpath();
 
 
   MPI_Comm intercomm;

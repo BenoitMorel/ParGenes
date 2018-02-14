@@ -13,7 +13,7 @@ int main(int argc, char** argv)
   for (unsigned int i = 2; i < argc; ++i) {
     str += string(argv[i]) + " ";
   }
-  str += " > plop ";
+  str += " > /dev/null ";
   system(str.c_str());
   //MPI_Finalize();
   ofstream out(argv[1]);
