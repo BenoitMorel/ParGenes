@@ -8,8 +8,9 @@
 #include <mpi.h>
 #include <iterator>
 #include <algorithm>
+#include <unistd.h>
+#include <limits.h>
 
-const string wrapperExec = "/home/benoit/github/multi-raxml/build/wrapper";
 
 
 Command::Command(const string &id, 
@@ -36,7 +37,15 @@ string Command::toString() const
   res += to_string(getEstimatedCost()) + "}";
   return res;
 }
- 
+
+std::string get_selfpath() {
+  char buff[1000];
+  ssize_t len = ::readlink("/proc/self/exe", buff, sizeof(buff)-1);
+  buff[len] = '\0';
+  std::string res (buff);
+  return res.substr(0, res.size() - 11);
+}
+
 void Command::execute(const string &outputDir, int startingRank, int ranksNumber)
 {
   if (ranksNumber == 0) {
@@ -53,6 +62,10 @@ void Command::execute(const string &outputDir, int startingRank, int ranksNumber
   argv[_command.size() + offset] = 0;
 
   Timer t;
+
+  string wrapperExec =  get_selfpath() + "wrapper"; //todobenoit ugly and not portable
+
+
   MPI_Comm intercomm;
   MPI_Comm_spawn((char*)wrapperExec.c_str(), argv, getRanksNumber(),  
           MPI_INFO_NULL, 0, MPI_COMM_SELF, &intercomm,  
