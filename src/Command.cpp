@@ -16,8 +16,9 @@ const string pythonCommand =
 "import subprocess\n"
 "import os\n"
 "commands = sys.argv[2:]\n"
+"commands = [ os.path.expanduser(x) for x in commands]\n"
 "FNULL = open(os.devnull, 'w')\n"
-"subprocess.check_call(commands, stdout=FNULL, stderr=FNULL)\n"
+"subprocess.call(commands, stdout=FNULL, stderr=FNULL)\n"
 "f = open(sys.argv[1], \"w\")\n";
 
 
@@ -81,6 +82,12 @@ void Command::onFinished()
   _endTime = Common::getTime();
 }
 
+static inline void rtrim(std::string &s) {
+  s.erase(std::find_if(s.rbegin(), s.rend(), [](int ch) {
+        return !std::isspace(ch);
+        }).base(), s.end());
+}
+
 // Read a line in a commands file and skip comments
 // discards empty lines
 bool readNextLine(ifstream &is, string &os)
@@ -89,11 +96,14 @@ bool readNextLine(ifstream &is, string &os)
     auto end = os.find("#");
     if (string::npos != end)
       os = os.substr(0, end);
+    rtrim(os);
     if (os.size()) 
       return true;
   }
   return false;
 }
+
+
 
 CommandsContainer::CommandsContainer(const string &commandsFilename)
 {
@@ -103,6 +113,7 @@ CommandsContainer::CommandsContainer(const string &commandsFilename)
   
   string line;
   while (readNextLine(reader, line)) {
+    
     string id;
     int ranks;
     int estimatedCost;
