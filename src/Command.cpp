@@ -9,17 +9,7 @@
 #include <iterator>
 #include <algorithm>
 
-const string python = "python";
-const string pythonUseCommand = "-c";
-const string pythonCommand = 
-"import sys\n"
-"import subprocess\n"
-"import os\n"
-"commands = sys.argv[2:]\n"
-"commands = [ os.path.expanduser(x) for x in commands]\n"
-"FNULL = open(os.devnull, 'w')\n"
-"subprocess.call(commands, stdout=FNULL, stderr=FNULL)\n"
-"f = open(sys.argv[1], \"w\")\n";
+const string wrapperExec = "/home/benoit/github/multi-raxml/build/wrapper";
 
 
 Command::Command(const string &id, 
@@ -47,9 +37,6 @@ string Command::toString() const
   return res;
 }
  
-
-
-
 void Command::execute(const string &outputDir, int startingRank, int ranksNumber)
 {
   if (ranksNumber == 0) {
@@ -59,20 +46,18 @@ void Command::execute(const string &outputDir, int startingRank, int ranksNumber
   _ranksNumber = ranksNumber;
   char **argv = new char*[_command.size() + 3];
   string infoFile = outputDir + "/" + getId(); // todobenoit not portable
-  argv[0] = (char*)pythonUseCommand.c_str();
-  argv[1] = (char*)pythonCommand.c_str();
-  argv[2] = (char*)infoFile.c_str();
-  unsigned int offset = 3;
+  argv[0] = (char *)infoFile.c_str();
+  unsigned int offset = 1;
   for(unsigned int i = 0; i < _command.size(); ++i)
     argv[i + offset] = (char*)_command[i].c_str();
   argv[_command.size() + offset] = 0;
 
-  //Timer t;
+  Timer t;
   MPI_Comm intercomm;
-  MPI_Comm_spawn((char*)python.c_str(), argv, getRanksNumber(),  
+  MPI_Comm_spawn((char*)wrapperExec.c_str(), argv, getRanksNumber(),  
           MPI_INFO_NULL, 0, MPI_COMM_SELF, &intercomm,  
           MPI_ERRCODES_IGNORE);
-  //cout << "submit time " << t.getElapsedMs() << endl;
+  cout << "submit time " << t.getElapsedMs() << endl;
   delete[] argv;
   _beginTime = Common::getTime();
 }

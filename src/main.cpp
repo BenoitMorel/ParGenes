@@ -42,7 +42,6 @@ public:
 int main(int argc, char** argv) 
 {
   MPI_Init(&argc, &argv);
-  
   ArgumentsParser arg(argc, argv);
   Time begin = Common::getTime();
   CommandsContainer commands(arg.commandsFilename);
