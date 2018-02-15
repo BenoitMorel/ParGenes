@@ -47,18 +47,25 @@ public:
  */
 void spawned(int argc, char** argv) 
 {
+  string id = argv[2];
   bool isMPI = !strcmp(argv[3], "mpi");
   if (!isMPI) 
     MPI_Init(&argc, &argv);
-  string str;
+  string command;
   for (unsigned int i = 4; i < argc; ++i) {
-    str += string(argv[i]) + " ";
+    command += string(argv[i]) + " ";
   }
-  str += " > /dev/null ";
-  system(str.c_str());
+  command += " > " +  id + ".spawned.out 2>&1 ";
+  try {
+    system(command.c_str());
+  } catch(...) {
+    ofstream out(id + ".failure");
+    out << ("Command " + id + " failed");
+  }
+  
   if (!isMPI) 
     MPI_Finalize();
-  ofstream out(argv[2]);
+  ofstream out(id);
   out.close();
 }
 
