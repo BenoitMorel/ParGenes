@@ -51,6 +51,7 @@ string getSelfpath() {
 
 void Command::execute(const string &outputDir, int startingRank, int ranksNumber)
 {
+  _finished = false;
   if (ranksNumber == 0) {
     throw MultiRaxmlException("Error in Command::execute: invalid number of ranks ", to_string(ranksNumber));
   }
@@ -83,6 +84,7 @@ void Command::execute(const string &outputDir, int startingRank, int ranksNumber
   
 void Command::onFinished()
 {
+  _finished = true;
   _endTime = Common::getTime();
 }
 
@@ -225,7 +227,6 @@ void CommandsRunner::run()
       }
     }
     checkCommandsFinished();
-    //Common::sleep(10);
   }
 }
 
@@ -265,6 +266,9 @@ void CommandsRunner::onCommandFinished(CommandPtr command)
 {
   string fullpath = _outputDir + "/" + command->getId(); // todobenoit not portable
   Common::removefile(fullpath);
+  if (command->didFinish()) {
+    return; // sometime the file is written several times :(
+  }
   _allocator.freeRanks(command->getStartRank(), command->getRanksNumber());
   cout << "Command " << command->getId() << " finished after ";
   command->onFinished();

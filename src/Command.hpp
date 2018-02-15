@@ -24,7 +24,8 @@ public:
   int getRanksNumber() const {return _ranksNumber;}
   int getEstimatedCost() const {return _estimatedCost;}
   string toString() const;
-  
+  bool didFinish() const {return _finished;}
+
   void execute(const string &outputDir, int startingRank, int ranksNumber);
   void onFinished();
   Time getStartTime() const {return _beginTime;} 
@@ -42,6 +43,7 @@ public:
   int _startRank;
   Time _beginTime;
   Time _endTime;
+  bool _finished;
 };
 
 using CommandPtr = shared_ptr<Command>;
@@ -102,7 +104,7 @@ private:
   
   const unsigned int _availableRanks;
   const string _outputDir;
-  
+
   RanksAllocator _allocator;
   vector<CommandPtr> _commandsVector;
   vector<CommandPtr>::iterator _commandIterator;
