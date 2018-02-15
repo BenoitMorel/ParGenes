@@ -42,16 +42,22 @@ public:
   unsigned int threadsNumber;
 };
 
+/*
+ *  This program is spawned from Command::execute
+ */
 void spawned(int argc, char** argv) 
 {
-  // MPI_Init(&argc, &argv);
+  bool isMPI = !strcmp(argv[3], "mpi");
+  if (!isMPI) 
+    MPI_Init(&argc, &argv);
   string str;
-  for (unsigned int i = 3; i < argc; ++i) {
+  for (unsigned int i = 4; i < argc; ++i) {
     str += string(argv[i]) + " ";
   }
   str += " > /dev/null ";
   system(str.c_str());
-  //MPI_Finalize();
+  if (!isMPI) 
+    MPI_Finalize();
   ofstream out(argv[2]);
   out.close();
 }
@@ -78,8 +84,10 @@ int main(int argc, char** argv)
     return 1;
   }
   if (string(argv[1]) == "--spawned") {
+    // spawned by the initial program
     spawned(argc, argv);
   } else {
+    // initial program
     spawner(argc, argv);
   }
   return 0;

@@ -14,14 +14,16 @@
 
 
 Command::Command(const string &id, 
-    const vector<string> &command,
+    bool isMpiCommand,
     unsigned int ranks,
-    unsigned int estimatedCost):
+    unsigned int estimatedCost,
+    const vector<string> &command):
   _id(id),
   _command(command),
+  _isMpiCommand(isMpiCommand),
   _ranksNumber(ranks),
-  _startRank(0),
-  _estimatedCost(estimatedCost)
+  _estimatedCost(estimatedCost),
+  _startRank(0)
 {
 
 }
@@ -30,6 +32,7 @@ string Command::toString() const
 {
   string res;
   res = getId() + " ";
+  res += string(_isMpiCommand ? "mpi" : "seq") + " ";
   for (auto str: _command) {
     res += str + " ";
   }
@@ -56,9 +59,11 @@ void Command::execute(const string &outputDir, int startingRank, int ranksNumber
   char **argv = new char*[_command.size() + 3];
   string infoFile = outputDir + "/" + getId(); // todobenoit not portable
   string spawnedArg = "--spawned";
+  string isMPIStr = _isMpiCommand ? "mpi" : "nompi";
   argv[0] = (char *)spawnedArg.c_str();
   argv[1] = (char *)infoFile.c_str();
-  unsigned int offset = 2;
+  argv[2] = (char *)isMPIStr.c_str();
+  unsigned int offset = 3;
   for(unsigned int i = 0; i < _command.size(); ++i)
     argv[i + offset] = (char*)_command[i].c_str();
   argv[_command.size() + offset] = 0;
@@ -66,7 +71,6 @@ void Command::execute(const string &outputDir, int startingRank, int ranksNumber
   Timer t;
 
   string wrapperExec = getSelfpath();
-
 
   MPI_Comm intercomm;
   MPI_Comm_spawn((char*)wrapperExec.c_str(), argv, getRanksNumber(),  
@@ -115,21 +119,24 @@ CommandsContainer::CommandsContainer(const string &commandsFilename)
   while (readNextLine(reader, line)) {
     
     string id;
+    string isMPIStr;
     int ranks;
     int estimatedCost;
-    vector<string> commandVector;
     
     istringstream iss(line);
     iss >> id;
+    iss >> isMPIStr;
     iss >> ranks;
     iss >> estimatedCost;
     
+    bool isMPI = (isMPIStr == string("mpi"));
+    vector<string> commandVector;
     while (!iss.eof()) {
       string plop;
       iss >> plop;
       commandVector.push_back(plop);
     }
-    CommandPtr command(new Command(id, commandVector, ranks, estimatedCost));
+    CommandPtr command(new Command(id, isMPI, ranks, estimatedCost, commandVector));
     addCommand(command);
   }
 }

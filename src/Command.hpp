@@ -13,9 +13,10 @@ using namespace std;
 class Command {
 public:
   Command(const string &id, 
-      const vector<string> &command,
+      bool isMpiCommand,
       unsigned int ranks,
-      unsigned int estimatedCost);
+      unsigned int estimatedCost,
+      const vector<string> &command);
   virtual ~Command() {}
  
   const string &getId() const {return _id;}
@@ -33,9 +34,10 @@ public:
   // initial information
   const string _id;
   const vector<string> _command;
+  bool _isMpiCommand;
   int _ranksNumber;
   int _estimatedCost;
-  
+   
   // execution information
   int _startRank;
   Time _beginTime;
