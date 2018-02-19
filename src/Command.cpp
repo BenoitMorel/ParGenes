@@ -8,8 +8,6 @@
 #include <mpi.h>
 #include <iterator>
 #include <algorithm>
-#include <unistd.h>
-#include <limits.h>
 
 
 
@@ -41,14 +39,6 @@ string Command::toString() const
   return res;
 }
 
-// todobenoit not portable
-string getSelfpath() {
-  char buff[1000];
-  ssize_t len = ::readlink("/proc/self/exe", buff, sizeof(buff)-1);
-  buff[len] = '\0';
-  return string(buff);
-}
-
 void Command::execute(const string &outputDir, int startingRank, int ranksNumber)
 {
   _finished = false;
@@ -59,7 +49,7 @@ void Command::execute(const string &outputDir, int startingRank, int ranksNumber
   _ranksNumber = ranksNumber;
   char **argv = new char*[_command.size() + 3];
   string infoFile = outputDir + "/" + getId(); // todobenoit not portable
-  string spawnedArg = "--spawned";
+  string spawnedArg = "--spawned-wrapper";
   string isMPIStr = _isMpiCommand ? "mpi" : "nompi";
   argv[0] = (char *)spawnedArg.c_str();
   argv[1] = (char *)infoFile.c_str();
@@ -71,7 +61,7 @@ void Command::execute(const string &outputDir, int startingRank, int ranksNumber
 
   Timer t;
 
-  string wrapperExec = getSelfpath();
+  string wrapperExec = Common::getSelfpath();
 
   MPI_Comm intercomm;
   MPI_Comm_spawn((char*)wrapperExec.c_str(), argv, getRanksNumber(),  

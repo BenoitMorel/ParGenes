@@ -15,17 +15,17 @@
 using namespace std;
 
 
-class ArgumentsParser {
+class SchedulerArgumentsParser {
 public:
-  ArgumentsParser(int argc, char** argv):
+  SchedulerArgumentsParser(int argc, char** argv):
     commandsFilename(),
     threadsNumber(1)
   {
-    if (argc != 4) {
+    if (argc != 5) {
       print_help();
       throw MultiRaxmlException("Error: invalid syntax");
     }
-    unsigned int i = 1;
+    unsigned int i = 2;
     commandsFilename = string(argv[i++]);
     outputDir = string(argv[i++]);
     threadsNumber = atoi(argv[i++]);
@@ -45,7 +45,7 @@ public:
 /*
  *  This program is spawned from Command::execute
  */
-void spawned(int argc, char** argv) 
+void main_spawned_wrapper(int argc, char** argv) 
 {
   string id = argv[2];
   bool isMPI = !strcmp(argv[3], "mpi");
@@ -69,10 +69,10 @@ void spawned(int argc, char** argv)
   out.close();
 }
 
-void spawner(int argc, char** argv)
+void main_spawn_scheduler(int argc, char** argv)
 {
   MPI_Init(&argc, &argv);
-  ArgumentsParser arg(argc, argv);
+  SchedulerArgumentsParser arg(argc, argv);
   Time begin = Common::getTime();
   CommandsContainer commands(arg.commandsFilename);
   CommandsRunner runner(commands, arg.threadsNumber - 1, arg.outputDir);
@@ -84,18 +84,34 @@ void spawner(int argc, char** argv)
   MPI_Finalize();
 }
 
+void main_mpirun_scheduler(int argc, char** argv)
+{
+  cout << "not implemented" << endl;
+}
+  
+
+/*
+ * Several mains:
+ * --spawn-scheduler: MPI scheduler that implements the MPI_Comm_spawn approach
+ * --mpirun-scheduler: MPI scheduler that implements the mpirun approach
+ * --spawned-wrapper: spanwed from --spawn_scheduler. Wrapper for the spawned program
+ */
 int main(int argc, char** argv) 
 {
   if (argc < 2) {
     cerr << "Invalid number of parameters. Aborting." << endl;
     return 1;
   }
-  if (string(argv[1]) == "--spawned") {
-    // spawned by the initial program
-    spawned(argc, argv);
+  string arg(argv[1]);
+  if (arg == "--spawn-scheduler") {
+    main_spawn_scheduler(argc, argv);
+  } else if (arg == "--mpirun-scheduler") {
+    main_mpirun_scheduler(argc, argv);
+  } else if (arg == "--spawned-wrapper") {
+    main_spawned_wrapper(argc, argv);
   } else {
-    // initial program
-    spawner(argc, argv);
+    cerr << "Unknown argument " << arg << endl;
+    return 1;
   }
   return 0;
 }

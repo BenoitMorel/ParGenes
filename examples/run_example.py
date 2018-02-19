@@ -15,7 +15,7 @@ if os.path.exists(outputDir):
   shutil.rmtree(outputDir)  
 os.makedirs(outputDir)
 
-commandsStr = "mpirun -np 1 " + binary + " " + commandsFile + " " + outputDir + " " + threads
+commandsStr = "mpirun -np 1 " + binary + " --spawn-scheduler " + commandsFile + " " + outputDir + " " + threads
 commands = commandsStr.split(" ")
 
 

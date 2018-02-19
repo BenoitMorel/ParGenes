@@ -4,6 +4,8 @@
 #include <chrono>
 #include <thread>
 #include <cstdio>
+#include <unistd.h>
+#include <limits.h>
 #include <sys/types.h>
 #include <dirent.h>
 #include <sys/stat.h>
@@ -59,6 +61,15 @@ public:
     return chrono::duration_cast<chrono::milliseconds>
       (end-begin).count();
   }
+
+  // todobenoit not portable
+  static string getSelfpath() {
+    char buff[1000];
+    ssize_t len = ::readlink("/proc/self/exe", buff, sizeof(buff)-1);
+    buff[len] = '\0';
+    return string(buff);
+  }
+
 
 };
 
