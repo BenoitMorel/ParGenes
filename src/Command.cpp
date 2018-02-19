@@ -6,7 +6,6 @@
 #include <sstream>
 #include <iterator>
 #include <algorithm>
-#include "spawn_implem/SpawnImplem.h"
 
 
 Command::Command(const string &id, 
@@ -126,12 +125,13 @@ CommandPtr CommandsContainer::getCommand(string id) const
 }
 
 CommandsRunner::CommandsRunner(const CommandsContainer &commandsContainer,
+      shared_ptr<RanksAllocator> allocator,
       unsigned int availableRanks,
       const string &outputDir):
   _commandsContainer(commandsContainer),
   _availableRanks(availableRanks),
   _outputDir(outputDir),
-  _allocator(new SpawnedRanksAllocator(availableRanks, outputDir)),
+  _allocator(allocator),
   _commandsVector(commandsContainer.getCommands())
 {
   sort(_commandsVector.begin(), _commandsVector.end(), compareCommands);

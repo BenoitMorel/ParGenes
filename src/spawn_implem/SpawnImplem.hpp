@@ -3,6 +3,8 @@
 
 #include "../Command.hpp"
 
+void main_spawned_wrapper(int argc, char** argv); 
+
 /*
  *  This allocator assumes that each request do
  *  not ask more ranks than the previous one and

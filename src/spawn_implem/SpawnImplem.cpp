@@ -1,6 +1,32 @@
-#include "SpawnImplem.h"
+#include "SpawnImplem.hpp"
 #include <mpi.h>
 #include <iostream>
+
+// spawned from SpawnInstance::execute
+void main_spawned_wrapper(int argc, char** argv) 
+{
+  string id = argv[2];
+  bool isMPI = !strcmp(argv[3], "mpi");
+  if (!isMPI) 
+    MPI_Init(&argc, &argv);
+  string command;
+  for (unsigned int i = 4; i < argc; ++i) {
+    command += string(argv[i]) + " ";
+  }
+  command += " > " +  id + ".spawned.out 2>&1 ";
+  try {
+    system(command.c_str());
+  } catch(...) {
+    ofstream out(id + ".failure");
+    out << ("Command " + id + " failed");
+  }
+  
+  if (!isMPI) 
+    MPI_Finalize();
+  ofstream out(id);
+  out.close();
+}
+
 
 SpawnedRanksAllocator::SpawnedRanksAllocator(int availableRanks,
     const string &outputDir):

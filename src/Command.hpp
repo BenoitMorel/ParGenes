@@ -86,6 +86,7 @@ public:
 class CommandsRunner {
 public:
   CommandsRunner(const CommandsContainer &commandsContainer,
+      shared_ptr<RanksAllocator> allocator,
       unsigned int availableRanks,
       const string &outputDir);
   void run();
