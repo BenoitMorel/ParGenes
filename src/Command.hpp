@@ -51,25 +51,20 @@ private:
 
 class Instance {
 public:
-  Instance(const string &outputDir, 
-      int startingRank, 
-      int ranksNumber,
-      CommandPtr command);
-
-  void execute();
+  Instance(CommandPtr command, int startingRank, int ranksNumber); 
+  virtual void execute() = 0;
+  
   const string &getId() const {return _command->getId();}
   bool didFinish() const {return _finished;}
   void onFinished();
-  void setRanksNumber(int ranksNumber) {_ranksNumber = ranksNumber;}
-  int getRanksNumber() const {return _ranksNumber;}
   Time getStartTime() const {return _beginTime;} 
   int getElapsedMs() const {return Common::getElapsedMs(_beginTime, _endTime);}
-  int getStartRank() const {return _startingRank;} 
-private:
-  string _outputDir;
+  int getStartingRank() const {return _startingRank;} 
+  int getRanksNumber() const {return _ranksNumber;}
+protected:
+  CommandPtr _command;
   int _startingRank;
   int _ranksNumber;
-  CommandPtr _command;
   Time _beginTime;
   Time _endTime;
   bool _finished;
@@ -77,24 +72,14 @@ private:
 using InstancePtr = shared_ptr<Instance>;
 using InstancesHistoric = vector<InstancePtr>;
 
-/*
- *  This allocator assumes that each request do
- *  not ask more ranks than the previous one and
- *  that the requests are powers of 2.
- */
 class RanksAllocator {
 public:
-  // available threads must be a power of 2 - 1
-  RanksAllocator(int availableRanks);
-  bool ranksAvailable();
-  bool allRanksAvailable();
-  void allocateRanks(int requestedRanks, 
-      int &startingThread,
-      int &threadsNumber);
-  void freeRanks(int startingRank, int ranksNumber);
-private:
-  stack<std::pair<int, int> > _slots;
-  int _ranksInUse;
+  virtual ~RanksAllocator() {};
+  virtual bool ranksAvailable() = 0;
+  virtual bool allRanksAvailable() = 0;
+  virtual InstancePtr allocateRanks(int requestedRanks, 
+      CommandPtr command) = 0;
+  virtual void freeRanks(InstancePtr instance) = 0;
 };
 
 class CommandsRunner {
@@ -120,7 +105,7 @@ private:
   const unsigned int _availableRanks;
   const string _outputDir;
 
-  RanksAllocator _allocator;
+  shared_ptr<RanksAllocator> _allocator;
   vector<CommandPtr> _commandsVector;
   vector<CommandPtr>::iterator _commandIterator;
   map<string, InstancePtr> _startedInstances;

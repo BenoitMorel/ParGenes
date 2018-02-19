@@ -5,10 +5,9 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
-#include <mpi.h>
 #include <iterator>
 #include <algorithm>
-
+#include "spawn_implem/SpawnImplem.h"
 
 
 Command::Command(const string &id, 
@@ -22,7 +21,6 @@ Command::Command(const string &id,
   _ranksNumber(ranks),
   _estimatedCost(estimatedCost)
 {
-
 }
 
 string Command::toString() const 
@@ -38,50 +36,18 @@ string Command::toString() const
   return res;
 }
   
-Instance::Instance(const string &outputDir, 
-  int startingRank, 
-  int ranksNumber,
-  CommandPtr command):
-  _outputDir(outputDir),
+  
+Instance::Instance(CommandPtr command,
+    int startingRank,
+    int ranksNumber):
+  _command(command),
   _startingRank(startingRank),
   _ranksNumber(ranksNumber),
-  _command(command)
+  _finished(false)
 {
-
-}
-
-void Instance::execute()
-{
-  _finished = false;
-  if (_ranksNumber == 0) {
-    throw MultiRaxmlException("Error in Command::execute: invalid number of ranks ", to_string(_ranksNumber));
-  }
-  const vector<string> &args = _command->getArgs();
-  char **argv = new char*[args.size() + 3];
-  string infoFile = _outputDir + "/" + getId(); // todobenoit not portable
-  string spawnedArg = "--spawned-wrapper";
-  string isMPIStr = _command->isMpiCommand() ? "mpi" : "nompi";
-  argv[0] = (char *)spawnedArg.c_str();
-  argv[1] = (char *)infoFile.c_str();
-  argv[2] = (char *)isMPIStr.c_str();
-  unsigned int offset = 3;
-  for(unsigned int i = 0; i < args.size(); ++i)
-    argv[i + offset] = (char*)args[i].c_str();
-  argv[args.size() + offset] = 0;
-
-  Timer t;
-
-  string wrapperExec = Common::getSelfpath();
-
-  MPI_Comm intercomm;
-  MPI_Comm_spawn((char*)wrapperExec.c_str(), argv, getRanksNumber(),  
-          MPI_INFO_NULL, 0, MPI_COMM_SELF, &intercomm,  
-          MPI_ERRCODES_IGNORE);
-  cout << "submit time " << t.getElapsedMs() << endl;
-  delete[] argv;
-  _beginTime = Common::getTime();
-}
   
+}
+
 void Instance::onFinished()
 {
   _finished = true;
@@ -158,56 +124,13 @@ CommandPtr CommandsContainer::getCommand(string id) const
     return res->second;
 }
 
-RanksAllocator::RanksAllocator(int availableRanks):
-  _ranksInUse(0)
-{
-  _slots.push(std::pair<int,int>(1, availableRanks));
-}
-
-
-bool RanksAllocator::ranksAvailable()
-{
-  return !_slots.empty();
-}
- 
-bool RanksAllocator::allRanksAvailable()
-{
-  return _ranksInUse == 0;
-}
- 
-void RanksAllocator::allocateRanks(int requestedRanks, 
-      int &startingRank,
-      int &threadsNumber)
-{
-  std::pair<int, int> result = _slots.top();
-  _slots.pop();
-  startingRank = result.first;
-  threadsNumber = requestedRanks; 
-  // border case around the first rank
-  if (result.first == 1 && requestedRanks != 1) {
-    threadsNumber -= 1; 
-  }
-  if (result.second > threadsNumber) {
-    result.first += threadsNumber;
-    result.second -= threadsNumber;
-    _slots.push(result);
-  }
-  _ranksInUse += threadsNumber;
-}
-  
-void RanksAllocator::freeRanks(int startingRank, int ranksNumber)
-{
-  _ranksInUse -= ranksNumber;
-  _slots.push(std::pair<int,int>(startingRank, ranksNumber));
-}
-
 CommandsRunner::CommandsRunner(const CommandsContainer &commandsContainer,
       unsigned int availableRanks,
       const string &outputDir):
   _commandsContainer(commandsContainer),
   _availableRanks(availableRanks),
   _outputDir(outputDir),
-  _allocator(availableRanks),
+  _allocator(new SpawnedRanksAllocator(availableRanks, outputDir)),
   _commandsVector(commandsContainer.getCommands())
 {
   sort(_commandsVector.begin(), _commandsVector.end(), compareCommands);
@@ -218,10 +141,10 @@ CommandsRunner::CommandsRunner(const CommandsContainer &commandsContainer,
 void CommandsRunner::run() 
 {
   Timer timer;
-  while (!_allocator.allRanksAvailable() || !isCommandsEmpty()) {
+  while (!_allocator->allRanksAvailable() || !isCommandsEmpty()) {
     if (!isCommandsEmpty()) {
       auto  nextCommand = getPendingCommand();
-      if (_allocator.ranksAvailable()) {
+      if (_allocator->ranksAvailable()) {
         executePendingCommand();
         continue;
       }
@@ -242,11 +165,10 @@ bool CommandsRunner::compareCommands(CommandPtr c1, CommandPtr c2)
 void CommandsRunner::executePendingCommand()
 {
   auto command = getPendingCommand();
-  int startingRank;
-  int allocatedRanks;
-  _allocator.allocateRanks(command->getRanksNumber(), startingRank, allocatedRanks);
-  cout << "Executing command " << command->toString() << " on ranks [" << startingRank << ":" <<  startingRank + allocatedRanks - 1 << "]"  << endl;
-  InstancePtr instance(new Instance(getOutputDir(), startingRank, allocatedRanks, command));
+  InstancePtr instance = _allocator->allocateRanks(command->getRanksNumber(), command);
+  cout << "Executing command " << command->toString() << " on ranks [" 
+    << instance->getStartingRank() + instance->getRanksNumber() - 1 
+    << "]"  << endl;
   instance->execute();
   _startedInstances[instance->getId()] = instance;
   _historic.push_back(instance);
@@ -272,7 +194,7 @@ void CommandsRunner::onInstanceFinished(InstancePtr instance)
   if (instance->didFinish()) {
     return; // sometime the file is written several times :(
   }
-  _allocator.freeRanks(instance->getStartRank(), instance->getRanksNumber());
+  _allocator->freeRanks(instance);
   cout << "Command " << instance->getId() << " finished after ";
   instance->onFinished();
   cout << instance->getElapsedMs() << "ms" << endl;
@@ -338,7 +260,7 @@ void RunStatistics::exportSVG(const string &svgfile)
   os << "  </svg>" << endl;
 
   for (auto instance: _historic) {
-    os << "  <svg x=\"" << ratioWidth * instance->getStartRank()
+    os << "  <svg x=\"" << ratioWidth * instance->getStartingRank()
        << "\" y=\"" << ratioHeight * Common::getElapsedMs(_begin, instance->getStartTime()) << "\" "
        << "width=\"" << ratioWidth * instance->getRanksNumber() << "\" " 
        << "height=\""  << ratioHeight * instance->getElapsedMs() << "\" >" << endl;
