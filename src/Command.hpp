@@ -60,6 +60,7 @@ public:
   Time getStartTime() const {return _beginTime;} 
   int getElapsedMs() const {return Common::getElapsedMs(_beginTime, _endTime);}
   int getStartingRank() const {return _startingRank;} 
+  int getRanksNumber() const {return _ranksNumber;} 
 protected:
   CommandPtr _command;
   int _startingRank;
@@ -79,6 +80,7 @@ public:
   virtual InstancePtr allocateRanks(int requestedRanks, 
       CommandPtr command) = 0;
   virtual void freeRanks(InstancePtr instance) = 0;
+  virtual vector<InstancePtr> checkFinishedInstances() = 0;
 };
 
 class CommandsRunner {
@@ -96,8 +98,7 @@ private:
   const string &getOutputDir() const {return _outputDir;}
 
   void executePendingCommand();
-  void checkCommandsFinished();
-  void onInstanceFinished(InstancePtr instance);
+  
   
   const CommandsContainer &_commandsContainer;
   
@@ -107,7 +108,6 @@ private:
   shared_ptr<RanksAllocator> _allocator;
   vector<CommandPtr> _commandsVector;
   vector<CommandPtr>::iterator _commandIterator;
-  map<string, InstancePtr> _startedInstances;
   InstancesHistoric _historic;
 };
 

@@ -51,6 +51,8 @@ void Instance::onFinished()
 {
   _finished = true;
   _endTime = Common::getTime();
+  cout << "Instance " << getId() << " finished after ";
+  cout << getElapsedMs() << "ms" << endl;
 }
 
 static inline void rtrim(std::string &s) {
@@ -148,9 +150,14 @@ void CommandsRunner::run()
         continue;
       }
     }
-    checkCommandsFinished();
+    vector<InstancePtr> finishedInstances = _allocator->checkFinishedInstances();
+    for (auto instance: finishedInstances) {
+      instance->onFinished();
+     _allocator->freeRanks(instance);
+    }
   }
 }
+
 
 bool CommandsRunner::compareCommands(CommandPtr c1, CommandPtr c2)
 {
@@ -169,35 +176,10 @@ void CommandsRunner::executePendingCommand()
     << instance->getStartingRank() + instance->getRanksNumber() - 1 
     << "]"  << endl;
   instance->execute();
-  _startedInstances[instance->getId()] = instance;
   _historic.push_back(instance);
   _commandIterator++;
 }
 
-void CommandsRunner::checkCommandsFinished()
-{
-  vector<string> files;
-  Common::readDirectory(_outputDir, files);
-  for (auto file: files) {
-    auto instance = _startedInstances.find(file);
-    if (instance != _startedInstances.end()) {
-      onInstanceFinished(instance->second);
-    }
-  }
-}
-
-void CommandsRunner::onInstanceFinished(InstancePtr instance)
-{
-  string fullpath = _outputDir + "/" + instance->getId(); // todobenoit not portable
-  Common::removefile(fullpath);
-  if (instance->didFinish()) {
-    return; // sometime the file is written several times :(
-  }
-  _allocator->freeRanks(instance);
-  cout << "Command " << instance->getId() << " finished after ";
-  instance->onFinished();
-  cout << instance->getElapsedMs() << "ms" << endl;
-}
 
 RunStatistics::RunStatistics(const InstancesHistoric &historic,
     Time begin,

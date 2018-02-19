@@ -38,10 +38,15 @@ InstancePtr SpawnedRanksAllocator::allocateRanks(int requestedRanks,
     _slots.push(result);
   }
   _ranksInUse += threadsNumber;
-  return InstancePtr(new SpawnInstance(_outputDir,
+  InstancePtr instance(new SpawnInstance(_outputDir,
     startingRank,
     threadsNumber,
     command));
+  if (_startedInstances.find(instance->getId()) != _startedInstances.end()) {
+    cerr << "Warning: two instances have the same id" << endl;
+  }
+  _startedInstances[instance->getId()] = instance;
+  return instance;
 }
   
 void SpawnedRanksAllocator::freeRanks(InstancePtr instance)
@@ -50,6 +55,25 @@ void SpawnedRanksAllocator::freeRanks(InstancePtr instance)
   _slots.push(std::pair<int,int>(instance->getStartingRank(), 
         instance->getRanksNumber()));
 }
+
+vector<InstancePtr> SpawnedRanksAllocator::checkFinishedInstances()
+{
+  vector<string> files;
+  Common::readDirectory(_outputDir, files);
+  vector<InstancePtr> finished;
+  for (auto file: files) {
+    auto instance = _startedInstances.find(file);
+    if (instance != _startedInstances.end()) {
+      string fullpath = _outputDir + "/" + instance->second->getId(); // todobenoit not portable
+      Common::removefile(fullpath);
+      if (!instance->second->didFinish()) { // sometime the file is written several times
+        finished.push_back(instance->second);
+      }
+    }
+  }
+  return finished;
+}
+
 
 SpawnInstance::SpawnInstance(const string &outputDir, 
   int startingRank, 
@@ -65,7 +89,7 @@ void SpawnInstance::execute()
 {
   _finished = false;
   if (_ranksNumber == 0) {
-    throw MultiRaxmlException("Error in Command::execute: invalid number of ranks ", to_string(_ranksNumber));
+    throw MultiRaxmlException("Error in SpawnInstance::execute: invalid number of ranks ", to_string(_ranksNumber));
   }
   const vector<string> &args = _command->getArgs();
   char **argv = new char*[args.size() + 3];

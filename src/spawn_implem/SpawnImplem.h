@@ -19,10 +19,12 @@ public:
   virtual InstancePtr allocateRanks(int requestedRanks, 
       CommandPtr command);
   virtual void freeRanks(InstancePtr instance);
+  virtual vector<InstancePtr> checkFinishedInstances();
 private:
   stack<std::pair<int, int> > _slots;
   int _ranksInUse;
   string _outputDir;
+  map<string, InstancePtr> _startedInstances;
 };
 
 class SpawnInstance: public Instance {
