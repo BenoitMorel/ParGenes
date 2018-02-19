@@ -16,36 +16,23 @@ public:
       bool isMpiCommand,
       unsigned int ranks,
       unsigned int estimatedCost,
-      const vector<string> &command);
+      const vector<string> &arguments);
   virtual ~Command() {}
  
   const string &getId() const {return _id;}
-  void setRanksNumber(int ranksNumber) {_ranksNumber = ranksNumber;}
-  int getRanksNumber() const {return _ranksNumber;}
   int getEstimatedCost() const {return _estimatedCost;}
+  int getRanksNumber() const {return _ranksNumber;}
+  bool isMpiCommand() const {return _isMpiCommand;}
   string toString() const;
-  bool didFinish() const {return _finished;}
-
-  void execute(const string &outputDir, int startingRank, int ranksNumber);
-  void onFinished();
-  Time getStartTime() const {return _beginTime;} 
-  int getElapsedMs() const {return Common::getElapsedMs(_beginTime, _endTime);}
-  int getStartRank() const {return _startRank;} 
+  const vector<string> &getArgs() const {return _args;}
 public:
   // initial information
   const string _id;
-  const vector<string> _command;
+  const vector<string> _args;
   bool _isMpiCommand;
   int _ranksNumber;
   int _estimatedCost;
-   
-  // execution information
-  int _startRank;
-  Time _beginTime;
-  Time _endTime;
-  bool _finished;
 };
-
 using CommandPtr = shared_ptr<Command>;
 
 class CommandsContainer {
@@ -61,6 +48,34 @@ private:
   vector<CommandPtr> _commands;
   map<string, CommandPtr> _dicoCommands;
 };
+
+class Instance {
+public:
+  Instance(const string &outputDir, 
+      int startingRank, 
+      int ranksNumber,
+      CommandPtr command);
+
+  void execute();
+  const string &getId() const {return _command->getId();}
+  bool didFinish() const {return _finished;}
+  void onFinished();
+  void setRanksNumber(int ranksNumber) {_ranksNumber = ranksNumber;}
+  int getRanksNumber() const {return _ranksNumber;}
+  Time getStartTime() const {return _beginTime;} 
+  int getElapsedMs() const {return Common::getElapsedMs(_beginTime, _endTime);}
+  int getStartRank() const {return _startingRank;} 
+private:
+  string _outputDir;
+  int _startingRank;
+  int _ranksNumber;
+  CommandPtr _command;
+  Time _beginTime;
+  Time _endTime;
+  bool _finished;
+};
+using InstancePtr = shared_ptr<Instance>;
+using InstancesHistoric = vector<InstancePtr>;
 
 /*
  *  This allocator assumes that each request do
@@ -88,17 +103,17 @@ public:
       unsigned int availableRanks,
       const string &outputDir);
   void run();
+  const InstancesHistoric &getHistoric() const {return _historic;} 
 private:
   
   static bool compareCommands(CommandPtr c1, CommandPtr c2);
   CommandPtr getPendingCommand() {return *_commandIterator;}
   bool isCommandsEmpty() {return _commandIterator == _commandsVector.end();}
   const string &getOutputDir() const {return _outputDir;}
-  
 
   void executePendingCommand();
   void checkCommandsFinished();
-  void onCommandFinished(CommandPtr command);
+  void onInstanceFinished(InstancePtr instance);
   
   const CommandsContainer &_commandsContainer;
   
@@ -108,18 +123,20 @@ private:
   RanksAllocator _allocator;
   vector<CommandPtr> _commandsVector;
   vector<CommandPtr>::iterator _commandIterator;
+  map<string, InstancePtr> _startedInstances;
+  InstancesHistoric _historic;
 };
 
-class CommandsStatistics {
+class RunStatistics {
 public:
-  CommandsStatistics(const CommandsContainer &commands, 
+  RunStatistics(const InstancesHistoric &historic, 
       Time begin, 
       Time end,
       int availableRanks);
   void printGeneralStatistics();
   void exportSVG(const string &svgfile);
 private:
-  const CommandsContainer &_commands;
+  const InstancesHistoric &_historic;
   Time _begin;
   Time _end;
   int _availableRanks;

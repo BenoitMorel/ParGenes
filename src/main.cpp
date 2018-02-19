@@ -78,7 +78,7 @@ void main_spawn_scheduler(int argc, char** argv)
   CommandsRunner runner(commands, arg.threadsNumber - 1, arg.outputDir);
   runner.run(); 
   Time end = Common::getTime();
-  CommandsStatistics statistics(commands, begin, end, arg.threadsNumber - 1);
+  RunStatistics statistics(runner.getHistoric(), begin, end, arg.threadsNumber - 1);
   statistics.printGeneralStatistics();
   statistics.exportSVG(arg.outputDir + "/statistics.svg"); // todobenoit not portable
   MPI_Finalize();
