@@ -3,7 +3,6 @@
 #include "Command.hpp"
 #include "Common.hpp"
 #include <iostream>
-#include <fstream>
 #include <sstream>
 #include <iterator>
 #include <algorithm>
@@ -229,46 +228,18 @@ void RunStatistics::printGeneralStatistics()
   cout << "Load balance ratio: " << ratio << endl;
 }
 
-string get_random_hex()
-{
-  static const char *buff = "0123456789abcdef";
-  char res[8];
-  res[0] = '#';
-  res[7] = 0;
-  for (int i = 0; i < 6; ++i) {
-    res[i+1] = buff[rand() % 16];
-  }
-  return string(res);
-}
 
 void RunStatistics::exportSVG(const string &svgfile) 
 {
   cout << "Saving svg output in " << svgfile << endl;
-  ofstream os(svgfile, std::ofstream::out);
-  if (!os) {
-    cerr << "Warning: cannot open  " << svgfile << ". Skipping svg export." << endl;
-    return; 
-  }
   int totalWidth = _availableRanks + 1;
   int totalHeight = Common::getElapsedMs(_begin, _end);
   double ratioWidth = 500.0 / double(totalWidth);
   double ratioHeight = 500.0 / double(totalHeight);
-   
-  os << "<svg  xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\">" << endl;
-  os << "  <svg x=\"0\" y=\"0.0\" width=\"" << ratioWidth << "\" height=\"500.0\" >" << endl;
-  os << "    <rect x=\"0%\" y=\"0%\" height=\"100%\" width=\"100%\" style=\"fill: #ffffff\"/>" << endl;
-  os << "  </svg>" << endl;
-
+  SVGDrawer svg(svgfile, ratioWidth, ratioHeight);
+  svg.writeSquare(0.0, 0.0, 1.0, 500.0 / ratioHeight, "#ffffff");
   for (auto instance: _historic) {
-    os << "  <svg x=\"" << ratioWidth * instance->getStartingRank()
-       << "\" y=\"" << ratioHeight * Common::getElapsedMs(_begin, instance->getStartTime()) << "\" "
-       << "width=\"" << ratioWidth * instance->getRanksNumber() << "\" " 
-       << "height=\""  << ratioHeight * instance->getElapsedMs() << "\" >" << endl;
-    string color = get_random_hex(); 
-    os << "    <rect x=\"0%\" y=\"0%\" height=\"100%\" width=\"100%\" style=\"fill: "
-       << color  <<  "\"/>" << endl;
-    os << "  </svg>" << endl;
+    instance->writeSVGStatistics(svg, _begin);
   }
-  os << "</svg>" << endl;
 }
 

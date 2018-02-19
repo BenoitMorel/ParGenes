@@ -92,4 +92,11 @@ void SpawnInstance::execute()
   delete[] argv;
   _beginTime = Common::getTime();
 }
-
+  
+void SpawnInstance::writeSVGStatistics(SVGDrawer &drawer, const Time &initialTime) 
+{
+  drawer.writeSquare(getStartingRank(),
+    Common::getElapsedMs(initialTime, getStartTime()),
+    getRanksNumber(),
+    getElapsedMs());
+}

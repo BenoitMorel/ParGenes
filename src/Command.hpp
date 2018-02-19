@@ -53,14 +53,13 @@ class Instance {
 public:
   Instance(CommandPtr command, int startingRank, int ranksNumber); 
   virtual void execute() = 0;
-  
+  virtual void writeSVGStatistics(SVGDrawer &drawer, const Time &initialTime) = 0; 
   const string &getId() const {return _command->getId();}
   bool didFinish() const {return _finished;}
   void onFinished();
   Time getStartTime() const {return _beginTime;} 
   int getElapsedMs() const {return Common::getElapsedMs(_beginTime, _endTime);}
   int getStartingRank() const {return _startingRank;} 
-  int getRanksNumber() const {return _ranksNumber;}
 protected:
   CommandPtr _command;
   int _startingRank;

@@ -1,6 +1,7 @@
 #ifndef _MULTIRAXML_COMMON_HPP_
 #define _MULTIRAXML_COMMON_HPP_
 
+#include <fstream>
 #include <chrono>
 #include <thread>
 #include <cstdio>
@@ -10,6 +11,7 @@
 #include <dirent.h>
 #include <sys/stat.h>
 #include <sys/types.h>
+#include <vector>
 using namespace std;
 
 class MultiRaxmlException: public exception {
@@ -90,6 +92,21 @@ public:
   }
 private:
   Time _start;
+};
+
+class SVGDrawer {
+public:
+  SVGDrawer(const string &filepath,
+      double ratioWidth,
+      double ratioHeight);
+  ~SVGDrawer();
+  void writeSquare(double x, double y, double w, double h, const char *color = 0);
+private:
+  void writeHeader();
+  void writeFooter();
+  ofstream _os;
+  double _ratioWidth;
+  double _ratioHeight;
 };
 
 #endif
