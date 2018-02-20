@@ -66,6 +66,9 @@ InstancePtr SpawnedRanksAllocator::allocateRanks(int requestedRanks,
     result.second -= threadsNumber;
     _slots.push(result);
   }
+  if (result.second < threadsNumber) {
+    threadsNumber = result.second;
+  }
   _ranksInUse += threadsNumber;
   InstancePtr instance(new SpawnInstance(_outputDir,
     startingRank,
