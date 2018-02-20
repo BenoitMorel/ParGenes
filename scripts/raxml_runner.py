@@ -59,7 +59,7 @@ def build_first_command(raxml_exec_dir, fasta_files, output_dir, options, ranks)
 def sites_to_maxcores(sites):
   if sites == 0:
     return 0
-  return 1 << ((sites // 500) -1).bit_length()
+  return 1 << ((sites // 500)).bit_length()
 
 def parse_msa_info(log_file):
   result = [0, 0]
@@ -69,6 +69,7 @@ def parse_msa_info(log_file):
       result[0] = int(line.split(" ")[5])
     if "taxa" in line:
       result[1] = int(line.split(" ")[4])
+  print(str(result[0]) + " " + str(sites_to_maxcores(result[0])))
   result[0] = sites_to_maxcores(result[0])
   return result
 
