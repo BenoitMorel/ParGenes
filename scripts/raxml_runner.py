@@ -1,10 +1,12 @@
 import sys
 import os
 import subprocess
+import time
 
 def check_ranks(ranks):
   command = []
   command.append("mpirun")
+  #command.append("-display-allocation")
   command.append("-np")
   command.append(str(ranks))
   command.append("sleep")
@@ -31,6 +33,7 @@ def get_second_run_output(output_dir):
 def run_multiraxml(command_filename, output_dir, ranks):
   command = []
   command.append("mpirun")
+  #command.append("-display-allocation")
   command.append("-np")
   command.append("1")
   command.append(getMultiraxmlExec())
@@ -69,7 +72,6 @@ def parse_msa_info(log_file):
       result[0] = int(line.split(" ")[5])
     if "taxa" in line:
       result[1] = int(line.split(" ")[4])
-  print(str(result[0]) + " " + str(sites_to_maxcores(result[0])))
   result[0] = sites_to_maxcores(result[0])
   return result
 
@@ -114,13 +116,14 @@ if (len(sys.argv) != 6):
     print_help()
     sys.exit(0)
 
-
 raxml_exec_dir = sys.argv[1]
 fasta_dir = sys.argv[2] 
 output_dir = sys.argv[3]
 options_file = sys.argv[4]
 ranks = sys.argv[5]
 
+start = time.time()
 main_raxml_runner(raxml_exec_dir, fasta_dir, output_dir, options_file, ranks)
-
+end = time.time()
+print("TOTAL ELAPSED TIME " + str(end-start) + "s")
 

@@ -1,11 +1,30 @@
 #include "Common.hpp"
 #include<iostream>
 
+#include <stdio.h>
+#include <ftw.h>
+#include <unistd.h>
+
+
+int unlink_cb(const char *fpath, const struct stat *sb, int typeflag, struct FTW *ftwbuf)
+{
+  int rv = remove(fpath);
+  if (rv)
+    perror(fpath);
+  return rv;
+}
+
+void Common::removedir(const std::string &name)
+{
+  nftw(name.c_str(), unlink_cb, 64, FTW_DEPTH | FTW_PHYS);
+}
 
 SVGDrawer::SVGDrawer(const string &filepath,
     double ratioWidth,
     double ratioHeight):
-  _os(filepath)
+  _os(filepath),
+  _ratioWidth(ratioWidth),
+  _ratioHeight(ratioHeight)
 {
   if (!_os) {
     cerr << "Warning: cannot open  " << filepath << ". Skipping svg export." << endl;

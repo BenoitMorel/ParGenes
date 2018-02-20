@@ -26,7 +26,8 @@ void main_spawned_wrapper(int argc, char** argv)
   if (!isMPI) {
     Common::check(MPI_Finalize());
   }
-  ofstream out(id);
+  Common::makedir(id);
+  ofstream out(id + "/" + to_string(Common::getPid()));
   out.close();
 }
 
@@ -97,7 +98,12 @@ vector<InstancePtr> SpawnedRanksAllocator::checkFinishedInstances()
     auto instance = _startedInstances.find(file);
     if (instance != _startedInstances.end()) {
       string fullpath = _outputDir + "/" + instance->second->getId(); // todobenoit not portable
-      Common::removefile(fullpath);
+      vector<string> subfiles;
+      Common::readDirectory(fullpath, subfiles);
+      if (subfiles.size() != instance->second->getRanksNumber()) {
+        continue;
+      }
+      Common::removedir(fullpath);
       if (!instance->second->didFinish()) { // sometime the file is written several times
         finished.push_back(instance->second);
       }
@@ -139,18 +145,22 @@ void SpawnInstance::execute()
   Timer t;
 
   string wrapperExec = Common::getSelfpath();
-
+  int *errors = new int[getRanksNumber()];
   MPI_Comm intercomm;
   try {
     Common::check(MPI_Comm_spawn((char*)wrapperExec.c_str(), 
           argv, getRanksNumber(),  
           MPI_INFO_NULL, 0, MPI_COMM_SELF, &intercomm,  
-          MPI_ERRCODES_IGNORE));
+          errors));
+    for (unsigned int i = 0; i < getRanksNumber(); ++i) {
+      Common::check(errors[i]);
+    }
   } catch (...) {
     cerr << "SOMETHING FAIILED" << endl;
   }
   cout << "submit time " << t.getElapsedMs() << endl;
   delete[] argv;
+  delete errors;
   _beginTime = Common::getTime();
 }
   

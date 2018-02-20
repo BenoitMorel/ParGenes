@@ -42,7 +42,9 @@ public:
     DIR* dirp = opendir(name.c_str());
     struct dirent * dp;
     while ((dp = readdir(dirp)) != NULL) {
-      v.push_back(dp->d_name);
+      if (dp->d_name[0] != '.') {
+        v.push_back(dp->d_name);
+      }
     }
     closedir(dirp);
   }
@@ -55,6 +57,8 @@ public:
   static void removefile(const std::string &name) {
     remove(name.c_str());
   }
+
+  static void removedir(const std::string &name);
 
   static Time getTime() {
     return chrono::system_clock::now();
@@ -77,6 +81,10 @@ public:
     if (mpiError != MPI_SUCCESS) {
       throw MultiRaxmlException("MPI error !");
     }
+  }
+
+  static int getPid() {
+    return getpid();
   }
 };
 
