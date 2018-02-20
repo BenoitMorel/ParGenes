@@ -47,7 +47,11 @@ public:
 
 void main_spawn_scheduler(int argc, char** argv)
 {
-  MPI_Init(&argc, &argv);
+  Common::check(MPI_Init(&argc, &argv));
+  for (int i = 0; i < argc; ++i) {
+    cout << argv[i] << " ";
+  }
+  cout << endl;
   SchedulerArgumentsParser arg(argc, argv);
   Time begin = Common::getTime();
   CommandsContainer commands(arg.commandsFilename);
@@ -58,7 +62,7 @@ void main_spawn_scheduler(int argc, char** argv)
   RunStatistics statistics(runner.getHistoric(), begin, end, arg.threadsNumber - 1);
   statistics.printGeneralStatistics();
   statistics.exportSVG(arg.outputDir + "/statistics.svg"); // todobenoit not portable
-  MPI_Finalize();
+  Common::check(MPI_Finalize());
 }
 
 void main_mpirun_scheduler(int argc, char** argv)

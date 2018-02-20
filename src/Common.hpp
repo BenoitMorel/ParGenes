@@ -12,6 +12,7 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <vector>
+#include <mpi.h>
 using namespace std;
 
 class MultiRaxmlException: public exception {
@@ -72,7 +73,11 @@ public:
     return string(buff);
   }
 
-
+  static void check(int mpiError) {
+    if (mpiError != MPI_SUCCESS) {
+      throw MultiRaxmlException("MPI error !");
+    }
+  }
 };
 
 

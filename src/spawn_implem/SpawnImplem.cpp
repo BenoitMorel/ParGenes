@@ -7,8 +7,9 @@ void main_spawned_wrapper(int argc, char** argv)
 {
   string id = argv[2];
   bool isMPI = !strcmp(argv[3], "mpi");
-  if (!isMPI) 
-    MPI_Init(&argc, &argv);
+  if (!isMPI) { 
+    Common::check(MPI_Init(&argc, &argv));
+  }
   string command;
   for (unsigned int i = 4; i < argc; ++i) {
     command += string(argv[i]) + " ";
@@ -17,12 +18,14 @@ void main_spawned_wrapper(int argc, char** argv)
   try {
     system(command.c_str());
   } catch(...) {
+    cerr << "FAILUUUUUURE" << endl;
     ofstream out(id + ".failure");
     out << ("Command " + id + " failed");
   }
   
-  if (!isMPI) 
-    MPI_Finalize();
+  if (!isMPI) {
+    Common::check(MPI_Finalize());
+  }
   ofstream out(id);
   out.close();
 }
@@ -118,14 +121,14 @@ void SpawnInstance::execute()
     throw MultiRaxmlException("Error in SpawnInstance::execute: invalid number of ranks ", to_string(_ranksNumber));
   }
   const vector<string> &args = _command->getArgs();
-  char **argv = new char*[args.size() + 3];
+  unsigned int offset = 3;
+  char **argv = new char*[args.size() + offset + 1];
   string infoFile = _outputDir + "/" + getId(); // todobenoit not portable
   string spawnedArg = "--spawned-wrapper";
   string isMPIStr = _command->isMpiCommand() ? "mpi" : "nompi";
   argv[0] = (char *)spawnedArg.c_str();
   argv[1] = (char *)infoFile.c_str();
   argv[2] = (char *)isMPIStr.c_str();
-  unsigned int offset = 3;
   for(unsigned int i = 0; i < args.size(); ++i)
     argv[i + offset] = (char*)args[i].c_str();
   argv[args.size() + offset] = 0;
@@ -135,9 +138,14 @@ void SpawnInstance::execute()
   string wrapperExec = Common::getSelfpath();
 
   MPI_Comm intercomm;
-  MPI_Comm_spawn((char*)wrapperExec.c_str(), argv, getRanksNumber(),  
+  try {
+    Common::check(MPI_Comm_spawn((char*)wrapperExec.c_str(), 
+          argv, getRanksNumber(),  
           MPI_INFO_NULL, 0, MPI_COMM_SELF, &intercomm,  
-          MPI_ERRCODES_IGNORE);
+          MPI_ERRCODES_IGNORE));
+  } catch (...) {
+    cerr << "SOMETHING FAIILED" << endl;
+  }
   cout << "submit time " << t.getElapsedMs() << endl;
   delete[] argv;
   _beginTime = Common::getTime();

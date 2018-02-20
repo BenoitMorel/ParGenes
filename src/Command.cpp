@@ -25,7 +25,7 @@ string Command::toString() const
 {
   string res;
   res = getId() + " ";
-  res += string(_isMpiCommand ? "mpi" : "seq") + " ";
+  res += string(_isMpiCommand ? "mpi" : "nompi") + " ";
   for (auto str: _args) {
     res += str + " ";
   }
