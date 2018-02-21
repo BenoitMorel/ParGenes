@@ -51,17 +51,18 @@ def build_first_command(raxml_exec_dir, fasta_files, output_dir, options, ranks)
   fasta_chuncks = []
   fasta_chuncks.append([])
   chunk_size = 10
+  print("Parsing jobs will be grouped in chunks of size " + str(chunk_size))
   for fasta in fasta_files:
     current_chunk = fasta_chuncks[-1]
     if (len(current_chunk) == chunk_size):
       fasta_chuncks.append([])
       current_chunk = fasta_chuncks[-1]
     current_chunk.append(fasta)
-
   with open(first_command_file, "w") as writer:
+    index = 0
     for chunk in fasta_chuncks:
       base = os.path.splitext(os.path.basename(fasta))[0]
-      writer.write("first_" + base + " nompi 1 1 ")
+      writer.write("chunk_" + str(index) + " nompi 1 1 ")
       writer.write("{ ")
       for fasta in chunk:
         base = os.path.splitext(os.path.basename(fasta))[0]
@@ -74,6 +75,7 @@ def build_first_command(raxml_exec_dir, fasta_files, output_dir, options, ranks)
         writer.write("; ")
       writer.write(" } ")
       writer.write("\n")
+      index += 1
     return first_command_file
 
 def sites_to_maxcores(sites):

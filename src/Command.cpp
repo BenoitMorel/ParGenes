@@ -172,7 +172,7 @@ void CommandsRunner::executePendingCommand()
 {
   auto command = getPendingCommand();
   InstancePtr instance = _allocator->allocateRanks(command->getRanksNumber(), command);
-  cout << "Executing command " << command->toString() << " on ranks [" 
+  cout << "Start " << command->getId() << " on [" 
     << instance->getStartingRank()  << ":"
     << instance->getStartingRank() + instance->getRanksNumber() - 1 
     << "]"  << endl;
