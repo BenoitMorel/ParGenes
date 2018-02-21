@@ -62,7 +62,9 @@ void main_spawn_scheduler(int argc, char** argv)
   RunStatistics statistics(runner.getHistoric(), begin, end, arg.threadsNumber - 1);
   statistics.printGeneralStatistics();
   statistics.exportSVG(arg.outputDir + "/statistics.svg"); // todobenoit not portable
+  cout << " before mpi_finalize" << endl;
   Common::check(MPI_Finalize());
+  cout << " after mpi_finalize" << endl;
 }
 
 void main_mpirun_scheduler(int argc, char** argv)

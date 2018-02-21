@@ -102,14 +102,20 @@ def build_second_command(raxml_exec_dir, fasta_files, output_dir, options, ranks
 
 def main_raxml_runner(raxml_exec_dir, fasta_dir, output_dir, options_file, ranks):
   check_ranks(ranks)
-  os.makedirs(output_dir)
+  try:
+    os.makedirs(output_dir)
+  except:
+    pass
   print("Results in " + output_dir)
   fasta_files = [os.path.join(fasta_dir, f) for f in os.listdir(fasta_dir)]
   options = open(options_file, "r").readlines()[0]
   first_command_file = build_first_command(raxml_exec_dir, fasta_files, output_dir, options, ranks)
   run_multiraxml(first_command_file, output_dir, ranks)
+  print("### end of first multiraxml run")
   second_command_file = build_second_command(raxml_exec_dir, fasta_files, output_dir, options, ranks)
+  print("### end of build_second_command")
   run_multiraxml(second_command_file, output_dir, ranks)
+  print("### end of second multiraxml run")
 
 
 if (len(sys.argv) != 6):

@@ -5,16 +5,17 @@
 // spawned from SpawnInstance::execute
 void main_spawned_wrapper(int argc, char** argv) 
 {
-  string id = argv[2];
-  bool isMPI = !strcmp(argv[3], "mpi");
+  string outputDir = argv[2];
+  string id = argv[3];
+  bool isMPI = !strcmp(argv[4], "mpi");
   if (!isMPI) { 
     Common::check(MPI_Init(&argc, &argv));
-  }
+  } 
   string command;
-  for (unsigned int i = 4; i < argc; ++i) {
+  for (unsigned int i = 5; i < argc; ++i) {
     command += string(argv[i]) + " ";
   }
-  command += " > " +  id + ".spawned.out 2>&1 ";
+  command += " > " +  Common::joinPaths(outputDir, "per_job_logs", id)  + ".spawned.out 2>&1 ";
   try {
     system(command.c_str());
   } catch(...) {
@@ -26,8 +27,10 @@ void main_spawned_wrapper(int argc, char** argv)
   if (!isMPI) {
     Common::check(MPI_Finalize());
   }
-  Common::makedir(id);
-  ofstream out(id + "/" + to_string(Common::getPid()));
+  string tempid = Common::joinPaths(outputDir, "temp", id);
+  Common::makedir(tempid);
+  string name = Common::joinPaths(tempid, Common::getProcessIdentifier());
+  ofstream out(name);
   out.close();
 }
 
@@ -38,6 +41,8 @@ SpawnedRanksAllocator::SpawnedRanksAllocator(int availableRanks,
   _outputDir(outputDir)
 {
   _slots.push(std::pair<int,int>(1, availableRanks));
+  Common::makedir(Common::joinPaths(outputDir, "temp"));
+  Common::makedir(Common::joinPaths(outputDir, "per_job_logs"));
 }
 
 
@@ -92,12 +97,13 @@ void SpawnedRanksAllocator::freeRanks(InstancePtr instance)
 vector<InstancePtr> SpawnedRanksAllocator::checkFinishedInstances()
 {
   vector<string> files;
-  Common::readDirectory(_outputDir, files);
+  string temp = Common::joinPaths(_outputDir, "temp");
+  Common::readDirectory(temp, files);
   vector<InstancePtr> finished;
   for (auto file: files) {
     auto instance = _startedInstances.find(file);
     if (instance != _startedInstances.end()) {
-      string fullpath = _outputDir + "/" + instance->second->getId(); // todobenoit not portable
+      string fullpath = Common::joinPaths(temp, instance->second->getId());
       vector<string> subfiles;
       Common::readDirectory(fullpath, subfiles);
       if (subfiles.size() != instance->second->getRanksNumber()) {
@@ -130,14 +136,15 @@ void SpawnInstance::execute()
     throw MultiRaxmlException("Error in SpawnInstance::execute: invalid number of ranks ", to_string(_ranksNumber));
   }
   const vector<string> &args = _command->getArgs();
-  unsigned int offset = 3;
+  unsigned int offset = 4;
   char **argv = new char*[args.size() + offset + 1];
-  string infoFile = _outputDir + "/" + getId(); // todobenoit not portable
+  string outputDir = _outputDir;
   string spawnedArg = "--spawned-wrapper";
   string isMPIStr = _command->isMpiCommand() ? "mpi" : "nompi";
   argv[0] = (char *)spawnedArg.c_str();
-  argv[1] = (char *)infoFile.c_str();
-  argv[2] = (char *)isMPIStr.c_str();
+  argv[1] = (char *)_outputDir.c_str();
+  argv[2] = (char *)getId().c_str();
+  argv[3] = (char *)isMPIStr.c_str();
   for(unsigned int i = 0; i < args.size(); ++i)
     argv[i + offset] = (char*)args[i].c_str();
   argv[args.size() + offset] = 0;

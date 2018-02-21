@@ -53,6 +53,20 @@ public:
   static void makedir(const std::string &name) {
     mkdir(name.c_str(), 0755);
   }
+  
+  static string joinPaths(const std::string &path1, const std::string &path2) {
+    return path1 + "/" + path2;
+  }
+
+  static string joinPaths(const std::string &path1, 
+      const std::string &path2,
+      const std::string &path3) {
+    return joinPaths(joinPaths(path1, path2), path3);
+  }
+
+  static string getParentPath(const std::string &path) {
+    return path.substr(0, path.find_last_of("/\\"));
+  }
 
   static void removefile(const std::string &name) {
     remove(name.c_str());
@@ -85,6 +99,16 @@ public:
 
   static int getPid() {
     return getpid();
+  }
+
+  static string getHost() {
+    char hostname[HOST_NAME_MAX];
+    gethostname(hostname, HOST_NAME_MAX);
+    return string(hostname);
+  }
+
+  static string getProcessIdentifier() {
+    return getHost() + "_" + to_string(getPid()); 
   }
 };
 
