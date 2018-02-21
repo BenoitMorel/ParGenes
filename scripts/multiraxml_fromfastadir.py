@@ -31,6 +31,7 @@ def get_second_run_output(output_dir):
   return os.path.join(output_dir, "second_run")
 
 def run_multiraxml(command_filename, output_dir, ranks):
+  sys.stdout.flush()
   command = []
   command.append("mpirun")
   #command.append("-display-allocation")
@@ -50,7 +51,7 @@ def build_first_command(raxml_exec_dir, fasta_files, output_dir, options, ranks)
   os.makedirs(first_run_output_dir)
   fasta_chuncks = []
   fasta_chuncks.append([])
-  chunk_size = 10
+  chunk_size = 20
   print("Parsing jobs will be grouped in chunks of size " + str(chunk_size))
   for fasta in fasta_files:
     current_chunk = fasta_chuncks[-1]
@@ -71,7 +72,6 @@ def build_first_command(raxml_exec_dir, fasta_files, output_dir, options, ranks)
         writer.write( " --msa " + fasta + " " + options[:-1])
         writer.write(" --prefix " + os.path.join(first_run_output_dir, base))
         writer.write(" --threads 1 ")
-        #writer.write(" || true ")
         writer.write("; ")
       writer.write(" } ")
       writer.write("\n")

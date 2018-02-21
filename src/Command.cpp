@@ -50,8 +50,6 @@ void Instance::onFinished()
 {
   _finished = true;
   _endTime = Common::getTime();
-  cout << "## " << getId() << " finished after ";
-  cout << getElapsedMs() << "ms" << endl;
 }
 
 static inline void rtrim(std::string &s) {
@@ -143,6 +141,7 @@ void CommandsRunner::run()
 {
   Timer globalTimer;
   Timer minuteTimer;
+  int finishedInstancesNumber = 0;
   while (!_allocator->allRanksAvailable() || !isCommandsEmpty()) {
     if (minuteTimer.getElapsedMs() > 1000 * 60) {
       cout << "Runner is still alive after " << globalTimer.getElapsedMs() / 1000 << "s" << endl;
@@ -158,6 +157,9 @@ void CommandsRunner::run()
     vector<InstancePtr> finishedInstances = _allocator->checkFinishedInstances();
     for (auto instance: finishedInstances) {
       instance->onFinished();
+      finishedInstancesNumber++;
+      cout << "End of " << instance->getId() << " after " <<  instance->getElapsedMs() << "ms ";
+      cout << " (" << finishedInstancesNumber << "/" << _commandsVector.size() << ")" << endl;
      _allocator->freeRanks(instance);
     }
   }
