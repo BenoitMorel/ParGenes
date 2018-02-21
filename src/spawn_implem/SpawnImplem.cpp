@@ -149,7 +149,6 @@ void SpawnInstance::execute()
     argv[i + offset] = (char*)args[i].c_str();
   argv[args.size() + offset] = 0;
 
-  Timer t;
 
   string wrapperExec = Common::getSelfpath();
   int *errors = new int[getRanksNumber()];
@@ -165,7 +164,6 @@ void SpawnInstance::execute()
   } catch (...) {
     cerr << "SOMETHING FAIILED" << endl;
   }
-  cout << "submit time " << t.getElapsedMs() << endl;
   delete[] argv;
   delete errors;
   _beginTime = Common::getTime();

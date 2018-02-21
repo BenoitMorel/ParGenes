@@ -50,7 +50,7 @@ void Instance::onFinished()
 {
   _finished = true;
   _endTime = Common::getTime();
-  cout << "Instance " << getId() << " finished after ";
+  cout << "## " << getId() << " finished after ";
   cout << getElapsedMs() << "ms" << endl;
 }
 
@@ -141,8 +141,13 @@ CommandsRunner::CommandsRunner(const CommandsContainer &commandsContainer,
 
 void CommandsRunner::run() 
 {
-  Timer timer;
+  Timer globalTimer;
+  Timer minuteTimer;
   while (!_allocator->allRanksAvailable() || !isCommandsEmpty()) {
+    if (minuteTimer.getElapsedMs() > 1000 * 60) {
+      cout << "Runner is still alive after " << globalTimer.getElapsedMs() / 1000 << "s" << endl;
+      minuteTimer.reset();
+    } 
     if (!isCommandsEmpty()) {
       auto  nextCommand = getPendingCommand();
       if (_allocator->ranksAvailable()) {
@@ -172,11 +177,13 @@ void CommandsRunner::executePendingCommand()
 {
   auto command = getPendingCommand();
   InstancePtr instance = _allocator->allocateRanks(command->getRanksNumber(), command);
-  cout << "Start " << command->getId() << " on [" 
+  Timer t;
+  instance->execute();
+  cout << "## Started " << command->getId() << " on [" 
     << instance->getStartingRank()  << ":"
     << instance->getStartingRank() + instance->getRanksNumber() - 1 
-    << "]"  << endl;
-  instance->execute();
+    << "] "
+    << "(submit time " << t.getElapsedMs()  << "ms)" << endl;
   _historic.push_back(instance);
   _commandIterator++;
 }
