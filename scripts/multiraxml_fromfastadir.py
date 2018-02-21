@@ -48,16 +48,33 @@ def build_first_command(raxml_exec_dir, fasta_files, output_dir, options, ranks)
   raxml = os.path.join(raxml_exec_dir, "raxml-ng")
   first_run_output_dir = get_first_run_output(output_dir)
   os.makedirs(first_run_output_dir)
+  fasta_chuncks = []
+  fasta_chuncks.append([])
+  chunk_size = 10
+  for fasta in fasta_files:
+    current_chunk = fasta_chuncks[-1]
+    if (len(current_chunk) == chunk_size):
+      fasta_chuncks.append([])
+      current_chunk = fasta_chuncks[-1]
+    current_chunk.append(fasta)
+
   with open(first_command_file, "w") as writer:
-    for fasta in fasta_files:
+    for chunk in fasta_chuncks:
       base = os.path.splitext(os.path.basename(fasta))[0]
-      writer.write("first_" + base + " nompi 1 1 " + raxml)
-      writer.write(" --parse ")
-      writer.write( " --msa " + fasta + " " + options[:-1])
-      writer.write(" --prefix " + os.path.join(first_run_output_dir, base))
-      writer.write(" --threads 1 ")
+      writer.write("first_" + base + " nompi 1 1 ")
+      writer.write("{ ")
+      for fasta in chunk:
+        base = os.path.splitext(os.path.basename(fasta))[0]
+        writer.write(raxml)
+        writer.write(" --parse ")
+        writer.write( " --msa " + fasta + " " + options[:-1])
+        writer.write(" --prefix " + os.path.join(first_run_output_dir, base))
+        writer.write(" --threads 1 ")
+        #writer.write(" || true ")
+        writer.write("; ")
+      writer.write(" } ")
       writer.write("\n")
-  return first_command_file
+    return first_command_file
 
 def sites_to_maxcores(sites):
   if sites == 0:
@@ -66,7 +83,11 @@ def sites_to_maxcores(sites):
 
 def parse_msa_info(log_file):
   result = [0, 0]
-  lines = open(log_file).readlines()
+  try:
+    lines = open(log_file).readlines()
+  except:
+    print("Cannot find file " + log_file)
+    return result
   for line in lines:
     if "Alignment comprises" in line:
       result[0] = int(line.split(" ")[5])
@@ -89,7 +110,7 @@ def build_second_command(raxml_exec_dir, fasta_files, output_dir, options, ranks
       cores = str(parse_result[0])
       taxa = str(parse_result[1])
       if (cores == "0" or taxa == "0"):
-        print("error with fasta " + fasta + ", skipping")
+        print("warning with fasta " + fasta + ", skipping")
         continue
       writer.write("second_" + base + " mpi ")
       writer.write(cores + " " + taxa + " " + raxml)
