@@ -2,12 +2,20 @@
 #define _MULTIRAXML_MPIRUN_IMPLEM_
 
 #include "../Command.hpp"
+#include <map>
+#include <vector>
 
-/*
- *  This allocator assumes that each request do
- *  not ask more ranks than the previous one and
- *  that the requests are powers of 2.
- */
+void main_mpirun_hostfile(int argc, char** argv);
+
+struct Pinning {
+  Pinning() {}
+  Pinning(int myrank, const string &n): rank(myrank), node(n) {}
+  int rank;
+  string node;  
+};
+
+using Pinnings = vector<Pinning>;
+
 class MpirunRanksAllocator: public RanksAllocator {
 public:
   // available threads must be a power of 2 - 1
@@ -21,12 +29,20 @@ public:
   virtual void freeRanks(InstancePtr instance);
   virtual vector<InstancePtr> checkFinishedInstances();
 private:
+  void computePinning();
   string _outputDir;
-  map<string, InstancePtr> _startedInstances;
+  unsigned int _ranks;
+  map<int, Pinning> _ranksToPinning;
 };
 
 class MpirunInstance: public Instance {
 public:
+  MpirunInstance(CommandPtr command,
+      int startingRank, // todobenoit 
+      int ranksNumber, 
+      const string &outputDir,
+      const Pinnings &pinnings);
+
   virtual ~MpirunInstance() {}
   
   virtual void execute();
@@ -35,6 +51,7 @@ public:
 
 private:
   string _outputDir;
+  Pinnings _pinnings;
 };
 
 

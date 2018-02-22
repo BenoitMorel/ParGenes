@@ -76,7 +76,8 @@ void main_mpirun_scheduler(int argc, char** argv)
  * Several mains:
  * --spawn-scheduler: MPI scheduler that implements the MPI_Comm_spawn approach
  * --mpirun-scheduler: MPI scheduler that implements the mpirun approach
- * --spawned-wrapper: spanwed from --spawn_scheduler. Wrapper for the spawned program
+ * --spawned-wrapper: spawned from --spawn_scheduler. Wrapper for the spawned program
+ * --mpirun-hostfile: spawned with mpirun. Prints a hostfile.
  */
 int main(int argc, char** argv) 
 {
@@ -91,6 +92,8 @@ int main(int argc, char** argv)
     main_mpirun_scheduler(argc, argv);
   } else if (arg == "--spawned-wrapper") {
     main_spawned_wrapper(argc, argv);
+  } else if (arg == "--mpirun-hostfile") {
+    main_mpirun_hostfile(argc, argv);
   } else {
     cerr << "Unknown argument " << arg << endl;
     return 1;
