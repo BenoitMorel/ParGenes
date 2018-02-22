@@ -5,6 +5,7 @@ include_directories(${MPI_INCLUDE_PATH})
 set(CMAKE_BUILD_TYPE Debug)
 
 add_executable(multi-raxml main.cpp 
+  Checkpoint.cpp
   Command.cpp 
   Common.cpp 
   spawn_implem/SpawnImplem.cpp
