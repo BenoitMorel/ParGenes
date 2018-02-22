@@ -2,20 +2,17 @@
 #include "Common.hpp"
 #include <fstream>
 
-void Checkpoint::readCheckpointArgs(int &argc, 
-    char **&argv,
-    const string &outputDir)
+  
+string Checkpoint::readCheckpointArgs(const string &outputDir)
 {
   ifstream is(getCheckpointArgsFile(outputDir));
-  is >> argc;
-  argv = new char*[argc];
-  for (int i = 0; i < argc; ++i) {
+  string res;
+  while (!is.eof()) {
     string str;
     is >> str;
-    argv[i] = new char[str.size() + 1];
-    argv[i][str.size()] = 0;
-    memcpy(argv[i], str.c_str(), str.size());
+    res += str + " ";
   }
+  return res;
 }
 
 void Checkpoint::writeCheckpointArgs(int argc, 
@@ -23,9 +20,9 @@ void Checkpoint::writeCheckpointArgs(int argc,
     const string &outputDir)
 {
   ofstream os(getCheckpointArgsFile(outputDir));
-  os << argc;
-  for (int i = 0; i < argc; ++i) {
-    os << " " << argv[i] << " ";
+  os << Common::getSelfpath();
+  for (int i = 1; i < argc; ++i) {
+    os << " " << argv[i];
   }
 }
   

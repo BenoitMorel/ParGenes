@@ -7,9 +7,7 @@ using namespace std;
 
 class Checkpoint {
 public:
-  static void readCheckpointArgs(int &argc, 
-      char **&argv,
-      const string &outputDir);
+  static string readCheckpointArgs(const string &outputDir);
 
   static void writeCheckpointArgs(int argc, 
       char **argv,

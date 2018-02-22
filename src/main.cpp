@@ -59,7 +59,6 @@ void main_scheduler(int argc, char **argv, SpawnMode mode)
   }
   cout << endl;
   SchedulerArgumentsParser arg(argc, argv);
-  Checkpoint::writeCheckpointArgs(argc, argv, arg.outputDir);
   Time begin = Common::getTime();
   CommandsContainer commands(arg.commandsFilename);
   RanksAllocator * allocatorPtr = 0;
@@ -89,14 +88,22 @@ void main_checkpoint(int argc, char** argv)
     exit(1);
   }
   string outputDir(argv[2]);
-  int newArgc = 0;
-  char ** newArgv = 0;
-  Checkpoint::readCheckpointArgs(newArgc, newArgv, outputDir);
-  _main(newArgc, newArgv);
-  for (unsigned int i = 0; i < newArgc; ++i) {
-    delete[] newArgv[i];
+  string command = Checkpoint::readCheckpointArgs(outputDir);
+  cout << "checkpoint will run :" << endl;
+  cout << command << endl;
+  system(command.c_str());
+}
+
+void main_nonmpi_spawn_scheduler(int argc, char** argv)
+{
+  string command;
+  command += "mpirun -np 1 ";
+  command += Common::getSelfpath();
+  command += " --spawn-scheduler-mpi";
+  for (unsigned int i = 2; i < argc; ++i) {
+    command += " " + string(argv[i]);
   }
-  delete[] newArgv;
+  system(command.c_str());
 }
 
 /*
@@ -115,8 +122,12 @@ int _main(int argc, char** argv)
   }
   string arg(argv[1]);
   if (arg == "--spawn-scheduler") {
+    Checkpoint::writeCheckpointArgs(argc, argv, string(argv[3]));
+    main_nonmpi_spawn_scheduler(argc, argv);
+  } else if (arg == "--spawn-scheduler-mpi") {
     main_scheduler(argc, argv, SM_MPI_COMM_SPAWN);
   } else if (arg == "--mpirun-scheduler") {
+    Checkpoint::writeCheckpointArgs(argc, argv, string(argv[3]));
     main_scheduler(argc, argv, SM_MPIRUN);
   } else if (arg == "--spawned-wrapper") {
     main_spawned_wrapper(argc, argv);
