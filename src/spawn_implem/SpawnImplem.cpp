@@ -7,6 +7,10 @@ void main_spawned_wrapper(int argc, char** argv)
 {
   string outputDir = argv[2];
   string id = argv[3];
+  
+  ofstream osstarted(Common::joinPaths(outputDir, "started", id + "_" + Common::getProcessIdentifier()));
+  osstarted.close();
+
   bool isMPI = !strcmp(argv[4], "mpi");
   if (!isMPI) { 
     Common::check(MPI_Init(&argc, &argv));
@@ -20,10 +24,9 @@ void main_spawned_wrapper(int argc, char** argv)
     system(command.c_str());
   } catch(...) {
     cerr << "FAILUUUUUURE" << endl;
-    ofstream out(id + ".failure");
+    ofstream out(Common::joinPaths(outputDir, "per_job_logs", id) + ".failure");
     out << ("Command " + id + " failed");
-  }
-  
+  } 
   if (!isMPI) {
     Common::check(MPI_Finalize());
   }
@@ -43,6 +46,7 @@ SpawnedRanksAllocator::SpawnedRanksAllocator(int availableRanks,
   _slots.push(std::pair<int,int>(1, availableRanks));
   Common::makedir(Common::joinPaths(outputDir, "temp"));
   Common::makedir(Common::joinPaths(outputDir, "per_job_logs"));
+  Common::makedir(Common::joinPaths(outputDir, "started"));
 }
 
 
@@ -154,10 +158,12 @@ void SpawnInstance::execute()
   int *errors = new int[getRanksNumber()];
   MPI_Comm intercomm;
   try {
+    cout << "Try to start " << getId() << endl;
     Common::check(MPI_Comm_spawn((char*)wrapperExec.c_str(), 
           argv, getRanksNumber(),  
           MPI_INFO_NULL, 0, MPI_COMM_SELF, &intercomm,  
           errors));
+    cout << "Managed to start " << getId() << endl;
     for (unsigned int i = 0; i < getRanksNumber(); ++i) {
       Common::check(errors[i]);
     }
