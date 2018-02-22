@@ -1,6 +1,8 @@
 #include "MpirunImplem.hpp"
 #include <iostream>
 #include <mpi.h>
+#include <sys/types.h>
+#include <sys/wait.h>
 
 using namespace std;
 
@@ -110,6 +112,9 @@ void MpirunRanksAllocator::freeRanks(InstancePtr inst)
 vector<InstancePtr> MpirunRanksAllocator::checkFinishedInstances()
 {
   vector<InstancePtr> finished;
+  while (waitpid(WAIT_ANY, NULL, WNOHANG)) {} // remove defunct processes
+  // todobenoit we could use the waitpid result instead of iterating of runningpids
+  
   for (auto running: _runningPidsToInstance) {
     int pid = running.first;
     if (!Common::isPidAlive(pid)) {
@@ -189,18 +194,14 @@ void MpirunInstance::execute()
 
   string command;
   command += "mpirun -np ";
-  command += getRanksNumber();
+  command += to_string(getRanksNumber());
   const vector<string> &args = _command->getArgs();
   for (auto arg: args) {
     command += string(" ") + arg;
   }
-  command += " > " + Common::joinPaths(_outputDir, getId() + ".out") + " 2>&1 "; 
-  cout << "Executing command " << getId() 
-       << " on nodes " << endl;
-  for (auto pin: _pinnings) {
-    cout << "  " <<  pin.node << endl;
-  }
+  command += " > " + Common::joinPaths(_outputDir, getId() + ".out ") + " 2>&1 "; 
   _pid = forkAndGetPid(command);
+  _allocator.addPid(_pid, this);
   cout << "Command " << getId() << " started with pid " << _pid << endl;
 }
   
