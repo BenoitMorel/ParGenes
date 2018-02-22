@@ -37,6 +37,8 @@ def run_multiraxml(command_filename, output_dir, ranks):
   #command.append("-display-allocation")
   command.append("-np")
   command.append("1")
+  command.append("-oversubscribe")
+  print("OVERSUSCRIBE")
   command.append(getMultiraxmlExec())
   command.append("--spawn-scheduler")
   command.append(command_filename)

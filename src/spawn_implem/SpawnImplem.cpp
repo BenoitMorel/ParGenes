@@ -5,6 +5,7 @@
 // spawned from SpawnInstance::execute
 void main_spawned_wrapper(int argc, char** argv) 
 {
+  Timer t;
   string outputDir = argv[2];
   string id = argv[3];
   
@@ -12,9 +13,14 @@ void main_spawned_wrapper(int argc, char** argv)
   osstarted.close();
 
   bool isMPI = !strcmp(argv[4], "mpi");
+
+  // if the program to spawn does not call MPI_Init
+  // we have to do it here
   if (!isMPI) { 
     Common::check(MPI_Init(&argc, &argv));
-  } 
+  }
+
+  // build and run the command
   string command;
   for (unsigned int i = 5; i < argc; ++i) {
     command += string(argv[i]) + " ";
@@ -30,10 +36,14 @@ void main_spawned_wrapper(int argc, char** argv)
   if (!isMPI) {
     Common::check(MPI_Finalize());
   }
+
+  // write a file to signal the master process that I am  done
+  // (be carefull, several processes like me are called with the same id)
   string tempid = Common::joinPaths(outputDir, "temp", id);
   Common::makedir(tempid);
   string name = Common::joinPaths(tempid, Common::getProcessIdentifier());
   ofstream out(name);
+  out << t.getElapsedMs();
   out.close();
 }
 
@@ -113,10 +123,13 @@ vector<InstancePtr> SpawnedRanksAllocator::checkFinishedInstances()
       if (subfiles.size() != instance->second->getRanksNumber()) {
         continue;
       }
+      ifstream timerFile(Common::joinPaths(fullpath, subfiles[0]));
+      int realElapsedTimeMS = 0;
+      timerFile >> realElapsedTimeMS;
+      timerFile.close();
+      instance->second->setElapsedMs(realElapsedTimeMS);
       Common::removedir(fullpath);
-      if (!instance->second->didFinish()) { // sometime the file is written several times
-        finished.push_back(instance->second);
-      }
+      finished.push_back(instance->second);
     }
   }
   return finished;

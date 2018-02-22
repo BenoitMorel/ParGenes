@@ -44,10 +44,15 @@ public:
   unsigned int threadsNumber;
 };
 
+enum SpawnMode {
+  SM_MPIRUN,
+  SM_MPI_COMM_SPAWN
+};
 
-void main_spawn_scheduler(int argc, char** argv)
+void the_main(int argc, char **argv, SpawnMode mode)
 {
-  Common::check(MPI_Init(&argc, &argv));
+  if (mode == SM_MPI_COMM_SPAWN)
+    Common::check(MPI_Init(&argc, &argv));
   for (int i = 0; i < argc; ++i) {
     cout << argv[i] << " ";
   }
@@ -55,20 +60,34 @@ void main_spawn_scheduler(int argc, char** argv)
   SchedulerArgumentsParser arg(argc, argv);
   Time begin = Common::getTime();
   CommandsContainer commands(arg.commandsFilename);
-  shared_ptr<RanksAllocator> allocator(new SpawnedRanksAllocator(arg.threadsNumber - 1, arg.outputDir));
+  RanksAllocator * allocatorPtr = 0;
+  if (mode == SM_MPI_COMM_SPAWN) {
+    allocatorPtr = new SpawnedRanksAllocator(arg.threadsNumber - 1, 
+        arg.outputDir);
+  } else {
+    allocatorPtr = new MpirunRanksAllocator(arg.threadsNumber - 1, 
+        arg.outputDir);
+  }
+  shared_ptr<RanksAllocator> allocator(allocatorPtr);
   CommandsRunner runner(commands, allocator, arg.threadsNumber - 1, arg.outputDir);
   runner.run(); 
   Time end = Common::getTime();
   RunStatistics statistics(runner.getHistoric(), begin, end, arg.threadsNumber - 1);
   statistics.printGeneralStatistics();
   statistics.exportSVG(arg.outputDir + "/statistics.svg"); // todobenoit not portable
-  Common::check(MPI_Finalize());
+  if (mode == SM_MPI_COMM_SPAWN)
+    Common::check(MPI_Finalize());
   cout << "End of Multiraxml run" << endl;
+}
+
+void main_spawn_scheduler(int argc, char** argv)
+{
+  the_main(argc, argv, SM_MPI_COMM_SPAWN);
 }
 
 void main_mpirun_scheduler(int argc, char** argv)
 {
-  cout << "not implemented" << endl;
+  the_main(argc, argv, SM_MPIRUN);
 }
   
 
@@ -76,7 +95,8 @@ void main_mpirun_scheduler(int argc, char** argv)
  * Several mains:
  * --spawn-scheduler: MPI scheduler that implements the MPI_Comm_spawn approach
  * --mpirun-scheduler: MPI scheduler that implements the mpirun approach
- * --spawned-wrapper: spanwed from --spawn_scheduler. Wrapper for the spawned program
+ * --spawned-wrapper: spawned from --spawn_scheduler. Wrapper for the spawned program
+ * --mpirun-hostfile: spawned with mpirun. Prints a hostfile.
  */
 int main(int argc, char** argv) 
 {
@@ -91,6 +111,8 @@ int main(int argc, char** argv)
     main_mpirun_scheduler(argc, argv);
   } else if (arg == "--spawned-wrapper") {
     main_spawned_wrapper(argc, argv);
+  } else if (arg == "--mpirun-hostfile") {
+    main_mpirun_hostfile(argc, argv);
   } else {
     cerr << "Unknown argument " << arg << endl;
     return 1;
