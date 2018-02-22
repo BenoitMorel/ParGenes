@@ -37,9 +37,7 @@ public:
       CommandPtr command);
 
   virtual ~SpawnInstance() {}
-  
   virtual void execute();
-  
   virtual void writeSVGStatistics(SVGDrawer &drawer, const Time &initialTime); 
 
 private:

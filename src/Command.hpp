@@ -58,15 +58,17 @@ public:
   bool didFinish() const {return _finished;}
   void onFinished();
   Time getStartTime() const {return _beginTime;} 
-  int getElapsedMs() const {return Common::getElapsedMs(_beginTime, _endTime);}
   int getStartingRank() const {return _startingRank;} 
   int getRanksNumber() const {return _ranksNumber;} 
+  void setElapsedMs(int elapsed) {_elapsed = elapsed;}
+  virtual int getElapsedMs() const {return _elapsed;}
 protected:
   CommandPtr _command;
   int _startingRank;
   int _ranksNumber;
   Time _beginTime;
   Time _endTime;
+  int _elapsed;
   bool _finished;
 };
 using InstancePtr = shared_ptr<Instance>;
