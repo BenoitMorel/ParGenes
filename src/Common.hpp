@@ -13,6 +13,8 @@
 #include <sys/types.h>
 #include <vector>
 #include <mpi.h>
+#include <signal.h>  
+
 using namespace std;
 
 class MultiRaxmlException: public exception {
@@ -100,7 +102,10 @@ public:
   static int getPid() {
     return getpid();
   }
-
+  
+  static bool isPidAlive(int pid) {
+    return 0 == kill(pid, 0);  
+  }
   static string getHost() {
     char hostname[HOST_NAME_MAX];
     gethostname(hostname, HOST_NAME_MAX);

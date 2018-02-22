@@ -61,37 +61,66 @@ MpirunRanksAllocator::MpirunRanksAllocator(int availableRanks,
   _ranks(availableRanks)
 {
   computePinning();
+  for (unsigned int i = 0; i < availableRanks; ++i) {
+    _availableRanks.insert(i); 
+  }
 }
 
 
 bool MpirunRanksAllocator::ranksAvailable()
 {
-  cerr << "Not implemented" << endl;
-  return false;
+  return !_availableRanks.empty();
 }
  
 bool MpirunRanksAllocator::allRanksAvailable()
 {
-  cerr << "Not implemented" << endl;
-  return false;
+  return _availableRanks.size() == _ranks;
 }
   
 InstancePtr MpirunRanksAllocator::allocateRanks(int requestedRanks, 
   CommandPtr command)
 {
-  cerr << "Not implemented" << endl;
-  return 0;
+  int allocatedRanks = min(requestedRanks, (int)_availableRanks.size());
+  Pinnings pinnings;
+  auto it = _availableRanks.begin();
+  for (unsigned int i = 0; i < allocatedRanks; ++i) {
+    pinnings.push_back(_ranksToPinning[*it]);
+    _availableRanks.erase(it++);
+  }
+
+  MpirunInstance *instance = new MpirunInstance(command,
+      pinnings[0].rank,
+      allocatedRanks,
+      _outputDir,
+      pinnings,
+      *this);
+  return InstancePtr(instance);
 }
   
-void MpirunRanksAllocator::freeRanks(InstancePtr instance)
+void MpirunRanksAllocator::freeRanks(InstancePtr inst)
 {
-  cerr << "Not implemented" << endl;
+  auto instance = static_pointer_cast<MpirunInstance>(inst);
+  const auto &pinnings = instance->getPinnings();
+  for (auto pinning: pinnings) {
+    _availableRanks.insert(pinning.rank); 
+  }
 }
+
 
 vector<InstancePtr> MpirunRanksAllocator::checkFinishedInstances()
 {
-  cerr << "Not implemented" << endl;
   vector<InstancePtr> finished;
+  for (auto running: _runningPidsToInstance) {
+    int pid = running.first;
+    if (!Common::isPidAlive(pid)) {
+      freeRanks(running.second);
+      finished.push_back(running.second);    
+    }
+  }
+  for (auto finishedInstance: finished) {
+    _runningPidsToInstance.erase(static_pointer_cast<MpirunInstance>(finishedInstance)->getPid());
+  }
+
   return finished;
 }
 
@@ -100,10 +129,12 @@ void MpirunRanksAllocator::computePinning()
   string hostfilePath = Common::joinPaths(_outputDir, "hostfile");
   string commandPrinters = string("mpirun -np ")
     + to_string(_ranks) + string(" ") + Common::getSelfpath()
-    + string ("--mpirun-hostfile ") + string("> ") + hostfilePath;
+    + string (" --mpirun-hostfile ") + string("> ") + hostfilePath;
+  cout << "command printer: " << commandPrinters << endl;
   system(commandPrinters.c_str());
   ifstream hostfileReader(hostfilePath);
   vector<pair<string, int> > nodes;
+  cout << "hostfile saved in " << hostfilePath << endl;
   int currRank  = 0;
   while (!hostfileReader.eof()) {
     string host, temp;
@@ -115,35 +146,65 @@ void MpirunRanksAllocator::computePinning()
     hostfileReader >> temp;
     hostfileReader >> slots;
     for (int i = 0; i < slots; ++i) {
-      cout << "assign rank " << currRank << " to host " << host << endl;
       _ranksToPinning[currRank] = Pinning(currRank, host);
       currRank++;
     }
   }
 }
   
+void fakeDelete(void *) {} // todobenoit this is a horrible hack
+  
+void MpirunRanksAllocator::addPid(int pid, Instance *instance)
+{
+  _runningPidsToInstance[pid] = shared_ptr<Instance>(instance, fakeDelete);
+}
+  
 MpirunInstance::MpirunInstance(CommandPtr command,
   int startingRank, // todobenoit 
   int ranksNumber, 
   const string &outputDir,
-  const Pinnings &pinnings):
+  const Pinnings &pinnings,
+  MpirunRanksAllocator &allocator):
   _outputDir(outputDir),
   _pinnings(pinnings),
+  _allocator(allocator),
   Instance(command, startingRank, ranksNumber)
 {
 }
 
+int forkAndGetPid(const string & command)
+{
+  int pid = fork();
+  if (!pid) {
+    system(command.c_str());
+    exit(0);
+  } else {
+    return pid;
+  }
+}
+
+
 void MpirunInstance::execute()
 {
+
+  string command;
+  command += "mpirun -np ";
+  command += getRanksNumber();
+  const vector<string> &args = _command->getArgs();
+  for (auto arg: args) {
+    command += string(" ") + arg;
+  }
+  command += " > " + Common::joinPaths(_outputDir, getId() + ".out") + " 2>&1 "; 
   cout << "Executing command " << getId() 
        << " on nodes " << endl;
   for (auto pin: _pinnings) {
     cout << "  " <<  pin.node << endl;
   }
+  _pid = forkAndGetPid(command);
+  cout << "Command " << getId() << " started with pid " << _pid << endl;
 }
   
 void MpirunInstance::writeSVGStatistics(SVGDrawer &drawer, const Time &initialTime) 
 {
-  cerr << "Not implemented" << endl;
 }
 

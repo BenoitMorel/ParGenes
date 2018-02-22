@@ -3,6 +3,7 @@
 
 #include "../Command.hpp"
 #include <map>
+#include <set>
 #include <vector>
 
 void main_mpirun_hostfile(int argc, char** argv);
@@ -28,11 +29,15 @@ public:
       CommandPtr command);
   virtual void freeRanks(InstancePtr instance);
   virtual vector<InstancePtr> checkFinishedInstances();
+  void addPid(int pid, Instance *instance);
 private:
   void computePinning();
   string _outputDir;
   unsigned int _ranks;
+
   map<int, Pinning> _ranksToPinning;
+  set<int> _availableRanks; 
+  map<int, InstancePtr> _runningPidsToInstance;
 };
 
 class MpirunInstance: public Instance {
@@ -41,7 +46,8 @@ public:
       int startingRank, // todobenoit 
       int ranksNumber, 
       const string &outputDir,
-      const Pinnings &pinnings);
+      const Pinnings &pinnings,
+      MpirunRanksAllocator &allocator);
 
   virtual ~MpirunInstance() {}
   
@@ -49,9 +55,14 @@ public:
   
   virtual void writeSVGStatistics(SVGDrawer &drawer, const Time &initialTime); 
 
+  const Pinnings &getPinnings() const {return _pinnings;}
+  
+  int getPid() const {return _pid;}
 private:
   string _outputDir;
   Pinnings _pinnings;
+  int _pid;
+  MpirunRanksAllocator &_allocator;
 };
 
 
