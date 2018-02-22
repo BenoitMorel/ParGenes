@@ -22,7 +22,9 @@ def getMultiraxmlExec():
   return os.path.join(repo_root, "build", "multi-raxml")
 
 def print_help():
-  print("python raxml_runner.py raxml_exec_dir fasta_dir output_dir additionnal_options_file")
+  print("python raxml_runner.py implementation raxml_exec_dir fasta_dir output_dir additionnal_options_file")
+  print("implementation: --spawn-scheduler")
+  print("             or --mpirun-scheduler")
 
 def get_first_run_output(output_dir):
   return os.path.join(output_dir, "first_run")
@@ -30,9 +32,12 @@ def get_first_run_output(output_dir):
 def get_second_run_output(output_dir):
   return os.path.join(output_dir, "second_run")
 
-def run_multiraxml(command_filename, output_dir, ranks):
+def run_multiraxml(implementation, command_filename, output_dir, ranks):
   sys.stdout.flush()
   command = []
+  if (implementation not in ["--mpirun-scheduler", "--spawn-scheduler"]):
+    print("ERROR: wrong implementation " + implementation)
+    sys.exit(0)
   command.append("mpirun")
   #command.append("-display-allocation")
   command.append("-np")
@@ -40,7 +45,7 @@ def run_multiraxml(command_filename, output_dir, ranks):
   command.append("-oversubscribe")
   print("OVERSUSCRIBE")
   command.append(getMultiraxmlExec())
-  command.append("--spawn-scheduler")
+  command.append(implementation)
   command.append(command_filename)
   command.append(output_dir)
   command.append(str(ranks))
@@ -125,7 +130,7 @@ def build_second_command(raxml_exec_dir, fasta_files, output_dir, options, ranks
   return second_command_file
 
 
-def main_raxml_runner(raxml_exec_dir, fasta_dir, output_dir, options_file, ranks):
+def main_raxml_runner(implementation, raxml_exec_dir, fasta_dir, output_dir, options_file, ranks):
   check_ranks(ranks)
   try:
     os.makedirs(output_dir)
@@ -135,26 +140,27 @@ def main_raxml_runner(raxml_exec_dir, fasta_dir, output_dir, options_file, ranks
   fasta_files = [os.path.join(fasta_dir, f) for f in os.listdir(fasta_dir)]
   options = open(options_file, "r").readlines()[0]
   first_command_file = build_first_command(raxml_exec_dir, fasta_files, output_dir, options, ranks)
-  run_multiraxml(first_command_file, output_dir, ranks)
+  run_multiraxml(implementation, first_command_file, output_dir, ranks)
   print("### end of first multiraxml run")
   second_command_file = build_second_command(raxml_exec_dir, fasta_files, output_dir, options, ranks)
   print("### end of build_second_command")
-  run_multiraxml(second_command_file, output_dir, ranks)
+  run_multiraxml(implementation, second_command_file, output_dir, ranks)
   print("### end of second multiraxml run")
 
 
-if (len(sys.argv) != 6):
+if (len(sys.argv) != 7):
     print_help()
     sys.exit(0)
 
-raxml_exec_dir = sys.argv[1]
-fasta_dir = sys.argv[2] 
-output_dir = sys.argv[3]
-options_file = sys.argv[4]
-ranks = sys.argv[5]
+implementation = sys.argv[1]
+raxml_exec_dir = sys.argv[2]
+fasta_dir = sys.argv[3] 
+output_dir = sys.argv[4]
+options_file = sys.argv[5]
+ranks = sys.argv[6]
 
 start = time.time()
-main_raxml_runner(raxml_exec_dir, fasta_dir, output_dir, options_file, ranks)
+main_raxml_runner(implementation, raxml_exec_dir, fasta_dir, output_dir, options_file, ranks)
 end = time.time()
 print("TOTAL ELAPSED TIME " + str(end-start) + "s")
 
