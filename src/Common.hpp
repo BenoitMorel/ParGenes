@@ -115,6 +115,10 @@ public:
   static string getProcessIdentifier() {
     return getHost() + "_" + to_string(getPid()); 
   }
+
+  static string getHostfilePath(const string &outputDir) {
+    return joinPaths(outputDir, "hostfile");
+  }
 };
 
 

@@ -3,6 +3,7 @@
 #include <mpi.h>
 #include <sys/types.h>
 #include <sys/wait.h>
+#include <algorithm>
 
 using namespace std;
 
@@ -126,7 +127,7 @@ vector<InstancePtr> MpirunRanksAllocator::checkFinishedInstances()
 
 void MpirunRanksAllocator::computePinning() 
 {
-  string hostfilePath = Common::joinPaths(_outputDir, "hostfile");
+  string hostfilePath = Common::getHostfilePath(_outputDir);
   string commandPrinters = string("mpirun -np ")
     + to_string(_ranks) + string(" ") + Common::getSelfpath()
     + string (" --mpirun-hostfile ") + string("> ") + hostfilePath;
@@ -183,21 +184,48 @@ int forkAndGetPid(const string & command)
   }
 }
 
-
 void MpirunInstance::execute()
 {
+  map<string, int> hosts;
+  for (auto pinning: _pinnings) {
+    auto entry = hosts.find(pinning.host);
+    int value = 0;
+    if (entry != hosts.end()) 
+      value = entry->second;
+    hosts[pinning.host] = value + 1;
+  }
+
+  //todobenoit the sorting is maybe useless (at least with the current mpirun call syntax)
+  vector<pair<int, string> >sortedHosts;
+  for (auto host: hosts) {
+    sortedHosts.push_back(pair<int, string>(host.second, host.first));
+  }
+  sort(sortedHosts.begin(), sortedHosts.end());
+  reverse(sortedHosts.begin(), sortedHosts.end());
+
+  const vector<string> &args = _command->getArgs();
+  string argStr;
+  for (auto arg: args) {
+    argStr += string(" ") + arg;
+  }
 
   string command;
-  command += "mpirun -np ";
-  command += to_string(getRanksNumber());
-  const vector<string> &args = _command->getArgs();
-  for (auto arg: args) {
-    command += string(" ") + arg;
+  command += "mpirun ";
+  command += " -hostfile " + Common::getHostfilePath(_outputDir);
+  for (auto host: sortedHosts) { 
+    command += " -np ";
+    command += to_string(host.first);
+    command += " -host ";
+    command += host.second;
+    command += argStr;
+    command += ":";
   }
+  command[command.size() - 1] = ' '; //remove the last :
   command += " > " + Common::joinPaths(_outputDir, getId() + ".out ") + " 2>&1 "; 
   _pid = forkAndGetPid(command);
   _allocator.addPid(_pid, this);
   cout << "Command " << getId() << " started with pid " << _pid << endl;
+  cout << command << endl;
 }
   
 void MpirunInstance::writeSVGStatistics(SVGDrawer &drawer, const Time &initialTime) 

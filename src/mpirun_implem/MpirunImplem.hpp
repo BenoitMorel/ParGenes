@@ -10,9 +10,9 @@ void main_mpirun_hostfile(int argc, char** argv);
 
 struct Pinning {
   Pinning() {}
-  Pinning(int myrank, const string &n): rank(myrank), node(n) {}
+  Pinning(int myrank, const string &n): rank(myrank), host(n) {}
   int rank;
-  string node;  
+  string host;  
 };
 
 using Pinnings = vector<Pinning>;
