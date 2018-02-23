@@ -112,19 +112,18 @@ void MpirunRanksAllocator::freeRanks(InstancePtr inst)
 vector<InstancePtr> MpirunRanksAllocator::checkFinishedInstances()
 {
   vector<InstancePtr> finished;
-  while (waitpid(WAIT_ANY, NULL, WNOHANG) > 0) {} // remove defunct processes
-  // todobenoit we could use the waitpid result instead of iterating of runningpids
-  
-  for (auto running: _runningPidsToInstance) {
-    int pid = running.first;
-    if (!Common::isPidAlive(pid)) {
-      freeRanks(running.second);
-      finished.push_back(running.second);    
-    }
-  }
-  for (auto finishedInstance: finished) {
-    _runningPidsToInstance.erase(static_pointer_cast<MpirunInstance>(finishedInstance)->getPid());
-  }
+  int pid;
+  while(true) {
+    pid = waitpid(WAIT_ANY, NULL, WNOHANG);
+    if (pid <= 0)
+      break;
+    auto instIt = _runningPidsToInstance.find(pid);
+    if (instIt == _runningPidsToInstance.end())
+      continue;
+    freeRanks(instIt->second);
+    finished.push_back(instIt->second);    
+    _runningPidsToInstance.erase(static_pointer_cast<MpirunInstance>(instIt->second)->getPid());
+  } 
   return finished;
 }
 
