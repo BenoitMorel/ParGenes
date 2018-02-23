@@ -57,7 +57,7 @@ public:
   virtual void writeSVGStatistics(SVGDrawer &drawer, const Time &initialTime) = 0; 
   const string &getId() const {return _command->getId();}
   bool didFinish() const {return _finished;}
-  void onFinished();
+  virtual void onFinished();
   Time getStartTime() const {return _beginTime;} 
   int getStartingRank() const {return _startingRank;} 
   int getRanksNumber() const {return _ranksNumber;} 

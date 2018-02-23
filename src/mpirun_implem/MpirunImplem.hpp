@@ -58,6 +58,8 @@ public:
   const Pinnings &getPinnings() const {return _pinnings;}
   
   int getPid() const {return _pid;}
+
+  virtual void onFinished();
 private:
   string _outputDir;
   Pinnings _pinnings;

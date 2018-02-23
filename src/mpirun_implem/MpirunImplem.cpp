@@ -186,6 +186,7 @@ int forkAndGetPid(const string & command)
 
 void MpirunInstance::execute()
 {
+  _beginTime = Common::getTime();
   map<string, int> hosts;
   for (auto pinning: _pinnings) {
     auto entry = hosts.find(pinning.host);
@@ -232,3 +233,8 @@ void MpirunInstance::writeSVGStatistics(SVGDrawer &drawer, const Time &initialTi
 {
 }
 
+void MpirunInstance::onFinished()
+{
+  Instance::onFinished();
+  setElapsedMs(Common::getElapsedMs(_beginTime, _endTime)); 
+}
