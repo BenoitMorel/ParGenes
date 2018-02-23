@@ -171,6 +171,7 @@ MpirunInstance::MpirunInstance(CommandPtr command,
   _allocator(allocator),
   Instance(command, startingRank, ranksNumber)
 {
+  Common::makedir(Common::joinPaths(_outputDir, "per_job_logs"));
 }
 
 int forkAndGetPid(const string & command)
@@ -222,7 +223,7 @@ void MpirunInstance::execute()
     command += ":";
   }
   command[command.size() - 1] = ' '; //remove the last :
-  command += " > " + Common::joinPaths(_outputDir, getId() + ".out ") + " 2>&1 "; 
+  command += " > " + Common::joinPaths(_outputDir, "per_job_logs", getId() + ".out ") + " 2>&1 "; 
   _pid = forkAndGetPid(command);
   _allocator.addPid(_pid, this);
   cout << "Command " << getId() << " started with pid " << _pid << endl;
