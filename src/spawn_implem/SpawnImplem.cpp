@@ -6,13 +6,16 @@
 void main_spawned_wrapper(int argc, char** argv) 
 {
   Timer t;
-  string outputDir = argv[2];
-  string id = argv[3];
+  ifstream argumentsReader(argv[2]);
+  string id, outputDir;
+  int isMPI;
+  argumentsReader >> id;
+  argumentsReader >> outputDir;
+  argumentsReader >> isMPI;
+
   
   ofstream osstarted(Common::joinPaths(outputDir, "started", id + "_" + Common::getProcessIdentifier()));
   osstarted.close();
-
-  bool isMPI = !strcmp(argv[4], "mpi");
 
   // if the program to spawn does not call MPI_Init
   // we have to do it here
@@ -22,8 +25,11 @@ void main_spawned_wrapper(int argc, char** argv)
 
   // build and run the command
   string command;
-  for (unsigned int i = 5; i < argc; ++i) {
-    command += string(argv[i]) + " ";
+  while (!argumentsReader.eof()) {
+    string tmp;
+    argumentsReader >> tmp;
+    command += tmp + " ";
+    
   }
   command += " > " +  Common::joinPaths(outputDir, "per_job_logs", id)  + ".spawned.out 2>&1 ";
   try {
@@ -57,6 +63,7 @@ SpawnedRanksAllocator::SpawnedRanksAllocator(int availableRanks,
   Common::makedir(Common::joinPaths(outputDir, "temp"));
   Common::makedir(Common::joinPaths(outputDir, "per_job_logs"));
   Common::makedir(Common::joinPaths(outputDir, "started"));
+  Common::makedir(Common::joinPaths(outputDir, "orders"));
 }
 
 
@@ -152,40 +159,31 @@ void SpawnInstance::execute()
   if (_ranksNumber == 0) {
     throw MultiRaxmlException("Error in SpawnInstance::execute: invalid number of ranks ", to_string(_ranksNumber));
   }
-  const vector<string> &args = _command->getArgs();
-  unsigned int offset = 4;
-  char **argv = new char*[args.size() + offset + 1];
-  string outputDir = _outputDir;
-  string spawnedArg = "--spawned-wrapper";
-  string isMPIStr = _command->isMpiCommand() ? "mpi" : "nompi";
-  argv[0] = (char *)spawnedArg.c_str();
-  argv[1] = (char *)_outputDir.c_str();
-  argv[2] = (char *)getId().c_str();
-  argv[3] = (char *)isMPIStr.c_str();
-  for(unsigned int i = 0; i < args.size(); ++i)
-    argv[i + offset] = (char*)args[i].c_str();
-  argv[args.size() + offset] = 0;
 
+  string argumentFilename = Common::joinPaths(_outputDir, "orders", getId());
+  ofstream argumentFile(argumentFilename);
+  argumentFile << getId() << " " << _outputDir << " " << _command->isMpiCommand() << endl;
+  for(auto arg: _command->getArgs()) {
+    argumentFile << arg << " ";
+  }
+  argumentFile.close(); 
+  
+  static string spawnedArg = "--spawned-wrapper";
+  char *argv[3];
+  argv[0] = (char *)spawnedArg.c_str();
+  argv[1] = (char *)argumentFilename.c_str();
+  argv[2] = 0;
 
   string wrapperExec = Common::getSelfpath();
-  int *errors = new int[getRanksNumber()];
   MPI_Comm intercomm;
   try {
-    cout << "Try to start " << getId() << endl;
     Common::check(MPI_Comm_spawn((char*)wrapperExec.c_str(), 
           argv, getRanksNumber(),  
           MPI_INFO_NULL, 0, MPI_COMM_SELF, &intercomm,  
-          errors));
-    cout << "Managed to start " << getId() << endl;
-    for (unsigned int i = 0; i < getRanksNumber(); ++i) {
-      Common::check(errors[i]);
-    }
+          MPI_ERRCODES_IGNORE));
   } catch (...) {
     cerr << "SOMETHING FAIILED" << endl;
   }
-  delete[] argv;
-  delete errors;
-  _beginTime = Common::getTime();
 }
   
 void SpawnInstance::writeSVGStatistics(SVGDrawer &drawer, const Time &initialTime) 
