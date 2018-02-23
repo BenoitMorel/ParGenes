@@ -7,6 +7,7 @@
 #include <map>
 #include <stack>
 #include "Common.hpp"
+#include "Checkpoint.hpp"
 
 using namespace std;
 
@@ -99,9 +100,9 @@ private:
   CommandPtr getPendingCommand() {return *_commandIterator;}
   bool isCommandsEmpty() {return _commandIterator == _commandsVector.end();}
   const string &getOutputDir() const {return _outputDir;}
-
-  void executePendingCommand();
   
+  void executePendingCommand();
+  void onFinishedInstance(InstancePtr instance);
   
   const CommandsContainer &_commandsContainer;
   
@@ -111,7 +112,9 @@ private:
   shared_ptr<RanksAllocator> _allocator;
   vector<CommandPtr> _commandsVector;
   vector<CommandPtr>::iterator _commandIterator;
+  Checkpoint _checkpoint;
   InstancesHistoric _historic;
+  int _finishedInstancesNumber;
 };
 
 class RunStatistics {

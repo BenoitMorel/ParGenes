@@ -130,8 +130,14 @@ CommandsRunner::CommandsRunner(const CommandsContainer &commandsContainer,
   _availableRanks(availableRanks),
   _outputDir(outputDir),
   _allocator(allocator),
-  _commandsVector(commandsContainer.getCommands())
+  _checkpoint(outputDir),
+  _finishedInstancesNumber(0)
 {
+  for (auto command: commandsContainer.getCommands()) {
+    if (!_checkpoint.isDone(command->getId())) {
+      _commandsVector.push_back(command);
+    }
+  }
   sort(_commandsVector.begin(), _commandsVector.end(), compareCommands);
   _commandIterator = _commandsVector.begin();
 
@@ -156,11 +162,7 @@ void CommandsRunner::run()
     }
     vector<InstancePtr> finishedInstances = _allocator->checkFinishedInstances();
     for (auto instance: finishedInstances) {
-      instance->onFinished();
-      finishedInstancesNumber++;
-      cout << "End of " << instance->getId() << " after " <<  instance->getElapsedMs() << "ms ";
-      cout << " (" << finishedInstancesNumber << "/" << _commandsVector.size() << ")" << endl;
-     _allocator->freeRanks(instance);
+      onFinishedInstance(instance);
     }
   }
 }
@@ -190,6 +192,15 @@ void CommandsRunner::executePendingCommand()
   _commandIterator++;
 }
 
+void CommandsRunner::onFinishedInstance(InstancePtr instance)
+{
+  instance->onFinished();
+  _checkpoint.markDone(instance->getId());
+  cout << "End of " << instance->getId() << " after " <<  instance->getElapsedMs() << "ms ";
+  cout << " (" << _finishedInstancesNumber << "/" << _commandsVector.size() << ")" << endl;
+  _finishedInstancesNumber++;
+ _allocator->freeRanks(instance);
+}
 
 RunStatistics::RunStatistics(const InstancesHistoric &historic,
     Time begin,

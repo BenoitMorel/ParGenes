@@ -54,9 +54,6 @@ void main_mpirun_hostfile(int argc, char** argv)
 }
 
 
-
-
-
 MpirunRanksAllocator::MpirunRanksAllocator(int availableRanks,
     const string &outputDir):
   _outputDir(outputDir),
