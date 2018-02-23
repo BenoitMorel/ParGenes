@@ -51,14 +51,13 @@ def run_multiraxml(implementation, command_filename, output_dir, ranks):
   command.append(str(ranks))
   subprocess.check_call(command)
 
-def build_first_command(raxml_exec_dir, fasta_files, output_dir, options, ranks):
+def build_first_command(chunk_size, raxml_exec_dir, fasta_files, output_dir, options, ranks):
   first_command_file = os.path.join(output_dir, "first_command.txt")
   raxml = os.path.join(raxml_exec_dir, "raxml-ng")
   first_run_output_dir = get_first_run_output(output_dir)
   os.makedirs(first_run_output_dir)
   fasta_chuncks = []
   fasta_chuncks.append([])
-  chunk_size = 20
   print("Parsing jobs will be grouped in chunks of size " + str(chunk_size))
   for fasta in fasta_files:
     current_chunk = fasta_chuncks[-1]
@@ -71,7 +70,8 @@ def build_first_command(raxml_exec_dir, fasta_files, output_dir, options, ranks)
     for chunk in fasta_chuncks:
       base = os.path.splitext(os.path.basename(fasta))[0]
       writer.write("chunk_" + str(index) + " nompi 1 1 ")
-      writer.write("{ ")
+      if (chunk_size > 1):
+          writer.write("{ ")
       for fasta in chunk:
         base = os.path.splitext(os.path.basename(fasta))[0]
         writer.write(raxml)
@@ -79,8 +79,10 @@ def build_first_command(raxml_exec_dir, fasta_files, output_dir, options, ranks)
         writer.write( " --msa " + fasta + " " + options[:-1])
         writer.write(" --prefix " + os.path.join(first_run_output_dir, base))
         writer.write(" --threads 1 ")
-        writer.write("; ")
-      writer.write(" } ")
+        if (chunk_size > 1):
+          writer.write("; ")
+      if (chunk_size > 1):
+        writer.write(" } ")
       writer.write("\n")
       index += 1
     return first_command_file
@@ -129,6 +131,11 @@ def build_second_command(raxml_exec_dir, fasta_files, output_dir, options, ranks
       writer.write("\n")
   return second_command_file
 
+def get_chunk_size(implementation, ranks):
+  if (implementation == "--mpirun-scheduler"):
+    return 1
+  return 10
+
 
 def main_raxml_runner(implementation, raxml_exec_dir, fasta_dir, output_dir, options_file, ranks):
   check_ranks(ranks)
@@ -139,7 +146,8 @@ def main_raxml_runner(implementation, raxml_exec_dir, fasta_dir, output_dir, opt
   print("Results in " + output_dir)
   fasta_files = [os.path.join(fasta_dir, f) for f in os.listdir(fasta_dir)]
   options = open(options_file, "r").readlines()[0]
-  first_command_file = build_first_command(raxml_exec_dir, fasta_files, output_dir, options, ranks)
+  chunks_size = get_chunk_size(implementation, ranks)
+  first_command_file = build_first_command(chunks_size, raxml_exec_dir, fasta_files, output_dir, options, ranks)
   run_multiraxml(implementation, first_command_file, output_dir, ranks)
   print("### end of first multiraxml run")
   second_command_file = build_second_command(raxml_exec_dir, fasta_files, output_dir, options, ranks)
