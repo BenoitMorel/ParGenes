@@ -226,8 +226,6 @@ void MpirunInstance::execute()
   command += " > " + Common::joinPaths(_outputDir, "per_job_logs", getId() + ".out ") + " 2>&1 "; 
   _pid = forkAndGetPid(command);
   _allocator.addPid(_pid, this);
-  cout << "Command " << getId() << " started with pid " << _pid << endl;
-  cout << command << endl;
 }
   
 void MpirunInstance::writeSVGStatistics(SVGDrawer &drawer, const Time &initialTime) 
