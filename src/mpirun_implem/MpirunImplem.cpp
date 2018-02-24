@@ -122,6 +122,17 @@ vector<InstancePtr> MpirunRanksAllocator::checkFinishedInstances()
     finished.push_back(instIt->second);    
     _runningPidsToInstance.erase(static_pointer_cast<MpirunInstance>(instIt->second)->getPid());
   } 
+  for (auto running: _runningPidsToInstance) {
+    int pid = running.first;
+    if (!Common::isPidAlive(pid)) {
+      cout << "YOYO killed a lost pid" << endl;
+      freeRanks(running.second);
+      finished.push_back(running.second);    
+    }
+  }
+  for (auto finishedInstance: finished) {
+    _runningPidsToInstance.erase(static_pointer_cast<MpirunInstance>(finishedInstance)->getPid());
+  }
   return finished;
 }
 
@@ -153,11 +164,9 @@ void MpirunRanksAllocator::computePinning()
   }
 }
   
-void fakeDelete(void *) {} // todobenoit this is a horrible hack
-  
-void MpirunRanksAllocator::addPid(int pid, Instance *instance)
+void MpirunRanksAllocator::addPid(int pid, InstancePtr instance)
 {
-  _runningPidsToInstance[pid] = shared_ptr<Instance>(instance, fakeDelete);
+  _runningPidsToInstance[pid] = instance;
 }
   
 MpirunInstance::MpirunInstance(CommandPtr command,
@@ -176,16 +185,26 @@ MpirunInstance::MpirunInstance(CommandPtr command,
 
 int forkAndGetPid(const string & command)
 {
-  int pid = fork();
-  if (!pid) {
-    system(command.c_str());
-    exit(0);
-  } else {
-    return pid;
+  int waitingTime = 1;
+  for (int i = 0; i < 100; ++i) {
+    while (true) {
+      int pid = fork();
+      if (pid == 0) {
+        system(command.c_str());
+        exit(0);
+      } else if (pid == -1) {
+        cout << "Fork failed... will retry after "<< 
+          waitingTime << "ms" << endl;
+        Common::sleep(waitingTime);
+        waitingTime *= 2;
+      } else {
+        return pid;
+      }
+    }
   }
 }
 
-void MpirunInstance::execute()
+void MpirunInstance::execute(InstancePtr self)
 {
   _beginTime = Common::getTime();
   map<string, int> hosts;
@@ -215,6 +234,7 @@ void MpirunInstance::execute()
   command += "mpirun ";
   command += " -hostfile " + Common::getHostfilePath(_outputDir);
   for (auto host: sortedHosts) { 
+    cout << host.second << " -np " << host.first << ": ";
     command += " -np ";
     command += to_string(host.first);
     command += " -host ";
@@ -222,14 +242,22 @@ void MpirunInstance::execute()
     command += argStr;
     command += ":";
   }
+  cout << endl;
   command[command.size() - 1] = ' '; //remove the last :
   command += " > " + Common::joinPaths(_outputDir, "per_job_logs", getId() + ".out ") + " 2>&1 "; 
   _pid = forkAndGetPid(command);
-  _allocator.addPid(_pid, this);
+  _allocator.addPid(_pid, self);
 }
   
 void MpirunInstance::writeSVGStatistics(SVGDrawer &drawer, const Time &initialTime) 
 {
+  string hex = SVGDrawer::getRandomHex();
+  for (auto &pinning: _pinnings) {
+    drawer.writeSquare(pinning.rank,
+      Common::getElapsedMs(initialTime, getStartTime()),
+      1,
+      getElapsedMs(), hex.c_str());
+  }
 }
 
 void MpirunInstance::onFinished()

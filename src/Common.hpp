@@ -147,6 +147,8 @@ public:
       double ratioHeight);
   ~SVGDrawer();
   void writeSquare(double x, double y, double w, double h, const char *color = 0);
+  static string getRandomHex();
+
 private:
   void writeHeader();
   void writeFooter();

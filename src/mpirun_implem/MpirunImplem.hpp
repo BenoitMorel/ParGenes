@@ -29,7 +29,7 @@ public:
       CommandPtr command);
   virtual void freeRanks(InstancePtr instance);
   virtual vector<InstancePtr> checkFinishedInstances();
-  void addPid(int pid, Instance *instance);
+  void addPid(int pid, InstancePtr instance);
 private:
   void computePinning();
   string _outputDir;
@@ -51,7 +51,7 @@ public:
 
   virtual ~MpirunInstance() {}
   
-  virtual void execute();
+  virtual void execute(InstancePtr self);
   
   virtual void writeSVGStatistics(SVGDrawer &drawer, const Time &initialTime); 
 

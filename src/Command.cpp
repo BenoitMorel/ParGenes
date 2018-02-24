@@ -182,7 +182,7 @@ void CommandsRunner::executePendingCommand()
   auto command = getPendingCommand();
   InstancePtr instance = _allocator->allocateRanks(command->getRanksNumber(), command);
   Timer t;
-  instance->execute();
+  instance->execute(instance);
   cout << "## Started " << command->getId() << " on [" 
     << instance->getStartingRank()  << ":"
     << instance->getStartingRank() + instance->getRanksNumber() - 1 
@@ -190,6 +190,9 @@ void CommandsRunner::executePendingCommand()
     << "(submit time " << t.getElapsedMs()  << "ms)" << endl;
   _historic.push_back(instance);
   _commandIterator++;
+  if (isCommandsEmpty()) {
+    cout << "All commands were launched" << endl;
+  }
 }
 
 void CommandsRunner::onFinishedInstance(InstancePtr instance)
@@ -197,8 +200,7 @@ void CommandsRunner::onFinishedInstance(InstancePtr instance)
   instance->onFinished();
   _checkpoint.markDone(instance->getId());
   cout << "End of " << instance->getId() << " after " <<  instance->getElapsedMs() << "ms ";
-  cout << " (" << _finishedInstancesNumber << "/" << _commandsVector.size() << ")" << endl;
-  _finishedInstancesNumber++;
+  cout << " (" << ++_finishedInstancesNumber << "/" << _commandsVector.size() << ")" << endl;
  _allocator->freeRanks(instance);
 }
 

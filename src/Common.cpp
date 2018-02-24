@@ -38,7 +38,7 @@ SVGDrawer::~SVGDrawer()
   writeFooter();
 }
 
-string getRandomHex()
+string SVGDrawer::getRandomHex()
 {
   static const char *buff = "0123456789abcdef";
   char res[8];

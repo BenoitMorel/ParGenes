@@ -53,7 +53,7 @@ private:
 class Instance {
 public:
   Instance(CommandPtr command, int startingRank, int ranksNumber); 
-  virtual void execute() = 0;
+  virtual void execute(shared_ptr<Instance> self) = 0;
   virtual void writeSVGStatistics(SVGDrawer &drawer, const Time &initialTime) = 0; 
   const string &getId() const {return _command->getId();}
   bool didFinish() const {return _finished;}
