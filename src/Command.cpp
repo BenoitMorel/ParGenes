@@ -133,6 +133,8 @@ CommandsRunner::CommandsRunner(const CommandsContainer &commandsContainer,
   _checkpoint(outputDir),
   _finishedInstancesNumber(0)
 {
+  cout << "The master process runs on node " << Common::getHost() 
+       << " and on pid " << Common::getPid() << endl;
   for (auto command: commandsContainer.getCommands()) {
     if (!_checkpoint.isDone(command->getId())) {
       _commandsVector.push_back(command);
@@ -145,6 +147,7 @@ CommandsRunner::CommandsRunner(const CommandsContainer &commandsContainer,
 
 void CommandsRunner::run() 
 {
+  cout << "Runner version with sleep 500ms" << endl;
   Timer globalTimer;
   Timer minuteTimer;
   int finishedInstancesNumber = 0;
@@ -164,6 +167,7 @@ void CommandsRunner::run()
     for (auto instance: finishedInstances) {
       onFinishedInstance(instance);
     }
+    Common::sleep(500);
   }
 }
 
@@ -182,6 +186,7 @@ void CommandsRunner::executePendingCommand()
   auto command = getPendingCommand();
   InstancePtr instance = _allocator->allocateRanks(command->getRanksNumber(), command);
   Timer t;
+  Comment::printPidsNumber();
   instance->execute(instance);
   cout << "## Started " << command->getId() << " on [" 
     << instance->getStartingRank()  << ":"

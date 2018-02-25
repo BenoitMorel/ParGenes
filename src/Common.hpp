@@ -119,6 +119,11 @@ public:
   static string getHostfilePath(const string &outputDir) {
     return joinPaths(outputDir, "hostfile");
   }
+
+  static void printPidsNumber()
+  {
+    system("ps -eaf |  wc -l | awk '{print \"pids \"$1}'");
+  }
 };
 
 
