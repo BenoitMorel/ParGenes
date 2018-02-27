@@ -156,7 +156,7 @@ SpawnInstance::SpawnInstance(const string &outputDir,
 }
 
 
-void SpawnInstance::execute(InstancePtr self)
+bool SpawnInstance::execute(InstancePtr self)
 {
   _beginTime = Common::getTime();
   _finished = false;
@@ -187,7 +187,9 @@ void SpawnInstance::execute(InstancePtr self)
           MPI_ERRCODES_IGNORE));
   } catch (...) {
     cerr << "SOMETHING FAIILED" << endl;
+    return false;
   }
+  return true;
 }
   
 void SpawnInstance::writeSVGStatistics(SVGDrawer &drawer, const Time &initialTime) 

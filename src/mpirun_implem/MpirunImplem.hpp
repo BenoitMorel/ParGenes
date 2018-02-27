@@ -51,7 +51,7 @@ public:
 
   virtual ~MpirunInstance() {}
   
-  virtual void execute(InstancePtr self);
+  virtual bool execute(InstancePtr self);
   
   virtual void writeSVGStatistics(SVGDrawer &drawer, const Time &initialTime); 
 

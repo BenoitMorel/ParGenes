@@ -140,6 +140,7 @@ CommandsRunner::CommandsRunner(const CommandsContainer &commandsContainer,
   }
   sort(_commandsVector.begin(), _commandsVector.end(), compareCommands);
   _commandIterator = _commandsVector.begin();
+  cout << "Remaining commands: " << _commandsVector.size() << endl;
 
 }
 
@@ -155,17 +156,15 @@ void CommandsRunner::run()
       minuteTimer.reset();
     } 
     if (!isCommandsEmpty()) {
-      auto  nextCommand = getPendingCommand();
       if (_allocator->ranksAvailable()) {
-        executePendingCommand();
-        continue;
+        if (executePendingCommand());
+          continue;
       }
     }
     vector<InstancePtr> finishedInstances = _allocator->checkFinishedInstances();
     for (auto instance: finishedInstances) {
       onFinishedInstance(instance);
     }
-    Common::sleep(500);
   }
 }
 
@@ -179,14 +178,18 @@ bool CommandsRunner::compareCommands(CommandPtr c1, CommandPtr c2)
 }
 
   
-void CommandsRunner::executePendingCommand()
+bool CommandsRunner::executePendingCommand()
 {
   auto command = getPendingCommand();
   InstancePtr instance = _allocator->allocateRanks(command->getRanksNumber(), command);
   Timer t;
   Common::printPidsNumber();
   cout << "Try to start " << command->getId() << endl;
-  instance->execute(instance);
+  if (!instance->execute(instance)) {
+    cout << "Failed to start " << command->getId() << ". Will retry later " << endl;
+    _allocator->freeRanks(instance);
+    return false;
+  }
   cout << "## Started " << command->getId() << " on [" 
     << instance->getStartingRank()  << ":"
     << instance->getStartingRank() + instance->getRanksNumber() - 1 
@@ -197,6 +200,7 @@ void CommandsRunner::executePendingCommand()
   if (isCommandsEmpty()) {
     cout << "All commands were launched" << endl;
   }
+  return true;
 }
 
 void CommandsRunner::onFinishedInstance(InstancePtr instance)

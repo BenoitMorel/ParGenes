@@ -114,19 +114,21 @@ void MpirunRanksAllocator::freeRanks(InstancePtr inst)
 vector<InstancePtr> MpirunRanksAllocator::checkFinishedInstances()
 {
   vector<InstancePtr> finished;
-  while(true) {
+  for (auto running: _runningPidsToInstance) {
+    int pid = running.first;
     // todobenoit: only wait for the pids we want to wait for
-    int pid = waitpid(WAIT_ANY, NULL, WNOHANG);
-    if (pid < -1) 
-      cout << "error: wait pid -1" << endl;
-    if (pid <= 0)
-      break;
-    auto instIt = _runningPidsToInstance.find(pid);
-    if (instIt == _runningPidsToInstance.end())
+    int status = 0;
+    int res = waitpid(pid, &status, WNOHANG);
+    if (res < -1) 
+      cout << "error: wait pid " << res << endl;
+    if (res != pid)
       continue;
-    freeRanks(instIt->second);
-    finished.push_back(instIt->second);    
-    _runningPidsToInstance.erase(static_pointer_cast<MpirunInstance>(instIt->second)->getPid());
+    if (!WIFEXITED(status)) {
+      cout << "Exit status error: " << status << endl;
+    }
+    freeRanks(running.second);
+    finished.push_back(running.second);    
+    _runningPidsToInstance.erase(static_pointer_cast<MpirunInstance>(running.second)->getPid());
   } 
   for (auto running: _runningPidsToInstance) {
     int pid = running.first;
@@ -230,10 +232,8 @@ int forkAndGetPid(const string & command, const string &outputLogFile)
         //system(command.c_str());
         exit(0); // this line should not be called
       } else if (pid == -1) {
-        cout << "Fork failed... will retry after "<< 
-          waitingTime << "ms" << endl;
-        Common::sleep(waitingTime);
-        waitingTime *= 2;
+        cout << "Fork failed" << endl;
+        return -1;
       } else {
         return pid;
       }
@@ -241,7 +241,7 @@ int forkAndGetPid(const string & command, const string &outputLogFile)
   }
 }
 
-void MpirunInstance::execute(InstancePtr self)
+bool MpirunInstance::execute(InstancePtr self)
 {
   _beginTime = Common::getTime();
   map<string, int> hosts;
@@ -283,7 +283,11 @@ void MpirunInstance::execute(InstancePtr self)
   command[command.size() - 1] = ' '; //remove the last :
   //command += " > " + Common::joinPaths(_outputDir, "per_job_logs", getId() + ".out ") + " 2>&1 "; 
   _pid = forkAndGetPid(command, Common::joinPaths(_outputDir, "per_job_logs", getId() + ".out"));
+  if (_pid == -1) {
+    return false;
+  }
   _allocator.addPid(_pid, self);
+  return true;
 }
   
 void MpirunInstance::writeSVGStatistics(SVGDrawer &drawer, const Time &initialTime) 

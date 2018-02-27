@@ -53,7 +53,7 @@ private:
 class Instance {
 public:
   Instance(CommandPtr command, int startingRank, int ranksNumber); 
-  virtual void execute(shared_ptr<Instance> self) = 0;
+  virtual bool execute(shared_ptr<Instance> self) = 0;
   virtual void writeSVGStatistics(SVGDrawer &drawer, const Time &initialTime) = 0; 
   const string &getId() const {return _command->getId();}
   bool didFinish() const {return _finished;}
@@ -100,7 +100,7 @@ private:
   bool isCommandsEmpty() {return _commandIterator == _commandsVector.end();}
   const string &getOutputDir() const {return _outputDir;}
   
-  void executePendingCommand();
+  bool executePendingCommand();
   void onFinishedInstance(InstancePtr instance);
   
   const CommandsContainer &_commandsContainer;
