@@ -124,6 +124,7 @@ def build_second_command(raxml_exec_dir, fasta_files, output_dir, options, ranks
   return second_command_file
 
 def get_chunk_size(implementation, ranks):
+  return 1
   if (implementation == "--mpirun-scheduler"):
     return 1
   return 10

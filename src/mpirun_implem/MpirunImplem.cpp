@@ -4,7 +4,11 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <algorithm>
-
+#include <string>
+#include <sstream>
+#include <iterator>
+#include <sys/stat.h>
+#include <fcntl.h>
 using namespace std;
 
 void remove_domain(string &str)
@@ -110,9 +114,10 @@ void MpirunRanksAllocator::freeRanks(InstancePtr inst)
 vector<InstancePtr> MpirunRanksAllocator::checkFinishedInstances()
 {
   vector<InstancePtr> finished;
-  int pid;
   while(true) {
-    pid = waitpid(WAIT_ANY, NULL, WNOHANG);
+    int pid = waitpid(WAIT_ANY, NULL, WNOHANG);
+    if (pid < -1) 
+      cout << "error: wait pid -1" << endl;
     if (pid <= 0)
       break;
     auto instIt = _runningPidsToInstance.find(pid);
@@ -183,15 +188,39 @@ MpirunInstance::MpirunInstance(CommandPtr command,
   Common::makedir(Common::joinPaths(_outputDir, "per_job_logs"));
 }
 
-int forkAndGetPid(const string & command)
+void myexecv(const string &command) 
+{
+  istringstream iss(command);
+  vector<string> tokens;
+  copy(istream_iterator<string>(iss),
+      istream_iterator<string>(),
+      back_inserter(tokens));
+  const char* exec = tokens[0].c_str();
+  const char** args = new const char*[tokens.size() + 1];
+  for (unsigned int i = 0; i < tokens.size(); ++i) {
+    args[i] = tokens[i].c_str();
+  }
+  args[tokens.size()] = 0;
+  int res = execv(exec, (char*const*)args);
+  cerr << "error: my exec failed !!" << endl;
+}
+
+// todobenoit call execv
+int forkAndGetPid(const string & command, const string &outputLogFile)
 {
   int waitingTime = 1;
   for (int i = 0; i < 100; ++i) {
     while (true) {
       int pid = fork();
       if (pid == 0) {
-        system(command.c_str());
-        exit(0);
+        int fd = open(outputLogFile.c_str(), 
+            O_RDWR | O_CREAT, S_IRUSR | S_IWUSR);
+        dup2(fd, 1);   
+        dup2(fd, 2);   
+        close(fd); 
+        myexecv(command);
+        //system(command.c_str());
+        exit(0); // this line should not be called
       } else if (pid == -1) {
         cout << "Fork failed... will retry after "<< 
           waitingTime << "ms" << endl;
@@ -231,7 +260,7 @@ void MpirunInstance::execute(InstancePtr self)
   }
 
   string command;
-  command += "mpirun ";
+  command += "/hits/sw/shared/apps/OpenMPI/1.10.3-GCC-5.4.0-2.26/bin/mpirun ";
   command += " -hostfile " + Common::getHostfilePath(_outputDir);
   for (auto host: sortedHosts) { 
     cout << host.second << " -np " << host.first << ": ";
@@ -244,8 +273,8 @@ void MpirunInstance::execute(InstancePtr self)
   }
   cout << endl;
   command[command.size() - 1] = ' '; //remove the last :
-  command += " > " + Common::joinPaths(_outputDir, "per_job_logs", getId() + ".out ") + " 2>&1 "; 
-  _pid = forkAndGetPid(command);
+  //command += " > " + Common::joinPaths(_outputDir, "per_job_logs", getId() + ".out ") + " 2>&1 "; 
+  _pid = forkAndGetPid(command, Common::joinPaths(_outputDir, "per_job_logs", getId() + ".out"));
   _allocator.addPid(_pid, self);
 }
   

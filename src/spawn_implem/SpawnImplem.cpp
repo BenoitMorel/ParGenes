@@ -2,6 +2,8 @@
 #include <mpi.h>
 #include <iostream>
 
+// reason why the spawn thing is not good: https://github.com/open-mpi/ompi/issues/3305
+
 // spawned from SpawnInstance::execute
 void main_spawned_wrapper(int argc, char** argv) 
 {
@@ -33,16 +35,16 @@ void main_spawned_wrapper(int argc, char** argv)
   }
   command += " > " +  Common::joinPaths(outputDir, "per_job_logs", id)  + ".spawned.out 2>&1 ";
   try {
+    // todobenoit in mpi case, replace with execv,
+    // get pid and wait for the pid
     system(command.c_str());
   } catch(...) {
     cerr << "FAILUUUUUURE" << endl;
-    ofstream out(Common::joinPaths(outputDir, "per_job_logs", id) + ".failure");
-    out << ("Command " + id + " failed");
   } 
   if (!isMPI) {
     Common::check(MPI_Finalize());
   }
-
+  Common::sleep(500); // todobenoit not sure this is necessary
   // write a file to signal the master process that I am  done
   // (be carefull, several processes like me are called with the same id)
   string tempid = Common::joinPaths(outputDir, "temp", id);

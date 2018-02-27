@@ -36,8 +36,7 @@ public:
   
   void print_help() 
   {
-    cout << "Usage:" << endl;
-    cout << "mpirun -np 1 multi-raxml command_file output_dir threads_number" << endl;
+    cout << "todo: write help message" << endl;
   }
 
   string commandsFilename;
@@ -79,6 +78,7 @@ void main_scheduler(int argc, char **argv, SpawnMode mode)
   if (mode == SM_MPI_COMM_SPAWN)
     Common::check(MPI_Finalize());
   cout << "End of Multiraxml run" << endl;
+  exit(0);
 }
 
 void main_checkpoint(int argc, char** argv)
@@ -97,7 +97,7 @@ void main_checkpoint(int argc, char** argv)
 void main_nonmpi_spawn_scheduler(int argc, char** argv)
 {
   string command;
-  command += "mpirun -np 1 ";
+  command += "mpirun --oversubscribe -np 1 ";
   command += Common::getSelfpath();
   command += " --spawn-scheduler-mpi";
   for (unsigned int i = 2; i < argc; ++i) {

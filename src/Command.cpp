@@ -186,7 +186,8 @@ void CommandsRunner::executePendingCommand()
   auto command = getPendingCommand();
   InstancePtr instance = _allocator->allocateRanks(command->getRanksNumber(), command);
   Timer t;
-  Comment::printPidsNumber();
+  Common::printPidsNumber();
+  cout << "Try to start " << command->getId() << endl;
   instance->execute(instance);
   cout << "## Started " << command->getId() << " on [" 
     << instance->getStartingRank()  << ":"

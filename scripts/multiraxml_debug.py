@@ -3,9 +3,8 @@ import sys
 import shutil
 
 
-
-logsFile = "/home/morelbt/github/phd_experiments/results/multi-raxml/fromfastadir/haswell_256/ensembl_2/submit.sh.out"
-commandFile = "/home/morelbt/github/phd_experiments/results/multi-raxml/fromfastadir/haswell_256/ensembl_2/second_command.txt"
+commandFile = os.sys.argv[1]
+logsFile = os.path.join(os.path.dirname(commandFile), "submit.sh.out")
 ranks = 16
 
 debugPath = "/home/morelbt/github/phd_experiments/debug/"
@@ -39,7 +38,7 @@ for line in lines:
 
 with open(replayCommand, "w") as writer:
   for command, value in dicoFinished.items():
-    if (value == 1):
+    if (value == 1 and command in dicoCommands):
       writer.write(dicoCommands[command])
 
 print("mpirun -np 1 /home/morelbt/github/multi-raxml/build/multi-raxml --spawn-scheduler " + replayCommand + " " + replayOutput + " 16 ") 
