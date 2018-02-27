@@ -90,7 +90,6 @@ class CommandsRunner {
 public:
   CommandsRunner(const CommandsContainer &commandsContainer,
       shared_ptr<RanksAllocator> allocator,
-      unsigned int availableRanks,
       const string &outputDir);
   void run();
   const InstancesHistoric &getHistoric() const {return _historic;} 
@@ -106,7 +105,6 @@ private:
   
   const CommandsContainer &_commandsContainer;
   
-  const unsigned int _availableRanks;
   const string _outputDir;
 
   shared_ptr<RanksAllocator> _allocator;

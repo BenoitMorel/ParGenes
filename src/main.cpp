@@ -62,14 +62,14 @@ void main_scheduler(int argc, char **argv, SpawnMode mode)
   CommandsContainer commands(arg.commandsFilename);
   RanksAllocator * allocatorPtr = 0;
   if (mode == SM_MPI_COMM_SPAWN) {
-    allocatorPtr = new SpawnedRanksAllocator(arg.threadsNumber - 1, 
+    allocatorPtr = new SpawnedRanksAllocator(arg.threadsNumber, 
         arg.outputDir);
   } else {
     allocatorPtr = new MpirunRanksAllocator(arg.threadsNumber - 1, 
         arg.outputDir);
   }
   shared_ptr<RanksAllocator> allocator(allocatorPtr);
-  CommandsRunner runner(commands, allocator, arg.threadsNumber - 1, arg.outputDir);
+  CommandsRunner runner(commands, allocator, arg.outputDir);
   runner.run(); 
   Time end = Common::getTime();
   RunStatistics statistics(runner.getHistoric(), begin, end, arg.threadsNumber - 1);

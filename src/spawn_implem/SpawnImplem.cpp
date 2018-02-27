@@ -61,7 +61,8 @@ SpawnedRanksAllocator::SpawnedRanksAllocator(int availableRanks,
   _ranksInUse(0),
   _outputDir(outputDir)
 {
-  _slots.push(std::pair<int,int>(1, availableRanks));
+  // one rank is used by the master process
+  _slots.push(std::pair<int,int>(1, availableRanks - 1));
   Common::makedir(Common::joinPaths(outputDir, "temp"));
   Common::makedir(Common::joinPaths(outputDir, "per_job_logs"));
   Common::makedir(Common::joinPaths(outputDir, "started"));

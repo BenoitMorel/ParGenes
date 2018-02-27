@@ -12,7 +12,7 @@ void main_spawned_wrapper(int argc, char** argv);
  */
 class SpawnedRanksAllocator: public RanksAllocator {
 public:
-  // available threads must be a power of 2 - 1
+  // available threads must be a power of 2
   SpawnedRanksAllocator(int availableRanks, 
       const string &outoutDir);
   virtual ~SpawnedRanksAllocator() {}

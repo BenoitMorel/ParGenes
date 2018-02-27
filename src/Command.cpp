@@ -124,10 +124,8 @@ CommandPtr CommandsContainer::getCommand(string id) const
 
 CommandsRunner::CommandsRunner(const CommandsContainer &commandsContainer,
       shared_ptr<RanksAllocator> allocator,
-      unsigned int availableRanks,
       const string &outputDir):
   _commandsContainer(commandsContainer),
-  _availableRanks(availableRanks),
   _outputDir(outputDir),
   _allocator(allocator),
   _checkpoint(outputDir),
