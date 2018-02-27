@@ -19,7 +19,7 @@ using Pinnings = vector<Pinning>;
 
 class MpirunRanksAllocator: public RanksAllocator {
 public:
-  // available threads must be a power of 2 - 1
+  // available threads must be a power of 2
   MpirunRanksAllocator(int availableRanks, 
       const string &outoutDir);
   virtual ~MpirunRanksAllocator() {}

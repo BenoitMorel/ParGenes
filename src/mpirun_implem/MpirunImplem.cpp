@@ -65,7 +65,7 @@ MpirunRanksAllocator::MpirunRanksAllocator(int availableRanks,
   _ranks(availableRanks)
 {
   computePinning();
-  for (unsigned int i = 0; i < availableRanks; ++i) {
+  for (unsigned int i = 0; i < _ranks; ++i) {
     _availableRanks.insert(i); 
   }
 }
@@ -93,7 +93,7 @@ InstancePtr MpirunRanksAllocator::allocateRanks(int requestedRanks,
   }
 
   MpirunInstance *instance = new MpirunInstance(command,
-      pinnings[0].rank,
+      pinnings[0].rank + 1,
       allocatedRanks,
       _outputDir,
       pinnings,
@@ -115,6 +115,7 @@ vector<InstancePtr> MpirunRanksAllocator::checkFinishedInstances()
 {
   vector<InstancePtr> finished;
   while(true) {
+    // todobenoit: only wait for the pids we want to wait for
     int pid = waitpid(WAIT_ANY, NULL, WNOHANG);
     if (pid < -1) 
       cout << "error: wait pid -1" << endl;
@@ -153,6 +154,8 @@ void MpirunRanksAllocator::computePinning()
   vector<pair<string, int> > nodes;
   cout << "hostfile saved in " << hostfilePath << endl;
   int currRank  = 0;
+  string masterHost = Common::getHost();
+  remove_domain(masterHost);
   while (!hostfileReader.eof()) {
     string host, temp;
     int slots;
@@ -162,11 +165,16 @@ void MpirunRanksAllocator::computePinning()
     hostfileReader >> temp;
     hostfileReader >> temp;
     hostfileReader >> slots;
+    if (masterHost == host) {
+      cout << "remove a slot for the host " << host << endl;
+      slots--;
+    }
     for (int i = 0; i < slots; ++i) {
       _ranksToPinning[currRank] = Pinning(currRank, host);
       currRank++;
     }
   }
+  _ranks = currRank;
 }
   
 void MpirunRanksAllocator::addPid(int pid, InstancePtr instance)

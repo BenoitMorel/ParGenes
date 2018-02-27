@@ -65,7 +65,7 @@ void main_scheduler(int argc, char **argv, SpawnMode mode)
     allocatorPtr = new SpawnedRanksAllocator(arg.threadsNumber, 
         arg.outputDir);
   } else {
-    allocatorPtr = new MpirunRanksAllocator(arg.threadsNumber - 1, 
+    allocatorPtr = new MpirunRanksAllocator(arg.threadsNumber, 
         arg.outputDir);
   }
   shared_ptr<RanksAllocator> allocator(allocatorPtr);
