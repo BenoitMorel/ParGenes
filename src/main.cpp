@@ -8,6 +8,7 @@
 #include <fstream>
 #include "spawn_implem/SpawnImplem.hpp"
 #include "mpirun_implem/MpirunImplem.hpp"
+#include "split_implem/SplitImplem.hpp"
 
 #include "Checkpoint.hpp"
 #include "Command.hpp"
@@ -46,8 +47,25 @@ public:
 
 enum SpawnMode {
   SM_MPIRUN,
+  SM_MPI_COMM_SPLIT,
   SM_MPI_COMM_SPAWN
 };
+
+
+
+void main_scheduler_split(int argc, char **argv)
+{
+  Common::check(MPI_Init(&argc, &argv));
+  int rank = 0;
+  MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+  if (rank) {
+    main_split_slave(argc, argv);
+  } else {
+    main_split_master(argc, argv);
+  }
+  Common::check(MPI_Finalize());
+}
+
 
 void main_scheduler(int argc, char **argv, SpawnMode mode)
 {
@@ -57,12 +75,16 @@ void main_scheduler(int argc, char **argv, SpawnMode mode)
     cout << argv[i] << " ";
   }
   cout << endl;
+
   SchedulerArgumentsParser arg(argc, argv);
   Time begin = Common::getTime();
   CommandsContainer commands(arg.commandsFilename);
   RanksAllocator * allocatorPtr = 0;
   if (mode == SM_MPI_COMM_SPAWN) {
     allocatorPtr = new SpawnedRanksAllocator(arg.threadsNumber, 
+        arg.outputDir);
+  } else if (mode == SM_MPI_COMM_SPLIT) {
+    allocatorPtr = new SplitRanksAllocator(arg.threadsNumber, 
         arg.outputDir);
   } else {
     allocatorPtr = new MpirunRanksAllocator(arg.threadsNumber, 
@@ -126,6 +148,9 @@ int _main(int argc, char** argv)
     main_nonmpi_spawn_scheduler(argc, argv);
   } else if (arg == "--spawn-scheduler-mpi") {
     main_scheduler(argc, argv, SM_MPI_COMM_SPAWN);
+  } else if (arg == "--split-scheduler") {
+    Checkpoint::writeCheckpointArgs(argc, argv, string(argv[3]));
+    main_scheduler_split(argc, argv);
   } else if (arg == "--mpirun-scheduler") {
     Checkpoint::writeCheckpointArgs(argc, argv, string(argv[3]));
     main_scheduler(argc, argv, SM_MPIRUN);

@@ -8,10 +8,12 @@ add_executable(multi-raxml main.cpp
   Checkpoint.cpp
   Command.cpp 
   Common.cpp 
+  split_implem/SplitImplem.cpp
   spawn_implem/SpawnImplem.cpp
   mpirun_implem/MpirunImplem.cpp
   )
-target_link_libraries(multi-raxml ${MPI_LIBRARIES})
+
+target_link_libraries(multi-raxml ${MPI_LIBRARIES} dl gcc_s gcc)
 
 if(MPI_COMPILE_FLAGS)
   set_target_properties(multi-raxml PROPERTIES
