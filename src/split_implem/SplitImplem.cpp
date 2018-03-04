@@ -7,16 +7,27 @@ int main_split_master(int argc, char **argv)
 {
   // todobenoit replace with the main scheduler
 
-  void* handle = dlopen("/home/benoit/github/raxml-ng/build/src/raxml-ng.so", RTLD_LAZY);
+  void* handle = dlopen("/home/morelbt/github/raxml-ng/build/src/raxml-ng-mpi.so", RTLD_LAZY);
 
   if (!handle) {
     cerr << "Cannot open library: " << dlerror() << '\n';
     return 1;
   }
-  int (*raxml)(int,char**,int);  
+  typedef int (*mainFct)(int,char**,void*);  
 
-  cout << "plop " << endl;
-
+  
+  mainFct raxml_main = (mainFct) dlsym(handle, "raxml_main");
+  const char *dlsym_error = dlerror();
+  if (dlsym_error) {
+    cerr << "Error while loading symbole raxml_main " << dlsym_error << endl;
+    dlclose(handle);
+    return 1;
+  }
+  char ** plop = new char*[3];
+  plop[0] = (char*)"raxmlng";
+  plop[1] = (char*)"-h";
+  MPI_Comm comm = MPI_COMM_SELF;
+  int i = raxml_main(2, plop, (void*)&comm);
   return 1;
 }
 
