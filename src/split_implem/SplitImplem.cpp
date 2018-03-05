@@ -34,9 +34,11 @@ int main_split_master(int argc, char **argv)
   return 1;
 }
 
-int doWork(int i, MPI_Comm workersComm) 
+int doWork(const string &command, MPI_Comm workersComm) 
 {
-  Common::sleep(i);
+  cout << "do work " << command << endl;
+  Common::sleep(2000);
+  cout << "end do work " << command << endl;
   MPI_Barrier(workersComm);
 }
 
@@ -71,9 +73,14 @@ int main_split_slave(int argc, char **argv, MPI_Comm newComm)
       }
       localComm = newComm;
     } else if (SIGNAL_JOB == signal) {
+      const int maxCommandSize = 200;
+      char command[maxCommandSize];
+      MPI_Bcast(command, maxCommandSize, MPI_CHAR, MASTER_RANK, localComm);
+      MPI_Comm workerComm;
+      MPI_Comm_split(localComm, 1, getRank(localComm) - 1, &workerComm);
+      doWork(string(command), workerComm);
     }
   }
-  
   return 0;
 }
 
@@ -197,30 +204,10 @@ bool SplitInstance::execute(InstancePtr self)
   if (_ranksNumber == 0) {
     throw MultiRaxmlException("Error in SplitInstance::execute: invalid number of ranks ", to_string(_ranksNumber));
   }
-
-  int work = 3000;
-  int masterRank = 0;
-  MPI_Bcast(&work, 1, MPI_INT, masterRank, getComm());
+  MPI_Bcast((char *)self->getId().c_str(), self->getId().size() + 1, MPI_CHAR, MASTER_RANK, getComm()); // todobenoit copy string
   MPI_Comm temp; // will be equal to self
-  // create a new communicator without master
-  MPI_Comm_split(_comm, 0, 0, &temp);
-
-  /*
-  string argumentFilename = Common::joinPaths(_outputDir, "orders", getId());
-  ofstream argumentFile(argumentFilename);
-  argumentFile << getId() << " " << _outputDir << " " << _command->isMpiCommand() << endl;
-  for(auto arg: _command->getArgs()) {
-    argumentFile << arg << " ";
-  }
-  argumentFile.close(); 
-  
-  static string spawnedArg = "--spawned-wrapper";
-  char *argv[3];
-  argv[0] = (char *)spawnedArg.c_str();
-  argv[1] = (char *)argumentFilename.c_str();
-  argv[2] = 0;
-*/
-  return false;
+  MPI_Comm_split(getComm(), 0, 0, &temp);
+  return true;
 }
   
 void SplitInstance::writeSVGStatistics(SVGDrawer &drawer, const Time &initialTime) 
