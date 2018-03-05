@@ -3,6 +3,10 @@
 #include <iostream>
 #include <dlfcn.h>
 
+const int MASTER_RANK = 0;
+const int SIGNAL_SPLIT = 1;
+const int SIGNAL_JOB = 2;
+
 int main_split_master(int argc, char **argv)
 {
   // todobenoit replace with the main scheduler
@@ -13,7 +17,6 @@ int main_split_master(int argc, char **argv)
     cerr << "Cannot open library: " << dlerror() << '\n';
     return 1;
   }
-  typedef int (*mainFct)(int,char**,void*);  
 
   
   mainFct raxml_main = (mainFct) dlsym(handle, "raxml_main");
@@ -31,8 +34,46 @@ int main_split_master(int argc, char **argv)
   return 1;
 }
 
-int main_split_slave(int argc, char **argv)
+int doWork(int i, MPI_Comm workersComm) 
 {
+  Common::sleep(i);
+  MPI_Barrier(workersComm);
+}
+
+
+int getRank(MPI_Comm comm) {
+  int rank = 0;
+  MPI_Comm_rank(comm, &rank);
+  return rank;
+}
+
+int main_split_slave(int argc, char **argv, MPI_Comm newComm)
+{
+  MPI_Comm localComm = MPI_COMM_WORLD; 
+  int globalRank;
+  MPI_Comm_rank(MPI_COMM_WORLD, &globalRank);
+  while (true) {
+    int signal = 0;
+    MPI_Bcast(&signal, 1, MPI_INT, MASTER_RANK, localComm);
+    if (SIGNAL_SPLIT == signal) {
+      MPI_Comm temp;
+      int splitSize = 0;
+      MPI_Bcast(&splitSize, 1, MPI_INT, 0, localComm);
+      int localRank = getRank(localComm);
+      bool isFirstSplit = localRank <= splitSize;
+      MPI_Comm newComm;
+      if (isFirstSplit) {
+        MPI_Comm_split(localComm, 1, getRank(localComm), &newComm); 
+        MPI_Comm_split(localComm, 0, getRank(localComm) + splitSize, &temp);
+      } else {
+        MPI_Comm_split(localComm, 0, getRank(localComm) + splitSize, &temp); 
+        MPI_Comm_split(localComm, 1, getRank(localComm) - splitSize, &newComm);
+      }
+      localComm = newComm;
+    } else if (SIGNAL_JOB == signal) {
+    }
+  }
+  
   return 0;
 }
 
@@ -54,30 +95,45 @@ bool SplitRanksAllocator::allRanksAvailable()
 {
   return _ranksInUse == 0;
 }
-  
+
+void split(const Slot &parent,
+    Slot &son1,
+    Slot &son2,
+    int son1size)
+{
+  // send signal
+  int signal = SIGNAL_SPLIT;
+  MPI_Bcast(&signal, 1, MPI_INT, MASTER_RANK, parent.comm);
+  MPI_Bcast(&son1size, 1, MPI_INT, MASTER_RANK, parent.comm);
+  MPI_Comm comm1, comm2;
+  MPI_Comm_split(parent.comm, 1, 0, &comm1);
+  MPI_Comm_split(parent.comm, 1, 0, &comm2);
+  son1 = Slot(parent.startingRank, son1size, comm1);
+  son2 = Slot(parent.startingRank + son1size, parent.ranksNumber - son1size, comm2);
+}
+
+
 InstancePtr SplitRanksAllocator::allocateRanks(int requestedRanks, 
   CommandPtr command)
 {
-  std::pair<int, int> result = _slots.top();
+  Slot slot = _slots.top();
   _slots.pop();
-  int startingRank = result.first;
-  int threadsNumber = requestedRanks; 
   // border case around the first rank
-  if (result.first == 1 && requestedRanks != 1) {
-    threadsNumber -= 1; 
+  if (slot.startingRank == 1 && requestedRanks != 1) {
+    requestedRanks -= 1; 
   }
-  if (result.second > threadsNumber) {
-    result.first += threadsNumber;
-    result.second -= threadsNumber;
-    _slots.push(result);
+  if (slot.ranksNumber > requestedRanks) {
+    Slot slot1, slot2;
+    split(slot, slot1, slot2, requestedRanks); 
+    slot = slot1;
+    _slots.push(slot2);
   }
-  if (result.second < threadsNumber) {
-    threadsNumber = result.second;
-  }
-  _ranksInUse += threadsNumber;
+  _ranksInUse += requestedRanks;
+  
   InstancePtr instance(new SplitInstance(_outputDir,
-    startingRank,
-    threadsNumber,
+    slot.startingRank,
+    slot.ranksNumber,
+    slot.comm,
     command));
   if (_startedInstances.find(instance->getId()) != _startedInstances.end()) {
     cerr << "Warning: two instances have the same id" << endl;
@@ -89,8 +145,9 @@ InstancePtr SplitRanksAllocator::allocateRanks(int requestedRanks,
 void SplitRanksAllocator::freeRanks(InstancePtr instance)
 {
   _ranksInUse -= instance->getRanksNumber();
-  _slots.push(std::pair<int,int>(instance->getStartingRank(), 
-        instance->getRanksNumber()));
+  auto splitInstance = static_pointer_cast<SplitInstance>(instance);
+  _slots.push(Slot(instance->getStartingRank(), 
+        instance->getRanksNumber(), splitInstance->getComm()));
 }
 
 vector<InstancePtr> SplitRanksAllocator::checkFinishedInstances()
@@ -124,8 +181,10 @@ vector<InstancePtr> SplitRanksAllocator::checkFinishedInstances()
 SplitInstance::SplitInstance(const string &outputDir, 
   int startingRank, 
   int ranksNumber,
+  MPI_Comm comm,
   CommandPtr command):
   Instance(command, startingRank, ranksNumber),
+  _comm(comm),
   _outputDir(outputDir)
 {
 }
@@ -139,6 +198,14 @@ bool SplitInstance::execute(InstancePtr self)
     throw MultiRaxmlException("Error in SplitInstance::execute: invalid number of ranks ", to_string(_ranksNumber));
   }
 
+  int work = 3000;
+  int masterRank = 0;
+  MPI_Bcast(&work, 1, MPI_INT, masterRank, getComm());
+  MPI_Comm temp; // will be equal to self
+  // create a new communicator without master
+  MPI_Comm_split(_comm, 0, 0, &temp);
+
+  /*
   string argumentFilename = Common::joinPaths(_outputDir, "orders", getId());
   ofstream argumentFile(argumentFilename);
   argumentFile << getId() << " " << _outputDir << " " << _command->isMpiCommand() << endl;
@@ -152,7 +219,7 @@ bool SplitInstance::execute(InstancePtr self)
   argv[0] = (char *)spawnedArg.c_str();
   argv[1] = (char *)argumentFilename.c_str();
   argv[2] = 0;
-
+*/
   return false;
 }
   

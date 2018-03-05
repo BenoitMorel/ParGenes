@@ -52,29 +52,27 @@ enum SpawnMode {
 };
 
 
-
-void main_scheduler_split(int argc, char **argv)
-{
-  Common::check(MPI_Init(&argc, &argv));
-  int rank = 0;
-  MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-  if (rank) {
-    main_split_slave(argc, argv);
-  } else {
-    main_split_master(argc, argv);
-  }
-  Common::check(MPI_Finalize());
-}
-
-
 void main_scheduler(int argc, char **argv, SpawnMode mode)
 {
-  if (mode == SM_MPI_COMM_SPAWN)
+  if (mode != SM_MPIRUN)
     Common::check(MPI_Init(&argc, &argv));
+  
+  if (mode == SM_MPI_COMM_SPLIT) {
+    int rank = 0;
+    MPI_Comm newComm;
+    MPI_Comm_split(MPI_COMM_WORLD, rank == 0, rank, &newComm);
+    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+    if (!rank) {
+      main_split_slave(argc, argv, newComm);
+      return;
+    }
+  }
+  
   for (int i = 0; i < argc; ++i) {
     cout << argv[i] << " ";
   }
   cout << endl;
+
 
   SchedulerArgumentsParser arg(argc, argv);
   Time begin = Common::getTime();
@@ -97,7 +95,7 @@ void main_scheduler(int argc, char **argv, SpawnMode mode)
   RunStatistics statistics(runner.getHistoric(), begin, end, arg.threadsNumber - 1);
   statistics.printGeneralStatistics();
   statistics.exportSVG(arg.outputDir + "/statistics.svg"); // todobenoit not portable
-  if (mode == SM_MPI_COMM_SPAWN)
+  if (mode != SM_MPIRUN)
     Common::check(MPI_Finalize());
   cout << "End of Multiraxml run" << endl;
   exit(0);
@@ -150,7 +148,7 @@ int _main(int argc, char** argv)
     main_scheduler(argc, argv, SM_MPI_COMM_SPAWN);
   } else if (arg == "--split-scheduler") {
     Checkpoint::writeCheckpointArgs(argc, argv, string(argv[3]));
-    main_scheduler_split(argc, argv);
+    main_scheduler(argc, argv, SM_MPI_COMM_SPLIT);
   } else if (arg == "--mpirun-scheduler") {
     Checkpoint::writeCheckpointArgs(argc, argv, string(argv[3]));
     main_scheduler(argc, argv, SM_MPIRUN);
