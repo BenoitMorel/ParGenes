@@ -183,7 +183,7 @@ bool CommandsRunner::executePendingCommand()
   cout << "allocate ranks " << endl;
   InstancePtr instance = _allocator->allocateRanks(command->getRanksNumber(), command);
   Timer t;
-  Common::printPidsNumber();
+  //Common::printPidsNumber(); // commented because costly
   cout << "Try to start " << command->getId() << endl;
   if (!instance->execute(instance)) {
     cout << "Failed to start " << command->getId() << ". Will retry later " << endl;

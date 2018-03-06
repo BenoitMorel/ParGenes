@@ -6,6 +6,7 @@
 int main_split_master(int argc, char **argv);
 int main_split_slave(int argc, char **argv);
 typedef int (*mainFct)(int,char**,void*);  
+void terminate_slaves();
 
 
 struct Slot {
@@ -37,6 +38,7 @@ public:
       CommandPtr command);
   virtual void freeRanks(InstancePtr instance);
   virtual vector<InstancePtr> checkFinishedInstances();
+  virtual void terminate();
 private:
   stack<Slot> _slots;
   int _ranksInUse;

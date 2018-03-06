@@ -68,6 +68,7 @@ void main_scheduler(int argc, char **argv, SpawnMode mode)
   RunStatistics statistics(runner.getHistoric(), begin, end, arg.threadsNumber - 1);
   statistics.printGeneralStatistics();
   statistics.exportSVG(arg.outputDir + "/statistics.svg"); // todobenoit not portable
+  allocator->terminate();
   if (mode != SM_MPIRUN)
     Common::check(MPI_Finalize());
   cout << "End of Multiraxml run" << endl;

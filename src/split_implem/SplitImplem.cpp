@@ -6,6 +6,7 @@
 const int MASTER_RANK = 0;
 const int SIGNAL_SPLIT = 1;
 const int SIGNAL_JOB = 2;
+const int SIGNAL_END = 3;
 
 const int TAG_END_JOB = 1;
 
@@ -97,6 +98,9 @@ int main_split_slave(int argc, char **argv)
         endJobMsg[1] = elapsedMS;
         MPI_Send(endJobMsg, MSG_SIZE_END_JOB, MPI_INT, MASTER_RANK, TAG_END_JOB, localComm);
       }
+    } else if (SIGNAL_END == signal) {
+      MPI_Finalize();
+      break;
     }
   }
   return 0;
@@ -120,6 +124,15 @@ bool SplitRanksAllocator::ranksAvailable()
 bool SplitRanksAllocator::allRanksAvailable()
 {
   return _ranksInUse == 0;
+}
+  
+void SplitRanksAllocator::terminate()
+{
+  while (_slots.size()) {
+    int signal = SIGNAL_END;
+    MPI_Bcast(&signal, 1, MPI_INT, MASTER_RANK, _slots.top().comm);
+    _slots.pop();
+  }
 }
 
 void split(const Slot &parent,

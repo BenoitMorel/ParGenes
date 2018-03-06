@@ -84,6 +84,7 @@ public:
       CommandPtr command) = 0;
   virtual void freeRanks(InstancePtr instance) = 0;
   virtual vector<InstancePtr> checkFinishedInstances() = 0;
+  virtual void terminate() {}
 };
 
 class CommandsRunner {
