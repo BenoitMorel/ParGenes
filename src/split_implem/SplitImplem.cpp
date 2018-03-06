@@ -31,7 +31,7 @@ int doWork(const CommandPtr command,
     cerr << "Cannot open shared library " << args[0] << endl;
     return 1;
   }
-  mainFct raxmlMain = (mainFct) dlsym(handle, "raxml_main");
+  mainFct raxmlMain = (mainFct) dlsym(handle, "exportable_main");
   const char *dlsym_error = dlerror();
   if (dlsym_error) {
     cerr << "Cannot load symbole raxml_main " << dlsym_error << endl;
