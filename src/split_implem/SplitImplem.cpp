@@ -208,9 +208,9 @@ vector<InstancePtr> SplitRanksAllocator::checkFinishedInstances()
            << " failed with return code " << endJobMsg[0] << endl;
     }
     finished.push_back(instance);
-    for (auto instance: finished) {
-      _runningInstances.erase(instance->getId());
-    }
+  }
+  for (auto instance: finished) {
+    _runningInstances.erase(instance->getId());
   }
   return finished;
 }
