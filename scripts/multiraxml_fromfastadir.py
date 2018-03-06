@@ -25,13 +25,18 @@ def print_help():
   print("python raxml_runner.py implementation raxml_exec_dir fasta_dir output_dir additionnal_options_file")
   print("implementation: --spawn-scheduler")
   print("             or --mpirun-scheduler")
+  print("             or --split-scheduler")
 
 def run_multiraxml(implementation, command_filename, output_dir, ranks):
   sys.stdout.flush()
   command = []
-  if (implementation not in ["--mpirun-scheduler", "--spawn-scheduler"]):
+  if (implementation not in ["--mpirun-scheduler", "--spawn-scheduler", "--split-scheduler"]):
     print("ERROR: wrong implementation " + implementation)
     sys.exit(0)
+  if (implementation == "--split-scheduler"):
+    command.append("mpirun")
+    command.append("-np")
+    command.append(str(ranks))
   command.append(getMultiraxmlExec())
   command.append(implementation)
   command.append(command_filename)
@@ -41,7 +46,7 @@ def run_multiraxml(implementation, command_filename, output_dir, ranks):
 
 def build_first_command(chunk_size, raxml_exec_dir, fasta_files, output_dir, options, ranks):
   first_command_file = os.path.join(output_dir, "first_command.txt")
-  raxml = os.path.join(raxml_exec_dir, "raxml-ng")
+  raxml = os.path.join(raxml_exec_dir, "raxml-ng-mpi")
   first_run_output_dir = os.path.join(output_dir, "first_run")
   first_run_results = os.path.join(first_run_output_dir, "results")
   os.makedirs(first_run_results)
@@ -58,7 +63,7 @@ def build_first_command(chunk_size, raxml_exec_dir, fasta_files, output_dir, opt
     index = 0
     for chunk in fasta_chuncks:
       base = os.path.splitext(os.path.basename(fasta))[0]
-      writer.write("chunk_" + str(index) + " nompi 1 1 ")
+      writer.write("chunk_" + str(index) + " mpi 1 1 ")
       if (chunk_size > 1):
           writer.write("{ ")
       for fasta in chunk:
@@ -96,7 +101,7 @@ def parse_msa_info(log_file):
   result[0] = sites_to_maxcores(result[0])
   return result
 
-def build_second_command(raxml_exec_dir, isFromLibrary, fasta_files, output_dir, options, ranks):
+def build_second_command(raxml_exec_dir, fasta_files, output_dir, options, ranks):
   second_command_file = os.path.join(output_dir, "second_command.txt")
   first_run_output_dir = os.path.join(output_dir, "first_run")
   first_run_results = os.path.join(first_run_output_dir, "results")
