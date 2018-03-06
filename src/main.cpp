@@ -19,31 +19,6 @@ using namespace std;
 int _main(int argc, char** argv); 
 
 
-class SchedulerArgumentsParser {
-public:
-  SchedulerArgumentsParser(int argc, char** argv):
-    commandsFilename(),
-    threadsNumber(1)
-  {
-    if (argc != 5) {
-      print_help();
-      throw MultiRaxmlException("Error: invalid syntax");
-    }
-    unsigned int i = 2;
-    commandsFilename = string(argv[i++]);
-    outputDir = string(argv[i++]);
-    threadsNumber = atoi(argv[i++]);
-  }
-  
-  void print_help() 
-  {
-    cout << "todo: write help message" << endl;
-  }
-
-  string commandsFilename;
-  string outputDir;
-  unsigned int threadsNumber;
-};
 
 enum SpawnMode {
   SM_MPIRUN,
@@ -59,11 +34,9 @@ void main_scheduler(int argc, char **argv, SpawnMode mode)
   
   if (mode == SM_MPI_COMM_SPLIT) {
     int rank = 0;
-    MPI_Comm newComm;
-    MPI_Comm_split(MPI_COMM_WORLD, rank == 0, rank, &newComm);
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-    if (!rank) {
-      main_split_slave(argc, argv, newComm);
+    if (rank) {
+      main_split_slave(argc, argv);
       return;
     }
   }

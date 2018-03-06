@@ -146,7 +146,6 @@ CommandsRunner::CommandsRunner(const CommandsContainer &commandsContainer,
 
 void CommandsRunner::run() 
 {
-  cout << "Runner version with sleep 500ms" << endl;
   Timer globalTimer;
   Timer minuteTimer;
   int finishedInstancesNumber = 0;
@@ -181,6 +180,7 @@ bool CommandsRunner::compareCommands(CommandPtr c1, CommandPtr c2)
 bool CommandsRunner::executePendingCommand()
 {
   auto command = getPendingCommand();
+  cout << "allocate ranks " << endl;
   InstancePtr instance = _allocator->allocateRanks(command->getRanksNumber(), command);
   Timer t;
   Common::printPidsNumber();

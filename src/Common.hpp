@@ -162,4 +162,30 @@ private:
   double _ratioHeight;
 };
 
+class SchedulerArgumentsParser {
+public:
+  SchedulerArgumentsParser(int argc, char** argv):
+    commandsFilename(),
+    threadsNumber(1)
+  {
+    if (argc != 5) {
+      print_help();
+      throw MultiRaxmlException("Error: invalid syntax");
+    }
+    unsigned int i = 2;
+    commandsFilename = string(argv[i++]);
+    outputDir = string(argv[i++]);
+    threadsNumber = atoi(argv[i++]);
+  }
+  
+  void print_help() 
+  {
+    cout << "todo: write help message" << endl;
+  }
+
+  string commandsFilename;
+  string outputDir;
+  unsigned int threadsNumber;
+};
+
 #endif

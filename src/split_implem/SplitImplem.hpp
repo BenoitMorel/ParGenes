@@ -4,7 +4,7 @@
 #include "../Command.hpp"
 
 int main_split_master(int argc, char **argv);
-int main_split_slave(int argc, char **argv, MPI_Comm newComm);
+int main_split_slave(int argc, char **argv);
 typedef int (*mainFct)(int,char**,void*);  
 
 

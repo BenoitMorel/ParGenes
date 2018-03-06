@@ -7,6 +7,10 @@ const int MASTER_RANK = 0;
 const int SIGNAL_SPLIT = 1;
 const int SIGNAL_JOB = 2;
 
+const int TAG_END_JOB = 1;
+
+const int MSG_SIZE_END_JOB = 2;
+
 int main_split_master(int argc, char **argv)
 {
   // todobenoit replace with the main scheduler
@@ -34,12 +38,13 @@ int main_split_master(int argc, char **argv)
   return 1;
 }
 
-int doWork(const string &command, MPI_Comm workersComm) 
+int doWork(const CommandPtr command, MPI_Comm workersComm) 
 {
-  cout << "do work " << command << endl;
+  cout << "do work " << command->getId() << endl;
   Common::sleep(2000);
-  cout << "end do work " << command << endl;
+  cout << "end do work " << command->getId() << endl;
   MPI_Barrier(workersComm);
+  return 0;
 }
 
 
@@ -49,15 +54,20 @@ int getRank(MPI_Comm comm) {
   return rank;
 }
 
-int main_split_slave(int argc, char **argv, MPI_Comm newComm)
+int main_split_slave(int argc, char **argv)
 {
+  SchedulerArgumentsParser arg(argc, argv);
+  Time begin = Common::getTime();
+  CommandsContainer commands(arg.commandsFilename);
+  
   MPI_Comm localComm = MPI_COMM_WORLD; 
   int globalRank;
   MPI_Comm_rank(MPI_COMM_WORLD, &globalRank);
   while (true) {
-    int signal = 0;
+    int signal = 42;
     MPI_Bcast(&signal, 1, MPI_INT, MASTER_RANK, localComm);
     if (SIGNAL_SPLIT == signal) {
+      cout << "split" << endl;
       MPI_Comm temp;
       int splitSize = 0;
       MPI_Bcast(&splitSize, 1, MPI_INT, 0, localComm);
@@ -78,7 +88,15 @@ int main_split_slave(int argc, char **argv, MPI_Comm newComm)
       MPI_Bcast(command, maxCommandSize, MPI_CHAR, MASTER_RANK, localComm);
       MPI_Comm workerComm;
       MPI_Comm_split(localComm, 1, getRank(localComm) - 1, &workerComm);
-      doWork(string(command), workerComm);
+      Timer timer;
+      int jobResult = doWork(commands.getCommand(string(command)), workerComm);
+      int elapsedMS = timer.getElapsedMs();
+      if (!getRank(workerComm)) {
+        int endJobMsg[MSG_SIZE_END_JOB];
+        endJobMsg[0] = jobResult;
+        endJobMsg[1] = elapsedMS;
+        MPI_Send(endJobMsg, MSG_SIZE_END_JOB, MPI_INT, MASTER_RANK, TAG_END_JOB, localComm);
+      }
     }
   }
   return 0;
@@ -90,6 +108,7 @@ SplitRanksAllocator::SplitRanksAllocator(int availableRanks,
   _ranksInUse(0),
   _outputDir(outputDir)
 {
+  _slots.push(Slot(1, availableRanks - 1, MPI_COMM_WORLD));
 }
 
 
@@ -110,6 +129,7 @@ void split(const Slot &parent,
 {
   // send signal
   int signal = SIGNAL_SPLIT;
+  cout << "SPLIT " << endl;
   MPI_Bcast(&signal, 1, MPI_INT, MASTER_RANK, parent.comm);
   MPI_Bcast(&son1size, 1, MPI_INT, MASTER_RANK, parent.comm);
   MPI_Comm comm1, comm2;
@@ -159,27 +179,27 @@ void SplitRanksAllocator::freeRanks(InstancePtr instance)
 
 vector<InstancePtr> SplitRanksAllocator::checkFinishedInstances()
 {
-  vector<string> files;
-  string temp = Common::joinPaths(_outputDir, "temp");
-  Common::readDirectory(temp, files);
   vector<InstancePtr> finished;
-  for (auto file: files) {
-    auto instance = _startedInstances.find(file);
-    if (instance != _startedInstances.end()) {
-      string fullpath = Common::joinPaths(temp, instance->second->getId());
-      vector<string> subfiles;
-      Common::readDirectory(fullpath, subfiles);
-      if (subfiles.size() != instance->second->getRanksNumber()) {
-        continue;
-      }
-      ifstream timerFile(Common::joinPaths(fullpath, subfiles[0]));
-      int realElapsedTimeMS = 0;
-      timerFile >> realElapsedTimeMS;
-      timerFile.close();
-      instance->second->setElapsedMs(realElapsedTimeMS);
-      Common::removedir(fullpath);
-      finished.push_back(instance->second);
+  for (auto startedInstance: _startedInstances) {
+    auto instance = static_pointer_cast<SplitInstance>(startedInstance.second);
+    MPI_Status status;
+    int flag;
+    int source = 1;
+    MPI_Iprobe(source, TAG_END_JOB, instance->getComm(), &flag, &status); 
+    if (!flag) {
+      continue;
+    } else {
+      cout << "Received something from " << instance->getId() << endl;
     }
+    int endJobMsg[MSG_SIZE_END_JOB];
+    MPI_Recv(endJobMsg, MSG_SIZE_END_JOB, MPI_INT, source, 
+        TAG_END_JOB, instance->getComm(), &status);
+    instance->setElapsedMs(endJobMsg[1]);
+    if (endJobMsg[0]) {
+      cerr << "Warning, command " << instance->getId() 
+           << " failed with return code " << endJobMsg[0] << endl;
+    }
+    finished.push_back(instance);
   }
   return finished;
 }
@@ -204,6 +224,9 @@ bool SplitInstance::execute(InstancePtr self)
   if (_ranksNumber == 0) {
     throw MultiRaxmlException("Error in SplitInstance::execute: invalid number of ranks ", to_string(_ranksNumber));
   }
+  cout << "execute " << endl;
+  int signal = SIGNAL_JOB;
+  MPI_Bcast(&signal, 1, MPI_INT, MASTER_RANK, getComm());
   MPI_Bcast((char *)self->getId().c_str(), self->getId().size() + 1, MPI_CHAR, MASTER_RANK, getComm()); // todobenoit copy string
   MPI_Comm temp; // will be equal to self
   MPI_Comm_split(getComm(), 0, 0, &temp);
