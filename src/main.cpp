@@ -40,13 +40,6 @@ void main_scheduler(int argc, char **argv, SpawnMode mode)
       return;
     }
   }
-  
-  for (int i = 0; i < argc; ++i) {
-    cout << argv[i] << " ";
-  }
-  cout << endl;
-
-
   SchedulerArgumentsParser arg(argc, argv);
   Time begin = Common::getTime();
   CommandsContainer commands(arg.commandsFilename);

@@ -1,0 +1,17 @@
+# this command should be executed from
+# the root of multi-raxml repository (or paths should be edited)
+# raxml-ng repository should be cloned next the the multi-raxml repository
+# raxml-ng and raxml-ng-mpi should be built in ../raxml-ng/bin/raxml-ng
+
+# HBG011000.fasta
+c4 nompi 1 1 ../raxml-ng/build/src/raxml-ng-mpi.so --model JC --prefix examples/results/c7 --msa examples/fasta_files/HBG011000.fasta --seed 1 --threads 1
+c5 nompi 1 1 ../raxml-ng/build/src/raxml-ng-mpi.so --model JC --prefix examples/results/c8 --msa examples/fasta_files/HBG011000.fasta --seed 1 --threads 1
+c6 nompi 1 1 ../raxml-ng/build/src/raxml-ng-mpi.so --model JC --prefix examples/results/c9 --msa examples/fasta_files/HBG011000.fasta --seed 1 --threads 1
+c7 mpi 1 1 ../raxml-ng/build/src/raxml-ng-mpi.so --model JC --prefix examples/results/c10 --msa examples/fasta_files/HBG011000.fasta --seed 1 --threads 1
+
+# HB011006.fasta
+c1 mpi 1 1 ../raxml-ng/build/src/raxml-ng-mpi.so --model JC --prefix examples/results/c1 --msa examples/fasta_files/HB011006.fasta --seed 1 --threads 1
+c2 mpi 1 1 ../raxml-ng/build/src/raxml-ng-mpi.so --model JC --prefix examples/results/c2 --msa examples/fasta_files/HB011006.fasta --seed 1 --threads 1
+c3 mpi 1 1 ../raxml-ng/build/src/raxml-ng-mpi.so --model JC --prefix examples/results/c3 --msa examples/fasta_files/HB011006.fasta --seed 1 --threads 1
+
+

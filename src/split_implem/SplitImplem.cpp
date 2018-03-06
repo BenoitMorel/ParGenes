@@ -12,6 +12,8 @@ const int TAG_END_JOB = 1;
 
 const int MSG_SIZE_END_JOB = 2;
 
+
+
 int main_split_master(int argc, char **argv)
 {
   // todobenoit replace with the main scheduler
@@ -39,13 +41,33 @@ int main_split_master(int argc, char **argv)
   return 1;
 }
 
-int doWork(const CommandPtr command, MPI_Comm workersComm) 
+int doWork(const CommandPtr command, 
+    MPI_Comm workersComm) 
 {
   cout << "do work " << command->getId() << endl;
-  Common::sleep(2000);
-  cout << "end do work " << command->getId() << endl;
+  const vector<string> &args  = command->getArgs();
+  void *handle = dlopen(args[0].c_str(), RTLD_LAZY);
+  if (!handle) {
+    cerr << "Cannot open shared library " << args[0] << endl;
+    return 1;
+  }
+  mainFct raxmlMain = (mainFct) dlsym(handle, "raxml_main");
+  const char *dlsym_error = dlerror();
+  if (dlsym_error) {
+    cerr << "Cannot load symbole raxml_main " << dlsym_error << endl;
+    dlclose(handle);
+    return 1;
+  }
+  int argc = args.size();
+  char **argv = new char*[argc];
+  for (int i = 0; i < argc; ++i) {
+    argv[i] = (char*)args[i].c_str();
+  }
+  int res = raxmlMain(argc, argv, (void*)&workersComm);
+  delete[] argv;
+  dlclose(handle);
   MPI_Barrier(workersComm);
-  return 0;
+  return res;
 }
 
 

@@ -7,9 +7,9 @@ def get_parent_path(path):
 
 root = get_parent_path(get_parent_path(os.path.realpath(__file__)))
 binary = os.path.join(root, "build", "multi-raxml")
-commandsFile = os.path.join(root, "examples", "commands", "command.txt")
+commandsFile = os.path.join(root, "examples", "commands", "command_split.txt")
 outputDir = os.path.join(root, "examples", "results")
-threads = "4"
+threads = "2"
 
 if os.path.exists(outputDir):
   shutil.rmtree(outputDir)  
