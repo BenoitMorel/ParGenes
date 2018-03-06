@@ -161,7 +161,6 @@ SpawnInstance::SpawnInstance(const string &outputDir,
 bool SpawnInstance::execute(InstancePtr self)
 {
   _beginTime = Common::getTime();
-  _finished = false;
   if (_ranksNumber == 0) {
     throw MultiRaxmlException("Error in SpawnInstance::execute: invalid number of ranks ", to_string(_ranksNumber));
   }

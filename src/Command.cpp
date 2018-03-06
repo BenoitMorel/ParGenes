@@ -41,15 +41,13 @@ Instance::Instance(CommandPtr command,
     int ranksNumber):
   _command(command),
   _startingRank(startingRank),
-  _ranksNumber(ranksNumber),
-  _finished(false)
+  _ranksNumber(ranksNumber)
 {
   
 }
 
 void Instance::onFinished()
 {
-  _finished = true;
   _endTime = Common::getTime();
 }
 
@@ -181,11 +179,9 @@ bool CommandsRunner::compareCommands(CommandPtr c1, CommandPtr c2)
 bool CommandsRunner::executePendingCommand()
 {
   auto command = getPendingCommand();
-  cout << "allocate ranks " << endl;
   InstancePtr instance = _allocator->allocateRanks(command->getRanksNumber(), command);
   Timer t;
   //Common::printPidsNumber(); // commented because costly
-  cout << "Try to start " << command->getId() << endl;
   if (!instance->execute(instance)) {
     cout << "Failed to start " << command->getId() << ". Will retry later " << endl;
     _allocator->freeRanks(instance);

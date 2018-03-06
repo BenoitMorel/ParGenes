@@ -16,36 +16,13 @@ const int MSG_SIZE_END_JOB = 2;
 
 
 
-int main_split_master(int argc, char **argv)
-{
-  // todobenoit replace with the main scheduler
-
-  void* handle = dlopen("/home/morelbt/github/raxml-ng/build/src/raxml-ng-mpi.so", RTLD_LAZY);
-
-  if (!handle) {
-    cerr << "Cannot open library: " << dlerror() << '\n';
-    return 1;
-  }
-
-  
-  mainFct raxml_main = (mainFct) dlsym(handle, "raxml_main");
-  const char *dlsym_error = dlerror();
-  if (dlsym_error) {
-    cerr << "Error while loading symbole raxml_main " << dlsym_error << endl;
-    dlclose(handle);
-    return 1;
-  }
-  char ** plop = new char*[3];
-  plop[0] = (char*)"raxmlng";
-  plop[1] = (char*)"-h";
-  MPI_Comm comm = MPI_COMM_SELF;
-  int i = raxml_main(2, plop, (void*)&comm);
-  return 1;
-}
-
 int doWork(const CommandPtr command, 
-    MPI_Comm workersComm) 
+    MPI_Comm workersComm,
+    const string &outputDir) 
 {
+  std::ofstream out(Common::joinPaths(outputDir, "out.txt"));
+  std::streambuf *coutbuf = std::cout.rdbuf(); //save old buf
+  std::cout.rdbuf(out.rdbuf()); //redirect std::cout to out.txt!
   cout << "do work " << command->getId() << endl;
   const vector<string> &args  = command->getArgs();
   void *handle = dlopen(args[0].c_str(), RTLD_LAZY);
@@ -69,6 +46,7 @@ int doWork(const CommandPtr command,
   delete[] argv;
   dlclose(handle);
   MPI_Barrier(workersComm);
+  std::cout.rdbuf(coutbuf); 
   return res;
 }
 
@@ -92,7 +70,6 @@ int main_split_slave(int argc, char **argv)
     int signal = 42;
     MPI_Bcast(&signal, 1, MPI_INT, MASTER_RANK, localComm);
     if (SIGNAL_SPLIT == signal) {
-      cout << "split" << endl;
       MPI_Comm temp;
       int splitSize = 0;
       MPI_Bcast(&splitSize, 1, MPI_INT, 0, localComm);
@@ -114,7 +91,7 @@ int main_split_slave(int argc, char **argv)
       MPI_Comm workerComm;
       MPI_Comm_split(localComm, 1, getRank(localComm) - 1, &workerComm);
       Timer timer;
-      int jobResult = doWork(commands.getCommand(string(command)), workerComm);
+      int jobResult = doWork(commands.getCommand(string(command)), workerComm, arg.outputDir);
       int elapsedMS = timer.getElapsedMs();
       if (!getRank(workerComm)) {
         int endJobMsg[MSG_SIZE_END_JOB];
@@ -166,7 +143,6 @@ void split(const Slot &parent,
 {
   // send signal
   int signal = SIGNAL_SPLIT;
-  cout << "SPLIT " << endl;
   MPI_Bcast(&signal, 1, MPI_INT, MASTER_RANK, parent.comm);
   MPI_Bcast(&son1size, 1, MPI_INT, MASTER_RANK, parent.comm);
   MPI_Comm comm1, comm2;
@@ -199,10 +175,7 @@ InstancePtr SplitRanksAllocator::allocateRanks(int requestedRanks,
     slot.ranksNumber,
     slot.comm,
     command));
-  if (_startedInstances.find(instance->getId()) != _startedInstances.end()) {
-    cerr << "Warning: two instances have the same id" << endl;
-  }
-  _startedInstances[instance->getId()] = instance;
+  _runningInstances[instance->getId()] = instance;
   return instance;
 }
   
@@ -217,7 +190,7 @@ void SplitRanksAllocator::freeRanks(InstancePtr instance)
 vector<InstancePtr> SplitRanksAllocator::checkFinishedInstances()
 {
   vector<InstancePtr> finished;
-  for (auto startedInstance: _startedInstances) {
+  for (auto startedInstance: _runningInstances) {
     auto instance = static_pointer_cast<SplitInstance>(startedInstance.second);
     MPI_Status status;
     int flag;
@@ -225,8 +198,6 @@ vector<InstancePtr> SplitRanksAllocator::checkFinishedInstances()
     MPI_Iprobe(source, TAG_END_JOB, instance->getComm(), &flag, &status); 
     if (!flag) {
       continue;
-    } else {
-      cout << "Received something from " << instance->getId() << endl;
     }
     int endJobMsg[MSG_SIZE_END_JOB];
     MPI_Recv(endJobMsg, MSG_SIZE_END_JOB, MPI_INT, source, 
@@ -237,6 +208,9 @@ vector<InstancePtr> SplitRanksAllocator::checkFinishedInstances()
            << " failed with return code " << endJobMsg[0] << endl;
     }
     finished.push_back(instance);
+    for (auto instance: finished) {
+      _runningInstances.erase(instance->getId());
+    }
   }
   return finished;
 }
@@ -257,11 +231,9 @@ SplitInstance::SplitInstance(const string &outputDir,
 bool SplitInstance::execute(InstancePtr self)
 {
   _beginTime = Common::getTime();
-  _finished = false;
   if (_ranksNumber == 0) {
     throw MultiRaxmlException("Error in SplitInstance::execute: invalid number of ranks ", to_string(_ranksNumber));
   }
-  cout << "execute " << endl;
   int signal = SIGNAL_JOB;
   MPI_Bcast(&signal, 1, MPI_INT, MASTER_RANK, getComm());
   MPI_Bcast((char *)self->getId().c_str(), self->getId().size() + 1, MPI_CHAR, MASTER_RANK, getComm()); // todobenoit copy string

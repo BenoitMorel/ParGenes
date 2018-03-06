@@ -58,7 +58,6 @@ public:
   virtual bool execute(shared_ptr<Instance> self) = 0;
   virtual void writeSVGStatistics(SVGDrawer &drawer, const Time &initialTime) = 0; 
   const string &getId() const {return _command->getId();}
-  bool didFinish() const {return _finished;}
   virtual void onFinished();
   Time getStartTime() const {return _beginTime;} 
   int getStartingRank() const {return _startingRank;} 
@@ -72,7 +71,6 @@ protected:
   Time _beginTime;
   Time _endTime;
   int _elapsed;
-  bool _finished;
 };
 using InstancePtr = shared_ptr<Instance>;
 using InstancesHistoric = vector<InstancePtr>;

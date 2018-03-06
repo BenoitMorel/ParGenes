@@ -44,7 +44,8 @@ private:
   stack<Slot> _slots;
   int _ranksInUse;
   string _outputDir;
-  map<string, InstancePtr> _startedInstances;
+  map<string, InstancePtr> _runningInstances;
+
   MPI_Comm _availableComms;
 };
 
