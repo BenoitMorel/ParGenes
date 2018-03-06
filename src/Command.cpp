@@ -7,6 +7,7 @@
 #include <iterator>
 #include <algorithm>
 
+namespace MultiRaxml {
 
 Command::Command(const string &id, 
     bool isMpiCommand,
@@ -255,4 +256,6 @@ void RunStatistics::exportSVG(const string &svgfile)
     instance->writeSVGStatistics(svg, _begin);
   }
 }
+
+} // namespace MultiRaxml
 

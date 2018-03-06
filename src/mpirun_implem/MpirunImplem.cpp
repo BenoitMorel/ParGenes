@@ -11,6 +11,8 @@
 #include <fcntl.h>
 using namespace std;
 
+namespace MultiRaxml {
+
 void remove_domain(string &str)
 {
   str = str.substr(0, str.find(".", 0));
@@ -306,3 +308,6 @@ void MpirunInstance::onFinished()
   Instance::onFinished();
   setElapsedMs(Common::getElapsedMs(_beginTime, _endTime)); 
 }
+
+} // namespace MultiRaxml
+

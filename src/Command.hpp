@@ -11,6 +11,8 @@
 
 using namespace std;
 
+namespace MultiRaxml {
+
 class Command {
 public:
   Command(const string &id, 
@@ -130,5 +132,7 @@ private:
   Time _end;
   int _availableRanks;
 };
+
+} // namespace MultiRaxml
 
 #endif

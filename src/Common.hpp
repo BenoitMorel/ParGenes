@@ -17,6 +17,8 @@
 
 using namespace std;
 
+namespace MultiRaxml {
+
 class MultiRaxmlException: public exception {
 public:
   MultiRaxmlException(const string &s): msg_(s) {}
@@ -187,5 +189,7 @@ public:
   string outputDir;
   unsigned int threadsNumber;
 };
+
+} // namespace MultiRaxml
 
 #endif

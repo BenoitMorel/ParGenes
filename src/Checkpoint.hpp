@@ -7,6 +7,8 @@
 
 using namespace std;
 
+namespace MultiRaxml {
+
 class Checkpoint {
 public:
   Checkpoint(const string &outputDir); 
@@ -30,6 +32,8 @@ private:
   set<string> _ids; 
   ofstream _os;
 };
+
+} // namespace MultiRaxml
 
 #endif
 

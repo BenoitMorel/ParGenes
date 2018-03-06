@@ -5,6 +5,7 @@
 #include <ftw.h>
 #include <unistd.h>
 
+namespace MultiRaxml {
 
 int unlink_cb(const char *fpath, const struct stat *sb, int typeflag, struct FTW *ftwbuf)
 {
@@ -79,3 +80,5 @@ void SVGDrawer::writeFooter()
 
 }
 
+
+} // namespace MultiRaxml

@@ -1,6 +1,8 @@
 #include "Checkpoint.hpp"
 #include "Common.hpp"
-  
+
+namespace MultiRaxml {
+
 Checkpoint::Checkpoint(const string &outputDir)
 {
   ifstream is(getCheckpointCommandsFile(outputDir));
@@ -61,4 +63,6 @@ string Checkpoint::getCheckpointCommandsFile(const string &outputDir)
 {
   return Common::joinPaths(outputDir, "checkpoint_commands.txt");
 }
+
+} // namespace MultiRaxml
 

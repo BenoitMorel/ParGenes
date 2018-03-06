@@ -16,9 +16,11 @@
 
 
 using namespace std;
+
+namespace MultiRaxml {
+
+  
 int _main(int argc, char** argv); 
-
-
 
 enum SpawnMode {
   SM_MPIRUN,
@@ -132,7 +134,10 @@ int _main(int argc, char** argv)
   return 0;
 }
 
+} // namespace MultiRaxml
+
 int main(int argc, char** argv) 
 {
-  return _main(argc, argv);
+  return MultiRaxml::_main(argc, argv);
 }
+

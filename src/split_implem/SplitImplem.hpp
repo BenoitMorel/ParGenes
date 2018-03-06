@@ -2,6 +2,7 @@
 #define _MULTIRAXML_SPLIT_IMPLEM_
 
 #include "../Command.hpp"
+namespace MultiRaxml {
 
 int main_split_master(int argc, char **argv);
 int main_split_slave(int argc, char **argv);
@@ -63,6 +64,8 @@ private:
   string _outputDir;
   MPI_Comm _comm;
 };
+
+} // namespace MultiRaxml
 
 
 #endif

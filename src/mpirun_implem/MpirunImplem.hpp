@@ -6,6 +6,8 @@
 #include <set>
 #include <vector>
 
+namespace MultiRaxml {
+
 void main_mpirun_hostfile(int argc, char** argv);
 
 struct Pinning {
@@ -67,6 +69,7 @@ private:
   MpirunRanksAllocator &_allocator;
 };
 
+} // namespace MultiRaxml
 
 #endif
 

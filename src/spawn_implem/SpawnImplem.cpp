@@ -2,7 +2,9 @@
 #include <mpi.h>
 #include <iostream>
 
-// reason why the spawn thing is not good: https://github.com/open-mpi/ompi/issues/3305
+namespace MultiRaxml { 
+
+  // reason why the spawn thing is not good: https://github.com/open-mpi/ompi/issues/3305
 
 // spawned from SpawnInstance::execute
 void main_spawned_wrapper(int argc, char** argv) 
@@ -199,3 +201,6 @@ void SpawnInstance::writeSVGStatistics(SVGDrawer &drawer, const Time &initialTim
     getRanksNumber(),
     getElapsedMs());
 }
+
+} // namespace MultiRaxml
+

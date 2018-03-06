@@ -3,6 +3,8 @@
 #include <iostream>
 #include <dlfcn.h>
 
+namespace MultiRaxml {
+
 const int MASTER_RANK = 0;
 const int SIGNAL_SPLIT = 1;
 const int SIGNAL_JOB = 2;
@@ -275,3 +277,6 @@ void SplitInstance::writeSVGStatistics(SVGDrawer &drawer, const Time &initialTim
     getRanksNumber(),
     getElapsedMs());
 }
+
+} // namespace MultiRaxml
+

@@ -2,6 +2,7 @@
 #define _MULTIRAXML_SPAWN_IMPLEM_
 
 #include "../Command.hpp"
+namespace MultiRaxml {
 
 void main_spawned_wrapper(int argc, char** argv); 
 
@@ -44,5 +45,6 @@ private:
   string _outputDir;
 };
 
+} // namespace MultiRaxml
 
 #endif
