@@ -28,13 +28,13 @@ int doWork(const CommandPtr command,
   string lib = args[0] + ".so";
   void *handle = dlopen(lib.c_str(), RTLD_LAZY);
   if (!handle) {
-    cerr << "Cannot open shared library " << args[0] << endl;
+    cerr << "Cannot open shared library " << lib << endl;
     return 1;
   }
   mainFct raxmlMain = (mainFct) dlsym(handle, "exportable_main");
   const char *dlsym_error = dlerror();
   if (dlsym_error) {
-    cerr << "Cannot load symbole raxml_main " << dlsym_error << endl;
+    cerr << "Cannot load symbole exportable_main " << dlsym_error << endl;
     dlclose(handle);
     return 1;
   }
