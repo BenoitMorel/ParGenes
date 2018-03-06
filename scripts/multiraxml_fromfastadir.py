@@ -96,7 +96,7 @@ def parse_msa_info(log_file):
   result[0] = sites_to_maxcores(result[0])
   return result
 
-def build_second_command(raxml_exec_dir, fasta_files, output_dir, options, ranks):
+def build_second_command(raxml_exec_dir, isFromLibrary, fasta_files, output_dir, options, ranks):
   second_command_file = os.path.join(output_dir, "second_command.txt")
   first_run_output_dir = os.path.join(output_dir, "first_run")
   first_run_results = os.path.join(first_run_output_dir, "results")
