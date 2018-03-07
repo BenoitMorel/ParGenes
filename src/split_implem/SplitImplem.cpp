@@ -12,7 +12,7 @@ const int SIGNAL_END = 3;
 
 const int TAG_END_JOB = 1;
 
-const int MSG_SIZE_END_JOB = 2;
+const int MSG_SIZE_END_JOB = 3;
 
 
 
@@ -20,7 +20,7 @@ int doWork(const CommandPtr command,
     MPI_Comm workersComm,
     const string &outputDir) 
 {
-  std::ofstream out(Common::joinPaths(outputDir, "out.txt"));
+  std::ofstream out(Common::joinPaths(outputDir, "per_job_logs", command->getId() + "out.txt"));
   std::streambuf *coutbuf = std::cout.rdbuf(); //save old buf
   std::cout.rdbuf(out.rdbuf()); //redirect std::cout to out.txt!
   cout << "do work " << command->getId() << endl;
@@ -60,10 +60,11 @@ int getRank(MPI_Comm comm) {
 
 int main_split_slave(int argc, char **argv)
 {
+  Timer globalTimer;
   SchedulerArgumentsParser arg(argc, argv);
   Time begin = Common::getTime();
   CommandsContainer commands(arg.commandsFilename);
-  
+   
   MPI_Comm localComm = MPI_COMM_WORLD; 
   int globalRank;
   MPI_Comm_rank(MPI_COMM_WORLD, &globalRank);
@@ -91,13 +92,15 @@ int main_split_slave(int argc, char **argv)
       MPI_Bcast(command, maxCommandSize, MPI_CHAR, MASTER_RANK, localComm);
       MPI_Comm workerComm;
       MPI_Comm_split(localComm, 1, getRank(localComm) - 1, &workerComm);
+      int startingTime = globalTimer.getElapsedMs();
       Timer timer;
       int jobResult = doWork(commands.getCommand(string(command)), workerComm, arg.outputDir);
       int elapsedMS = timer.getElapsedMs();
       if (!getRank(workerComm)) {
         int endJobMsg[MSG_SIZE_END_JOB];
         endJobMsg[0] = jobResult;
-        endJobMsg[1] = elapsedMS;
+        endJobMsg[1] = startingTime;
+        endJobMsg[2] = elapsedMS;
         MPI_Send(endJobMsg, MSG_SIZE_END_JOB, MPI_INT, MASTER_RANK, TAG_END_JOB, localComm);
       }
     } else if (SIGNAL_END == signal) {
@@ -114,6 +117,7 @@ SplitRanksAllocator::SplitRanksAllocator(int availableRanks,
   _ranksInUse(0),
   _outputDir(outputDir)
 {
+  Common::makedir(Common::joinPaths(outputDir, "per_job_logs"));
   _slots.push(Slot(1, availableRanks - 1, MPI_COMM_WORLD));
 }
 
@@ -203,7 +207,8 @@ vector<InstancePtr> SplitRanksAllocator::checkFinishedInstances()
     int endJobMsg[MSG_SIZE_END_JOB];
     MPI_Recv(endJobMsg, MSG_SIZE_END_JOB, MPI_INT, source, 
         TAG_END_JOB, instance->getComm(), &status);
-    instance->setElapsedMs(endJobMsg[1]);
+    instance->setStartingElapsedMS(endJobMsg[1]);
+    instance->setElapsedMs(endJobMsg[2]);
     if (endJobMsg[0]) {
       cerr << "Warning, command " << instance->getId() 
            << " failed with return code " << endJobMsg[0] << endl;
@@ -246,7 +251,7 @@ bool SplitInstance::execute(InstancePtr self)
 void SplitInstance::writeSVGStatistics(SVGDrawer &drawer, const Time &initialTime) 
 {
   drawer.writeSquare(getStartingRank(),
-    Common::getElapsedMs(initialTime, getStartTime()),
+    _startingElapsedMS,
     getRanksNumber(),
     getElapsedMs());
 }

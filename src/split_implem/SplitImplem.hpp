@@ -61,7 +61,9 @@ public:
   virtual bool execute(InstancePtr self);
   virtual void writeSVGStatistics(SVGDrawer &drawer, const Time &initialTime); 
   MPI_Comm getComm() const {return _comm;}
+  void setStartingElapsedMS(int starting) {_startingElapsedMS = starting;}
 private:
+  int _startingElapsedMS;
   string _outputDir;
   MPI_Comm _comm;
 };
