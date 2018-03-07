@@ -114,6 +114,7 @@ private:
   Checkpoint _checkpoint;
   InstancesHistoric _historic;
   int _finishedInstancesNumber;
+  bool _verbose;
 };
 
 class RunStatistics {

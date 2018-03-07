@@ -128,7 +128,8 @@ CommandsRunner::CommandsRunner(const CommandsContainer &commandsContainer,
   _outputDir(outputDir),
   _allocator(allocator),
   _checkpoint(outputDir),
-  _finishedInstancesNumber(0)
+  _finishedInstancesNumber(0),
+  _verbose(true)
 {
   cout << "The master process runs on node " << Common::getHost() 
        << " and on pid " << Common::getPid() << endl;
@@ -155,8 +156,9 @@ void CommandsRunner::run()
     } 
     if (!isCommandsEmpty()) {
       if (_allocator->ranksAvailable()) {
-        if (executePendingCommand());
-          continue;
+        if (executePendingCommand()) {
+
+        }
       }
     }
     vector<InstancePtr> finishedInstances = _allocator->checkFinishedInstances();
@@ -187,11 +189,13 @@ bool CommandsRunner::executePendingCommand()
     _allocator->freeRanks(instance);
     return false;
   }
-  cout << "## Started " << command->getId() << " on [" 
-    << instance->getStartingRank()  << ":"
-    << instance->getStartingRank() + instance->getRanksNumber() - 1 
-    << "] "
-    << "(submit time " << t.getElapsedMs()  << "ms)" << endl;
+  if (_verbose) {
+    cout << "## Started " << command->getId() << " on [" 
+      << instance->getStartingRank()  << ":"
+      << instance->getStartingRank() + instance->getRanksNumber() - 1 
+      << "] "
+      << "(submit time " << t.getElapsedMs()  << "ms)" << endl;
+  }
   _historic.push_back(instance);
   _commandIterator++;
   if (isCommandsEmpty()) {
@@ -203,9 +207,11 @@ bool CommandsRunner::executePendingCommand()
 void CommandsRunner::onFinishedInstance(InstancePtr instance)
 {
   instance->onFinished();
-  _checkpoint.markDone(instance->getId());
-  cout << "End of " << instance->getId() << " after " <<  instance->getElapsedMs() << "ms ";
-  cout << " (" << ++_finishedInstancesNumber << "/" << _commandsVector.size() << ")" << endl;
+  //_checkpoint.markDone(instance->getId());
+  if (_verbose) {
+    cout << "End of " << instance->getId() << " after " <<  instance->getElapsedMs() << "ms ";
+    cout << " (" << ++_finishedInstancesNumber << "/" << _commandsVector.size() << ")" << endl;
+  }
  _allocator->freeRanks(instance);
 }
 

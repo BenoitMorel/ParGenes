@@ -12,14 +12,13 @@ void terminate_slaves();
 
 struct Slot {
   Slot() {}
-  Slot(int _startingRank, int _ranksNumber, MPI_Comm _comm) : 
+  Slot(int _startingRank, int _ranksNumber) : 
     startingRank(_startingRank),
-    ranksNumber(_ranksNumber),
-    comm(_comm) {}
+    ranksNumber(_ranksNumber)
+  {}
 
   int startingRank; // relative to MPI_COMM_WORLD
   int ranksNumber;
-  MPI_Comm comm; // also includes the master rank
 };
 
 /*
@@ -45,6 +44,7 @@ private:
   int _ranksInUse;
   string _outputDir;
   map<string, InstancePtr> _runningInstances;
+  map<int, InstancePtr> _rankToInstances;
 
   MPI_Comm _availableComms;
 };
@@ -54,18 +54,15 @@ public:
   SplitInstance(const string &outputDir, 
       int startingRank, 
       int ranksNumber,
-      MPI_Comm comm,
       CommandPtr command);
 
   virtual ~SplitInstance() {}
   virtual bool execute(InstancePtr self);
   virtual void writeSVGStatistics(SVGDrawer &drawer, const Time &initialTime); 
-  MPI_Comm getComm() const {return _comm;}
   void setStartingElapsedMS(int starting) {_startingElapsedMS = starting;}
 private:
   int _startingElapsedMS;
   string _outputDir;
-  MPI_Comm _comm;
 };
 
 } // namespace MultiRaxml
