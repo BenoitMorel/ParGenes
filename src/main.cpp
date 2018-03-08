@@ -38,7 +38,8 @@ void main_scheduler(int argc, char **argv, SpawnMode mode)
     int rank = 0;
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     if (rank) {
-      main_split_slave(argc, argv);
+      Slave slave;
+      slave.main_split_slave(argc, argv);
       return;
     }
   }

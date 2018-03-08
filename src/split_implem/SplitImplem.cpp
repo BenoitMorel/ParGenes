@@ -66,99 +66,97 @@ int getSize(MPI_Comm comm) {
 }
 
 
-void splitSlave(MPI_Comm &localComm) 
+void Slave::splitSlave() 
 {
-  int localRank = getRank(localComm);
   MPI_Status status;
   int splitSize;
-  if (MASTER_RANK == getRank(localComm)) {
-    MPI_Recv(&splitSize, 1, MPI_INT, MASTER_RANK, TAG_SPLIT, MPI_COMM_WORLD, &status);
+  if (MASTER_RANK == _localRank) {
+    MPI_Recv(&splitSize, 1, MPI_INT, _globalMasterRank, TAG_SPLIT, MPI_COMM_WORLD, &status);
     int signal = SIGNAL_SPLIT;
-    MPI_Bcast(&signal, 1, MPI_INT, MASTER_RANK, localComm);
+    MPI_Bcast(&signal, 1, MPI_INT, _localMasterRank, _localComm);
   }
-  MPI_Bcast(&splitSize, 1, MPI_INT, MASTER_RANK, localComm);
-  bool inFirstSplit = (localRank < splitSize);
-  int newRank = inFirstSplit ? localRank : (localRank - splitSize);
+  MPI_Bcast(&splitSize, 1, MPI_INT, _localMasterRank, _localComm);
+  bool inFirstSplit = (_localRank < splitSize);
+  int newRank = inFirstSplit ? _localRank : (_localRank - splitSize);
   MPI_Comm newComm;
-  MPI_Comm_split(localComm, !inFirstSplit , newRank, &newComm);
-  localComm = newComm;
+  MPI_Comm_split(_localComm, !inFirstSplit , newRank, &newComm);
+  _localComm = newComm;
+  _localRank = newRank;
 }
 
-void treatJobSlave(MPI_Comm localComm, 
-    CommandsContainer &commands,
-    const string &outputDir,
-    Timer &globalTimer)
+void Slave::treatJobSlave()
 {
-  bool alone = getSize(localComm) == 1;
+  bool alone = getSize(_localComm) == 1;
   MPI_Status status;
   const int maxCommandSize = 200;
   char command[maxCommandSize];
-  if (MASTER_RANK == getRank(localComm)) {
-    MPI_Recv(command, maxCommandSize, MPI_CHAR, MASTER_RANK, TAG_START_JOB, MPI_COMM_WORLD, &status);
+  if (_localMasterRank == _localRank) {
+    MPI_Recv(command, maxCommandSize, MPI_CHAR, _globalMasterRank, TAG_START_JOB, MPI_COMM_WORLD, &status);
     if (!alone) {
       int signal = SIGNAL_JOB;
-      MPI_Bcast(&signal, 1, MPI_INT, MASTER_RANK, localComm);
+      MPI_Bcast(&signal, 1, MPI_INT, _localMasterRank, _localComm);
     }
   }
 
   if (!alone) {
-    MPI_Bcast(command, maxCommandSize, MPI_CHAR, MASTER_RANK, localComm);
+    MPI_Bcast(command, maxCommandSize, MPI_CHAR, _localMasterRank, _localComm);
   }
   Timer timer;
-  int startingTime = globalTimer.getElapsedMs();
-  int jobResult = doWork(commands.getCommand(string(command)), localComm, outputDir);
+  int startingTime = _globalTimer.getElapsedMs();
+  int jobResult = doWork(_commands.getCommand(string(command)), _localComm, _outputDir);
   int elapsedMS = timer.getElapsedMs();
-  if (MASTER_RANK == getRank(localComm)) {
+  if (_localMasterRank == _localRank) {
     int endJobMsg[MSG_SIZE_END_JOB];
     endJobMsg[0] = jobResult;
     endJobMsg[1] = startingTime;
     endJobMsg[2] = elapsedMS;
-    MPI_Send(endJobMsg, MSG_SIZE_END_JOB, MPI_INT, MASTER_RANK, TAG_END_JOB, MPI_COMM_WORLD);
+    MPI_Send(endJobMsg, MSG_SIZE_END_JOB, MPI_INT, _globalMasterRank, TAG_END_JOB, MPI_COMM_WORLD);
   }
 }
 
-void terminateSlave(MPI_Comm localComm)
+void Slave::terminateSlave()
 {
-  if (MASTER_RANK == getRank(localComm)) {
+  if (_localMasterRank == _localRank) {
     int signal = SIGNAL_TERMINATE;
-    MPI_Bcast(&signal, 1, MPI_INT, MASTER_RANK, localComm);
+    MPI_Bcast(&signal, 1, MPI_INT, _localMasterRank, _localComm);
   }
   MPI_Finalize();
 }
 
-int main_split_slave(int argc, char **argv)
+int Slave::main_split_slave(int argc, char **argv)
 {
-  Timer globalTimer;
   SchedulerArgumentsParser arg(argc, argv);
+  _outputDir = arg.outputDir;
   Time begin = Common::getTime();
-  CommandsContainer commands(arg.commandsFilename);
-   
-  MPI_Comm localComm; 
-  // initial split to get rid of the master process
-  MPI_Comm_split(MPI_COMM_WORLD, 1, getRank(MPI_COMM_WORLD) - 1, &localComm);
-  int globalRank = getRank(MPI_COMM_WORLD);
+  _commands = CommandsContainer(arg.commandsFilename);
+  _globalRank = getRank(MPI_COMM_WORLD);
+  _localRank = _globalRank - 1;
+  _localMasterRank = 0;
+  _globalMasterRank = 0;
+  MPI_Comm_split(MPI_COMM_WORLD, 1, _localRank, &_localComm);
   while (true) {
-    if (!getRank(localComm)) {
+    _localRank = getRank(_localComm);
+    if (!_localRank) {
       int signal;
       MPI_Status status;
-      MPI_Recv(&signal, 1, MPI_INT, MASTER_RANK, TAG_MASTER_SIGNAL, MPI_COMM_WORLD, &status);
+      MPI_Recv(&signal, 1, MPI_INT, _globalMasterRank, TAG_MASTER_SIGNAL, MPI_COMM_WORLD, &status);
       if (SIGNAL_SPLIT == signal) {
-        splitSlave(localComm);
+        splitSlave();
       } else if (SIGNAL_JOB == signal) {
-        treatJobSlave(localComm, commands, arg.outputDir, globalTimer);         
+        treatJobSlave();         
       } else if (SIGNAL_TERMINATE == signal) {
-        terminateSlave(localComm);
+        terminateSlave();
         break;
       }
     } else { 
       int signal;
-      MPI_Bcast(&signal, 1, MPI_INT, MASTER_RANK, localComm);
+      MPI_Bcast(&signal, 1, MPI_INT, _localMasterRank, _localComm);
       if (SIGNAL_SPLIT == signal) {
-        splitSlave(localComm);
+        splitSlave();
       } else if (SIGNAL_JOB == signal) {
-        treatJobSlave(localComm, commands, arg.outputDir, globalTimer);         
+        treatJobSlave();         
       } else if (SIGNAL_TERMINATE == signal) {
-        terminateSlave(localComm);
+        terminateSlave();
         break;
       }
     }

@@ -23,6 +23,25 @@ struct Slot {
   int ranksNumber;
 };
 
+
+class Slave {
+public:
+  Slave() {}
+  int main_split_slave(int argc, char **argv);
+private:
+  void splitSlave();
+  void treatJobSlave();
+  void terminateSlave();
+  MPI_Comm _localComm; 
+  int _localRank;
+  int _globalRank;
+  int _localMasterRank;
+  int _globalMasterRank;
+  CommandsContainer _commands;
+  string _outputDir;
+  Timer _globalTimer;
+};
+
 /*
  *  This allocator assumes that each request do
  *  not ask more ranks than the previous one and

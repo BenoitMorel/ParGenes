@@ -40,6 +40,7 @@ using CommandPtr = shared_ptr<Command>;
 
 class CommandsContainer {
 public:
+  CommandsContainer() {}
   CommandsContainer(const string &commandsFilename);
 
   CommandPtr getCommand(string id) const;
