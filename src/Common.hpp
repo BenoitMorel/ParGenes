@@ -150,18 +150,24 @@ private:
 class SVGDrawer {
 public:
   SVGDrawer(const string &filepath,
-      double ratioWidth,
-      double ratioHeight);
+      double maxXValue,
+      double maxYValue);
   ~SVGDrawer();
   void writeSquare(double x, double y, double w, double h, const char *color = 0);
+  void writeSquareAbsolute(double x, double y, double w, double h, const char *color = 0);
+  void writeCaption(const string &text);
+  void writeHorizontalLine(double y, int lineWidth); 
   static string getRandomHex();
 
 private:
   void writeHeader();
   void writeFooter();
   ofstream _os;
+  double _width;
+  double _height;
   double _ratioWidth;
   double _ratioHeight;
+  double _additionalHeight;
 };
 
 class SchedulerArgumentsParser {

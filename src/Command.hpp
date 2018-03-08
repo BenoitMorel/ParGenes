@@ -130,6 +130,7 @@ private:
   Time _begin;
   Time _end;
   int _availableRanks;
+  double _lbRatio;
 };
 
 } // namespace MultiRaxml

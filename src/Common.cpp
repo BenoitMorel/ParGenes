@@ -21,17 +21,21 @@ void Common::removedir(const std::string &name)
 }
 
 SVGDrawer::SVGDrawer(const string &filepath,
-    double ratioWidth,
-    double ratioHeight):
+    double maxXValue,
+    double maxYValue):
   _os(filepath),
-  _ratioWidth(ratioWidth),
-  _ratioHeight(ratioHeight)
+  _width(500.0),
+  _height(500.0),
+  _ratioWidth(_width / maxXValue),
+  _ratioHeight(_height / maxYValue),
+  _additionalHeight(50.0)
 {
   if (!_os) {
     cerr << "Warning: cannot open  " << filepath << ". Skipping svg export." << endl;
     return;
   }
   writeHeader();
+  writeSquareAbsolute(0, 0, _width, _height + _additionalHeight, "#ffffff");
 }
 
 SVGDrawer::~SVGDrawer()
@@ -50,18 +54,42 @@ string SVGDrawer::getRandomHex()
   }
   return string(res);
 }
+  
+void SVGDrawer::writeHorizontalLine(double y, int lineWidth)
+{
+  if (!_os)
+    return;
+  _os <<  "<line x1=\"0\" y1=\"" << y * _ratioHeight << "\" x2=\"" <<  _width   
+      << "\" y2=\""<< y * _ratioHeight<<  "\" style=\"stroke:rgb(0,0,255);stroke-width:"
+      << lineWidth << "\" />" << endl;
+}
 
 void SVGDrawer::writeSquare(double x, double y, double w, double h, const char *color)
+{
+  writeSquareAbsolute(x * _ratioWidth, y * _ratioHeight, w * _ratioWidth, h * _ratioHeight, color);
+}
+
+void SVGDrawer::writeSquareAbsolute(double x, double y, double w, double h, const char *color)
 {
   if (!_os)
     return;
   string colorStr(color ? string(color) : getRandomHex());
-  _os << "  <svg x=\"" << x * _ratioWidth << "\" y=\"" << y * _ratioHeight << "\" ";
-  _os << "width=\"" << w * _ratioWidth << "\" "  << "height=\""  << h * _ratioHeight << "\" >" << endl;
+  _os << "  <svg x=\"" << x << "\" y=\"" << y << "\" ";
+  _os << "width=\"" << w  << "\" "  << "height=\""  << h << "\" >" << endl;
   _os << "    <rect x=\"0%\" y=\"0%\" height=\"100%\" width=\"100%\" style=\"fill: ";
   _os << colorStr  <<  "\"/>" << endl;
   _os << "  </svg>" << endl;
 }
+  
+void SVGDrawer::writeCaption(const string &text)
+{
+  if (!_os)
+    return;
+  _os << "  <svg x =\"0\" y=\"500\" width=\"500\" height=\"40\">" << endl;
+  _os << "    <text x=\"0%\" y=\"100%\" fill=\"blue\" font-size=\"35\">" << text << "</text>" << endl;
+  _os << "  </svg>" << endl;
+}
+
 
 
 void SVGDrawer::writeHeader()

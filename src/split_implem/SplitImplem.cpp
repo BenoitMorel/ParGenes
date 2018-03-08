@@ -193,7 +193,7 @@ void SplitRanksAllocator::terminate()
 {
   while (_slots.size()) {
     int signal = SIGNAL_TERMINATE;
-    MPI_Send(&signal, 1, MPI_INT, _slots.top().startingRank, TAG_MASTER_SIGNAL, MPI_COMM_WORLD);
+    MPI_Send(&signal, 1, MPI_INT, _slots.front().startingRank, TAG_MASTER_SIGNAL, MPI_COMM_WORLD);
     _slots.pop();
   }
 }
@@ -215,15 +215,15 @@ void split(const Slot &parent,
 InstancePtr SplitRanksAllocator::allocateRanks(int requestedRanks, 
   CommandPtr command)
 {
-  Slot slot = _slots.top();
+  Slot slot = _slots.front();
   _slots.pop();
   // border case around the first rank
   if (slot.startingRank == 1 && requestedRanks != 1) {
     requestedRanks -= 1; 
   }
-  if (slot.ranksNumber > requestedRanks) {
+  while (slot.ranksNumber > requestedRanks) {
     Slot slot1, slot2;
-    split(slot, slot1, slot2, requestedRanks); 
+    split(slot, slot1, slot2, slot.ranksNumber / 2); 
     slot = slot1;
     _slots.push(slot2);
   }

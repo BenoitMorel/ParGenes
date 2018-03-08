@@ -2,6 +2,8 @@
 #define _MULTIRAXML_SPLIT_IMPLEM_
 
 #include "../Command.hpp"
+#include <queue>
+
 namespace MultiRaxml {
 
 int main_split_master(int argc, char **argv);
@@ -40,7 +42,7 @@ public:
   virtual vector<InstancePtr> checkFinishedInstances();
   virtual void terminate();
 private:
-  stack<Slot> _slots;
+  queue<Slot> _slots;
   int _ranksInUse;
   string _outputDir;
   map<string, InstancePtr> _runningInstances;

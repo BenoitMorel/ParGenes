@@ -234,29 +234,30 @@ void RunStatistics::printGeneralStatistics()
   int longestTime = 0;
   for (auto instance: _historic) {
     cumulatedTime += instance->getElapsedMs() * instance->getRanksNumber();
-    longestTime = max(longestTime, instance->getElapsedMs());
   }
-  double ratio = double(cumulatedTime) / double(_availableRanks * totalElapsedTime);
+  _lbRatio = double(cumulatedTime) / double(_availableRanks * totalElapsedTime);
   
   cout << "Finished running commands. Total elasped time: ";
-  cout << totalElapsedTime << "ms" << endl;
-  cout << "The longest command took " << longestTime << "ms" << endl;
-  cout << "Load balance ratio: " << ratio << endl;
+  cout << totalElapsedTime / 1000  << "s" << endl;
+  cout << "Load balance ratio: " << _lbRatio << endl;
 }
 
 
 void RunStatistics::exportSVG(const string &svgfile) 
 {
+  Timer t;
   cout << "Saving svg output in " << svgfile << endl;
   int totalWidth = _availableRanks + 1;
   int totalHeight = Common::getElapsedMs(_begin, _end);
-  double ratioWidth = 500.0 / double(totalWidth);
-  double ratioHeight = 500.0 / double(totalHeight);
-  SVGDrawer svg(svgfile, ratioWidth, ratioHeight);
-  svg.writeSquare(0.0, 0.0, 1.0, 500.0 / ratioHeight, "#ffffff");
+  SVGDrawer svg(svgfile, double(totalWidth), double(totalHeight));
   for (auto instance: _historic) {
     instance->writeSVGStatistics(svg, _begin);
   }
+  string caption = "t = " + to_string(totalHeight / 1000) + "s";
+  caption += ", lb = " + to_string(_lbRatio);
+  svg.writeHorizontalLine(totalHeight, 3);
+  svg.writeCaption(caption);
+  cout << "Time spent writting svg: " << t.getElapsedMs() / 1000 << "s" << endl;
 }
 
 } // namespace MultiRaxml
