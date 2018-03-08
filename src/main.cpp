@@ -37,9 +37,7 @@ void main_scheduler(int argc, char **argv, SpawnMode mode)
   if (mode == SM_MPI_COMM_SPLIT) {
     int rank = 0;
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-    int size = 0;
-    MPI_Comm_size(MPI_COMM_WORLD, &size);
-    if (rank != size - 1) {
+    if (rank) {
       main_split_slave(argc, argv);
       return;
     }
