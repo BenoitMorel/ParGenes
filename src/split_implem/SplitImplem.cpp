@@ -5,7 +5,6 @@
 
 namespace MultiRaxml {
 
-const int MASTER_RANK = 0;
 const int SIGNAL_SPLIT = 1;
 const int SIGNAL_JOB = 2;
 const int SIGNAL_TERMINATE = 3;
@@ -70,7 +69,7 @@ void Slave::splitSlave()
 {
   MPI_Status status;
   int splitSize;
-  if (MASTER_RANK == _localRank) {
+  if (_localMasterRank == _localRank) {
     MPI_Recv(&splitSize, 1, MPI_INT, _globalMasterRank, TAG_SPLIT, MPI_COMM_WORLD, &status);
     int signal = SIGNAL_SPLIT;
     MPI_Bcast(&signal, 1, MPI_INT, _localMasterRank, _localComm);
@@ -130,9 +129,9 @@ int Slave::main_split_slave(int argc, char **argv)
   Time begin = Common::getTime();
   _commands = CommandsContainer(arg.commandsFilename);
   _globalRank = getRank(MPI_COMM_WORLD);
-  _localRank = _globalRank - 1;
   _localMasterRank = 0;
-  _globalMasterRank = 0;
+  _globalMasterRank = getSize(MPI_COMM_WORLD) - 1;
+  _localRank = _globalRank;
   MPI_Comm_split(MPI_COMM_WORLD, 1, _localRank, &_localComm);
   while (true) {
     _localRank = getRank(_localComm);
@@ -173,7 +172,7 @@ SplitRanksAllocator::SplitRanksAllocator(int availableRanks,
   Common::makedir(Common::joinPaths(outputDir, "per_job_logs"));
   MPI_Comm fakeComm;
   MPI_Comm_split(MPI_COMM_WORLD, 0, 0, &fakeComm);
-  _slots.push(Slot(1, availableRanks - 1));
+  _slots.push(Slot(0, availableRanks - 1));
 }
 
 
@@ -216,16 +215,13 @@ InstancePtr SplitRanksAllocator::allocateRanks(int requestedRanks,
   Slot slot = _slots.front();
   _slots.pop();
   // border case around the first rank
-  if (slot.startingRank == 1 && requestedRanks != 1) {
-    requestedRanks -= 1; 
-  }
   while (slot.ranksNumber > requestedRanks) {
     Slot slot1, slot2;
     split(slot, slot1, slot2, slot.ranksNumber / 2); 
     slot = slot1;
     _slots.push(slot2);
   }
-  _ranksInUse += requestedRanks;
+  _ranksInUse += slot.ranksNumber;
   
   InstancePtr instance(new SplitInstance(_outputDir,
     slot.startingRank,
