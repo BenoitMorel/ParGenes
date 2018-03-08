@@ -5,7 +5,6 @@
 
 namespace MultiRaxml {
 
-const int MASTER_RANK = 0;
 const int SIGNAL_SPLIT = 1;
 const int SIGNAL_JOB = 2;
 const int SIGNAL_TERMINATE = 3;
@@ -18,6 +17,27 @@ const int TAG_MASTER_SIGNAL = 4;
 const int MSG_SIZE_END_JOB = 3;
 
 
+int getRank(MPI_Comm comm) {
+  int rank = 0;
+  MPI_Comm_rank(comm, &rank);
+  return rank;
+}
+int getSize(MPI_Comm comm) {
+  int size = 0;
+  MPI_Comm_size(comm, &size);
+  return size;
+}
+
+
+int getMasterRank()
+{
+  return getSize(MPI_COMM_WORLD) - 1;
+}
+
+int getLocalMasterRank(MPI_Comm comm)
+{
+  return 0;
+}
 
 int doWork(const CommandPtr command, 
     MPI_Comm workersComm,
@@ -54,33 +74,21 @@ int doWork(const CommandPtr command,
 }
 
 
-int getRank(MPI_Comm comm) {
-  int rank = 0;
-  MPI_Comm_rank(comm, &rank);
-  return rank;
-}
-int getSize(MPI_Comm comm) {
-  int size = 0;
-  MPI_Comm_size(comm, &size);
-  return size;
-}
-
-
 void splitSlave(MPI_Comm &localComm) 
 {
   int localRank = getRank(localComm);
   MPI_Status status;
   int splitSize;
-  if (MASTER_RANK == getRank(localComm)) {
-    MPI_Recv(&splitSize, 1, MPI_INT, MASTER_RANK, TAG_SPLIT, MPI_COMM_WORLD, &status);
+  if (getLocalMasterRank(localComm) == getRank(localComm)) {
+    MPI_Recv(&splitSize, 1, MPI_INT, getMasterRank(), TAG_SPLIT, MPI_COMM_WORLD, &status);
     int signal = SIGNAL_SPLIT;
-    MPI_Bcast(&signal, 1, MPI_INT, MASTER_RANK, localComm);
+    MPI_Bcast(&signal, 1, MPI_INT, getLocalMasterRank(localComm), localComm);
   }
-  MPI_Bcast(&splitSize, 1, MPI_INT, MASTER_RANK, localComm);
-  bool inFirstSplit = (localRank < splitSize);
-  int newRank = inFirstSplit ? localRank : (localRank - splitSize);
+  MPI_Bcast(&splitSize, 1, MPI_INT, getLocalMasterRank(localComm), localComm);
+  int color = localRank / splitSize;
+  int newRank = localRank % splitSize;
   MPI_Comm newComm;
-  MPI_Comm_split(localComm, !inFirstSplit , newRank, &newComm);
+  MPI_Comm_split(localComm, color , newRank, &newComm);
   localComm = newComm;
 }
 
@@ -93,35 +101,35 @@ void treatJobSlave(MPI_Comm localComm,
   MPI_Status status;
   const int maxCommandSize = 200;
   char command[maxCommandSize];
-  if (MASTER_RANK == getRank(localComm)) {
-    MPI_Recv(command, maxCommandSize, MPI_CHAR, MASTER_RANK, TAG_START_JOB, MPI_COMM_WORLD, &status);
+  if (getLocalMasterRank(localComm) == getRank(localComm)) {
+    MPI_Recv(command, maxCommandSize, MPI_CHAR, getMasterRank(), TAG_START_JOB, MPI_COMM_WORLD, &status);
     if (!alone) {
       int signal = SIGNAL_JOB;
-      MPI_Bcast(&signal, 1, MPI_INT, MASTER_RANK, localComm);
+      MPI_Bcast(&signal, 1, MPI_INT, getLocalMasterRank(localComm), localComm);
     }
   }
 
   if (!alone) {
-    MPI_Bcast(command, maxCommandSize, MPI_CHAR, MASTER_RANK, localComm);
+    MPI_Bcast(command, maxCommandSize, MPI_CHAR, getLocalMasterRank(localComm), localComm);
   }
   Timer timer;
   int startingTime = globalTimer.getElapsedMs();
   int jobResult = doWork(commands.getCommand(string(command)), localComm, outputDir);
   int elapsedMS = timer.getElapsedMs();
-  if (MASTER_RANK == getRank(localComm)) {
+  if (getLocalMasterRank(localComm) == getRank(localComm)) {
     int endJobMsg[MSG_SIZE_END_JOB];
     endJobMsg[0] = jobResult;
     endJobMsg[1] = startingTime;
     endJobMsg[2] = elapsedMS;
-    MPI_Send(endJobMsg, MSG_SIZE_END_JOB, MPI_INT, MASTER_RANK, TAG_END_JOB, MPI_COMM_WORLD);
+    MPI_Send(endJobMsg, MSG_SIZE_END_JOB, MPI_INT, getMasterRank(), TAG_END_JOB, MPI_COMM_WORLD);
   }
 }
 
 void terminateSlave(MPI_Comm localComm)
 {
-  if (MASTER_RANK == getRank(localComm)) {
+  if (getLocalMasterRank(localComm) == getRank(localComm)) {
     int signal = SIGNAL_TERMINATE;
-    MPI_Bcast(&signal, 1, MPI_INT, MASTER_RANK, localComm);
+    MPI_Bcast(&signal, 1, MPI_INT, getLocalMasterRank(localComm), localComm);
   }
   MPI_Finalize();
 }
@@ -135,13 +143,13 @@ int main_split_slave(int argc, char **argv)
    
   MPI_Comm localComm; 
   // initial split to get rid of the master process
-  MPI_Comm_split(MPI_COMM_WORLD, 1, getRank(MPI_COMM_WORLD) - 1, &localComm);
+  MPI_Comm_split(MPI_COMM_WORLD, 1, getRank(MPI_COMM_WORLD), &localComm);
   int globalRank = getRank(MPI_COMM_WORLD);
   while (true) {
     if (!getRank(localComm)) {
       int signal;
       MPI_Status status;
-      MPI_Recv(&signal, 1, MPI_INT, MASTER_RANK, TAG_MASTER_SIGNAL, MPI_COMM_WORLD, &status);
+      MPI_Recv(&signal, 1, MPI_INT, getMasterRank(), TAG_MASTER_SIGNAL, MPI_COMM_WORLD, &status);
       if (SIGNAL_SPLIT == signal) {
         splitSlave(localComm);
       } else if (SIGNAL_JOB == signal) {
@@ -152,7 +160,7 @@ int main_split_slave(int argc, char **argv)
       }
     } else { 
       int signal;
-      MPI_Bcast(&signal, 1, MPI_INT, MASTER_RANK, localComm);
+      MPI_Bcast(&signal, 1, MPI_INT, getLocalMasterRank(localComm), localComm);
       if (SIGNAL_SPLIT == signal) {
         splitSlave(localComm);
       } else if (SIGNAL_JOB == signal) {
@@ -175,7 +183,7 @@ SplitRanksAllocator::SplitRanksAllocator(int availableRanks,
   Common::makedir(Common::joinPaths(outputDir, "per_job_logs"));
   MPI_Comm fakeComm;
   MPI_Comm_split(MPI_COMM_WORLD, 0, 0, &fakeComm);
-  _slots.push(Slot(1, availableRanks - 1));
+  _slots.push(Slot(0, availableRanks - 1));
 }
 
 
@@ -198,17 +206,24 @@ void SplitRanksAllocator::terminate()
   }
 }
 
-void split(const Slot &parent,
-    Slot &son1,
-    Slot &son2,
-    int son1size)
+void split(Slot &parent, queue<Slot> &slots, int newSize)
 {
   // send signal
   int signal = SIGNAL_SPLIT;
   MPI_Send(&signal, 1, MPI_INT, parent.startingRank, TAG_MASTER_SIGNAL, MPI_COMM_WORLD);
-  MPI_Send(&son1size, 1, MPI_INT, parent.startingRank, TAG_SPLIT, MPI_COMM_WORLD);
-  son1 = Slot(parent.startingRank, son1size);
-  son2 = Slot(parent.startingRank + son1size, parent.ranksNumber - son1size);
+  MPI_Send(&newSize, 1, MPI_INT, parent.startingRank, TAG_SPLIT, MPI_COMM_WORLD);
+  Slot newSlot;
+  int slotsNumber = (parent.ranksNumber - 1) / newSize + 1; 
+  for (int i = 0; i < slotsNumber; ++i) {
+    int startingRank = parent.startingRank + i * newSize;
+    int ranks = ((i * newSize) > parent.ranksNumber) ? max(1, newSize - 1) : newSize;
+    Slot son = Slot(startingRank, ranks);
+    if (i == 0) 
+      newSlot = son;
+    else 
+      slots.push(son);
+  }
+  parent = newSlot;
 }
 
 
@@ -217,18 +232,10 @@ InstancePtr SplitRanksAllocator::allocateRanks(int requestedRanks,
 {
   Slot slot = _slots.front();
   _slots.pop();
-  // border case around the first rank
-  if (slot.startingRank == 1 && requestedRanks != 1) {
-    requestedRanks -= 1; 
+  if (slot.ranksNumber > requestedRanks) {
+    split(slot, _slots, requestedRanks); 
   }
-  while (slot.ranksNumber > requestedRanks) {
-    Slot slot1, slot2;
-    split(slot, slot1, slot2, slot.ranksNumber / 2); 
-    slot = slot1;
-    _slots.push(slot2);
-  }
-  _ranksInUse += requestedRanks;
-  
+  _ranksInUse += slot.ranksNumber;
   InstancePtr instance(new SplitInstance(_outputDir,
     slot.startingRank,
     slot.ranksNumber,
@@ -273,8 +280,6 @@ vector<InstancePtr> SplitRanksAllocator::checkFinishedInstances()
            << " failed with return code " << endJobMsg[0] << endl;
     }
     finished.push_back(instance);
-    //_rankToInstances.erase(source);
-
   }
   if (finished.size()) {
     cout << "Check finished elapsed time " << t.getElapsedMs()  << " for " << finished.size() << " elements" << endl;

@@ -17,7 +17,8 @@ struct Slot {
   Slot(int _startingRank, int _ranksNumber) : 
     startingRank(_startingRank),
     ranksNumber(_ranksNumber)
-  {}
+  {
+  }
 
   int startingRank; // relative to MPI_COMM_WORLD
   int ranksNumber;
