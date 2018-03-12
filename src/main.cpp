@@ -51,19 +51,6 @@ void main_scheduler(int argc, char **argv)
   exit(0);
 }
 
-void main_checkpoint(int argc, char** argv)
-{
-  if (argc != 3) {
-    cout << "Error: wrong syntax with checkpoint" << endl;
-    exit(1);
-  }
-  string outputDir(argv[2]);
-  string command = Checkpoint::readCheckpointArgs(outputDir);
-  cout << "checkpoint will run :" << endl;
-  cout << command << endl;
-  system(command.c_str());
-}
-
 int _main(int argc, char** argv) 
 {
   if (argc < 2) {
@@ -72,10 +59,7 @@ int _main(int argc, char** argv)
   }
   string arg(argv[1]);
   if (arg == "--split-scheduler") {
-    Checkpoint::writeCheckpointArgs(argc, argv, string(argv[3]));
     main_scheduler(argc, argv);
-  } else if (arg == "--checkpoint") {
-    main_checkpoint(argc, argv);
   } else {
     cerr << "Unknown argument " << arg << endl;
     return 1;

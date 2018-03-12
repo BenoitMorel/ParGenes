@@ -16,16 +16,7 @@ public:
   bool isDone(const string &id);
   void markDone(const string &id);
 
-public:
-  static string readCheckpointArgs(const string &outputDir);
-
-  static void writeCheckpointArgs(int argc, 
-      char **argv,
-      const string &outputDir);
-
-
 private:
-  static string getCheckpointArgsFile(const string &outputDir);
   static string getCheckpointCommandsFile(const string &outputDir);
 
 private:

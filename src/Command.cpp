@@ -207,7 +207,7 @@ bool CommandsRunner::executePendingCommand()
 void CommandsRunner::onFinishedInstance(InstancePtr instance)
 {
   instance->onFinished();
-  //_checkpoint.markDone(instance->getId());
+  _checkpoint.markDone(instance->getId());
   if (_verbose) {
     cout << "End of " << instance->getId() << " after " <<  instance->getElapsedMs() << "ms ";
     cout << " (" << ++_finishedInstancesNumber << "/" << _commandsVector.size() << ")" << endl;
