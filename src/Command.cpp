@@ -91,10 +91,11 @@ CommandsContainer::CommandsContainer(const string &commandsFilename)
     iss >> estimatedCost;
     
     vector<string> commandVector;
+    commandVector.push_back("multi-raxml");
     while (!iss.eof()) {
-      string plop;
-      iss >> plop;
-      commandVector.push_back(plop);
+      string argument;
+      iss >> argument;
+      commandVector.push_back(argument);
     }
     CommandPtr command(new Command(id, ranks, estimatedCost, commandVector));
     addCommand(command);

@@ -16,37 +16,46 @@ const int TAG_MASTER_SIGNAL = 4;
 
 const int MSG_SIZE_END_JOB = 3;
 
-
-
-int doWork(const CommandPtr command, 
-    MPI_Comm workersComm,
-    const string &outputDir) 
+Slave::~Slave()
 {
-  std::ofstream out(Common::joinPaths(outputDir, "per_job_logs", command->getId() + "out.txt"));
-  std::streambuf *coutbuf = std::cout.rdbuf(); //save old buf
-  std::cout.rdbuf(out.rdbuf()); //redirect std::cout to out.txt!
-  const vector<string> &args  = command->getArgs();
-  string lib = args[0];
-  void *handle = dlopen(lib.c_str(), RTLD_LAZY);
-  if (!handle) {
-    cerr << "Cannot open shared library " << lib << endl;
+  if (_handle)
+    dlclose(_handle);
+}
+
+int Slave::loadLibrary(const string &libraryPath)
+{
+  _handle = dlopen(libraryPath.c_str(), RTLD_LAZY);
+  if (!_handle) {
+    cerr << "Cannot open shared library " << libraryPath << endl;
     return 1;
   }
-  mainFct raxmlMain = (mainFct) dlsym(handle, "exportable_main");
+  _raxmlMain = (mainFct) dlsym(_handle, "exportable_main");
   const char *dlsym_error = dlerror();
   if (dlsym_error) {
     cerr << "Cannot load symbole exportable_main " << dlsym_error << endl;
-    dlclose(handle);
+    dlclose(_handle);
+    _handle = 0;
     return 1;
   }
-  int argc = args.size();
+  return 0;
+}
+
+
+int Slave::doWork(const CommandPtr command, 
+    MPI_Comm workersComm,
+    const string &outputDir) 
+{
+  std::ofstream out(Common::joinPaths(outputDir, "per_job_logs", command->getId() + "_out.txt"));
+  std::streambuf *coutbuf = std::cout.rdbuf(); 
+  std::cout.rdbuf(out.rdbuf()); 
+  const vector<string> &args  = command->getArgs();
+  int argc = args.size(); 
   char **argv = new char*[argc];
   for (int i = 0; i < argc; ++i) {
     argv[i] = (char*)args[i].c_str();
   }
-  int res = raxmlMain(argc, argv, (void*)&workersComm);
+  int res = _raxmlMain(argc, argv, (void*)&workersComm);
   delete[] argv;
-  dlclose(handle);
   MPI_Barrier(workersComm);
   std::cout.rdbuf(coutbuf); 
   return res;
@@ -125,8 +134,10 @@ void Slave::terminateSlave()
 int Slave::main_split_slave(int argc, char **argv)
 {
   SchedulerArgumentsParser arg(argc, argv);
+  if (loadLibrary(arg.library)) {
+    return 1;
+  }
   _outputDir = arg.outputDir;
-  Time begin = Common::getTime();
   _commands = CommandsContainer(arg.commandsFilename);
   _globalRank = getRank(MPI_COMM_WORLD);
   _localMasterRank = 0;

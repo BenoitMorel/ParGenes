@@ -173,27 +173,30 @@ private:
 class SchedulerArgumentsParser {
 public:
   SchedulerArgumentsParser(int argc, char** argv):
-    commandsFilename(),
-    threadsNumber(1)
+    commandsFilename()
   {
     if (argc != 5) {
       print_help();
       throw MultiRaxmlException("Error: invalid syntax");
     }
     unsigned int i = 2;
+    library = string(argv[i++]);
+    cout <<"library  " << library << endl;
     commandsFilename = string(argv[i++]);
+    cout <<" command " << commandsFilename << endl;
     outputDir = string(argv[i++]);
-    threadsNumber = atoi(argv[i++]);
+    cout << "output " << outputDir << endl;
   }
   
   void print_help() 
   {
-    cout << "todo: write help message" << endl;
+    cout << "Syntax:" << endl;
+    cout << "multiraxml --split-scheduler library command_file output_dir" << endl;
   }
 
+  string library;
   string commandsFilename;
   string outputDir;
-  unsigned int threadsNumber;
 };
 
 } // namespace MultiRaxml

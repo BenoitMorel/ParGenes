@@ -27,8 +27,11 @@ struct Slot {
 class Slave {
 public:
   Slave() {}
+  ~Slave();
   int main_split_slave(int argc, char **argv);
 private:
+  int loadLibrary(const string &libraryPath);
+  int doWork(const CommandPtr command, MPI_Comm workersComm, const string &outputDir); 
   void splitSlave();
   void treatJobSlave();
   void terminateSlave();
@@ -40,6 +43,8 @@ private:
   CommandsContainer _commands;
   string _outputDir;
   Timer _globalTimer;
+  void *_handle;
+  mainFct _raxmlMain;
 };
 
 /*
