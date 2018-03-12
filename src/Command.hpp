@@ -16,7 +16,6 @@ namespace MultiRaxml {
 class Command {
 public:
   Command(const string &id, 
-      bool isMpiCommand,
       unsigned int ranks,
       unsigned int estimatedCost,
       const vector<string> &arguments);
@@ -25,14 +24,12 @@ public:
   const string &getId() const {return _id;}
   int getEstimatedCost() const {return _estimatedCost;}
   int getRanksNumber() const {return _ranksNumber;}
-  bool isMpiCommand() const {return _isMpiCommand;}
   string toString() const;
   const vector<string> &getArgs() const {return _args;}
 public:
   // initial information
   const string _id;
   const vector<string> _args;
-  bool _isMpiCommand;
   int _ranksNumber;
   int _estimatedCost;
 };

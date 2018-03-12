@@ -10,13 +10,11 @@
 namespace MultiRaxml {
 
 Command::Command(const string &id, 
-    bool isMpiCommand,
     unsigned int ranks,
     unsigned int estimatedCost,
     const vector<string> &arguments):
   _id(id),
   _args(arguments),
-  _isMpiCommand(isMpiCommand),
   _ranksNumber(ranks),
   _estimatedCost(estimatedCost)
 {
@@ -26,7 +24,6 @@ string Command::toString() const
 {
   string res;
   res = getId() + " ";
-  res += string(_isMpiCommand ? "mpi" : "nompi") + " ";
   for (auto str: _args) {
     res += str + " ";
   }
@@ -90,18 +87,16 @@ CommandsContainer::CommandsContainer(const string &commandsFilename)
     
     istringstream iss(line);
     iss >> id;
-    iss >> isMPIStr;
     iss >> ranks;
     iss >> estimatedCost;
     
-    bool isMPI = (isMPIStr == string("mpi"));
     vector<string> commandVector;
     while (!iss.eof()) {
       string plop;
       iss >> plop;
       commandVector.push_back(plop);
     }
-    CommandPtr command(new Command(id, isMPI, ranks, estimatedCost, commandVector));
+    CommandPtr command(new Command(id, ranks, estimatedCost, commandVector));
     addCommand(command);
   }
 }
@@ -183,7 +178,6 @@ bool CommandsRunner::executePendingCommand()
   auto command = getPendingCommand();
   InstancePtr instance = _allocator->allocateRanks(command->getRanksNumber(), command);
   Timer t;
-  //Common::printPidsNumber(); // commented because costly
   if (!instance->execute(instance)) {
     cout << "Failed to start " << command->getId() << ". Will retry later " << endl;
     _allocator->freeRanks(instance);
@@ -194,7 +188,7 @@ bool CommandsRunner::executePendingCommand()
       << instance->getStartingRank()  << ":"
       << instance->getStartingRank() + instance->getRanksNumber() - 1 
       << "] "
-      << "(submit time " << t.getElapsedMs()  << "ms)" << endl;
+      << endl;
   }
   _historic.push_back(instance);
   _commandIterator++;

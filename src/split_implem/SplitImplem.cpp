@@ -26,7 +26,7 @@ int doWork(const CommandPtr command,
   std::streambuf *coutbuf = std::cout.rdbuf(); //save old buf
   std::cout.rdbuf(out.rdbuf()); //redirect std::cout to out.txt!
   const vector<string> &args  = command->getArgs();
-  string lib = args[0] + ".so";
+  string lib = args[0];
   void *handle = dlopen(lib.c_str(), RTLD_LAZY);
   if (!handle) {
     cerr << "Cannot open shared library " << lib << endl;
