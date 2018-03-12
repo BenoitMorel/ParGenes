@@ -22,31 +22,24 @@ def getMultiraxmlExec():
   return os.path.join(repo_root, "build", "multi-raxml")
 
 def print_help():
-  print("python raxml_runner.py implementation raxml_exec_dir fasta_dir output_dir additionnal_options_file")
-  print("implementation: --spawn-scheduler")
-  print("             or --mpirun-scheduler")
-  print("             or --split-scheduler")
+  print("python raxml_runner.py --split-scheduler raxml_exec_dir fasta_dir output_dir additionnal_options_file")
 
-def run_multiraxml(implementation, command_filename, output_dir, ranks):
+def run_multiraxml(raxml_library, command_filename, output_dir, ranks):
   sys.stdout.flush()
   command = []
-  if (implementation not in ["--mpirun-scheduler", "--spawn-scheduler", "--split-scheduler"]):
-    print("ERROR: wrong implementation " + implementation)
-    sys.exit(0)
-  if (implementation == "--split-scheduler"):
-    command.append("mpirun")
-    command.append("-np")
-    command.append(str(ranks))
+  command.append("mpirun")
+  command.append("-np")
+  command.append(str(ranks))
   command.append(getMultiraxmlExec())
   command.append(implementation)
+  command.append(raxml_library)
   command.append(command_filename)
   command.append(output_dir)
-  command.append(str(ranks))
+  print ("Calling multiraxml: " + " ".join(command))
   subprocess.check_call(command)
 
 def build_first_command(raxml_exec_dir, fasta_files, output_dir, options, ranks):
   first_command_file = os.path.join(output_dir, "first_command.txt")
-  raxml = os.path.join(raxml_exec_dir, "raxml-ng-mpi")
   first_run_output_dir = os.path.join(output_dir, "first_run")
   first_run_results = os.path.join(first_run_output_dir, "results")
   os.makedirs(first_run_results)
@@ -55,8 +48,7 @@ def build_first_command(raxml_exec_dir, fasta_files, output_dir, options, ranks)
   with open(first_command_file, "w") as writer:
     for fasta in fasta_files:
       base = os.path.splitext(os.path.basename(fasta))[0]
-      writer.write("first_" + base + " mpi 1 1 ")
-      writer.write(raxml)
+      writer.write("first_" + base + " 1 1 ")
       writer.write(" --parse ")
       writer.write( " --msa " + fasta + " " + options[:-1])
       writer.write(" --prefix " + os.path.join(first_run_results, base))
@@ -95,7 +87,6 @@ def build_second_command(raxml_exec_dir, fasta_files, output_dir, options, ranks
   with open(second_command_file, "w") as writer:
     for fasta in fasta_files:
       base = os.path.splitext(os.path.basename(fasta))[0]
-      raxml = os.path.join(raxml_exec_dir, "raxml-ng-mpi")
       first_run_log = os.path.join(os.path.join(first_run_results, base + ".raxml.log"))
       compressed_fasta = os.path.join(os.path.join(first_run_results, base + ".raxml.rba"))
       parse_result = parse_msa_info(first_run_log)
@@ -104,8 +95,8 @@ def build_second_command(raxml_exec_dir, fasta_files, output_dir, options, ranks
       if (cores == "0" or taxa == "0"):
         print("warning with fasta " + fasta + ", skipping")
         continue
-      writer.write("second_" + base + " mpi ")
-      writer.write(cores + " " + taxa + " " + raxml)
+      writer.write("second_" + base + " ")
+      writer.write(cores + " " + taxa )
       writer.write(" --msa " + compressed_fasta + " " + options[:-1])
       writer.write(" --prefix " + os.path.join(second_run_results, base))
       writer.write(" --threads 1 ")
@@ -121,12 +112,13 @@ def main_raxml_runner(implementation, raxml_exec_dir, fasta_dir, output_dir, opt
   print("Results in " + output_dir)
   fasta_files = [os.path.join(fasta_dir, f) for f in os.listdir(fasta_dir)]
   options = open(options_file, "r").readlines()[0]
+  raxml_library = os.path.join(raxml_exec_dir, "raxml-ng-mpi.so")
   first_command_file = build_first_command(raxml_exec_dir, fasta_files, output_dir, options, ranks)
-  run_multiraxml(implementation, first_command_file, os.path.join(output_dir, "first_run"), ranks)
+  run_multiraxml(raxml_library, first_command_file, os.path.join(output_dir, "first_run"), ranks)
   print("### end of first multiraxml run")
   second_command_file = build_second_command(raxml_exec_dir, fasta_files, output_dir, options, ranks)
   print("### end of build_second_command")
-  run_multiraxml(implementation, second_command_file, os.path.join(output_dir, "second_run"), ranks)
+  run_multiraxml(raxml_library, second_command_file, os.path.join(output_dir, "second_run"), ranks)
   print("### end of second multiraxml run")
 
 

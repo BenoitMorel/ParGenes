@@ -53,7 +53,9 @@ int Slave::doWork(const CommandPtr command,
   char **argv = new char*[argc];
   for (int i = 0; i < argc; ++i) {
     argv[i] = (char*)args[i].c_str();
+    cout << argv[i] << " ";
   }
+  cout << endl;
   int res = _raxmlMain(argc, argv, (void*)&workersComm);
   delete[] argv;
   MPI_Barrier(workersComm);
