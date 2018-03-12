@@ -44,7 +44,7 @@ def run_multiraxml(implementation, command_filename, output_dir, ranks):
   command.append(str(ranks))
   subprocess.check_call(command)
 
-def build_first_command(chunk_size, raxml_exec_dir, fasta_files, output_dir, options, ranks):
+def build_first_command(raxml_exec_dir, fasta_files, output_dir, options, ranks):
   first_command_file = os.path.join(output_dir, "first_command.txt")
   raxml = os.path.join(raxml_exec_dir, "raxml-ng-mpi")
   first_run_output_dir = os.path.join(output_dir, "first_run")
@@ -52,42 +52,26 @@ def build_first_command(chunk_size, raxml_exec_dir, fasta_files, output_dir, opt
   os.makedirs(first_run_results)
   fasta_chuncks = []
   fasta_chuncks.append([])
-  print("Parsing jobs will be grouped in chunks of size " + str(chunk_size))
-  for fasta in fasta_files:
-    current_chunk = fasta_chuncks[-1]
-    if (len(current_chunk) == chunk_size):
-      fasta_chuncks.append([])
-      current_chunk = fasta_chuncks[-1]
-    current_chunk.append(fasta)
   with open(first_command_file, "w") as writer:
-    index = 0
-    for chunk in fasta_chuncks:
+    for fasta in fasta_files:
       base = os.path.splitext(os.path.basename(fasta))[0]
-      writer.write("chunk_" + str(index) + " mpi 1 1 ")
-      if (chunk_size > 1):
-          writer.write("{ ")
-      for fasta in chunk:
-        base = os.path.splitext(os.path.basename(fasta))[0]
-        writer.write(raxml)
-        writer.write(" --parse ")
-        writer.write( " --msa " + fasta + " " + options[:-1])
-        writer.write(" --prefix " + os.path.join(first_run_results, base))
-        writer.write(" --threads 1 ")
-        if (chunk_size > 1):
-          writer.write("; ")
-      if (chunk_size > 1):
-        writer.write(" } ")
+      writer.write("first_" + base + " mpi 1 1 ")
+      writer.write(raxml)
+      writer.write(" --parse ")
+      writer.write( " --msa " + fasta + " " + options[:-1])
+      writer.write(" --prefix " + os.path.join(first_run_results, base))
+      writer.write(" --threads 1 ")
       writer.write("\n")
-      index += 1
-    return first_command_file
+  return first_command_file
 
 def sites_to_maxcores(sites):
   if sites == 0:
     return 0
-  return 1 << ((sites // 500)).bit_length()
+  return 1 << ((sites // 1000)).bit_length()
 
 def parse_msa_info(log_file):
   result = [0, 0]
+  unique_sites = 0
   try:
     lines = open(log_file).readlines()
   except:
@@ -95,10 +79,10 @@ def parse_msa_info(log_file):
     return result
   for line in lines:
     if "Alignment comprises" in line:
-      result[0] = int(line.split(" ")[5])
+      unique_sites = int(line.split(" ")[5])
     if "taxa" in line:
       result[1] = int(line.split(" ")[4])
-  result[0] = sites_to_maxcores(result[0])
+  result[0] = sites_to_maxcores(unique_sites)
   return result
 
 def build_second_command(raxml_exec_dir, fasta_files, output_dir, options, ranks):
@@ -128,13 +112,6 @@ def build_second_command(raxml_exec_dir, fasta_files, output_dir, options, ranks
       writer.write("\n")
   return second_command_file
 
-def get_chunk_size(implementation, ranks):
-  return 1
-  if (implementation == "--mpirun-scheduler"):
-    return 1
-  return 10
-
-
 def main_raxml_runner(implementation, raxml_exec_dir, fasta_dir, output_dir, options_file, ranks):
   check_ranks(ranks)
   try:
@@ -144,8 +121,7 @@ def main_raxml_runner(implementation, raxml_exec_dir, fasta_dir, output_dir, opt
   print("Results in " + output_dir)
   fasta_files = [os.path.join(fasta_dir, f) for f in os.listdir(fasta_dir)]
   options = open(options_file, "r").readlines()[0]
-  chunks_size = get_chunk_size(implementation, ranks)
-  first_command_file = build_first_command(chunks_size, raxml_exec_dir, fasta_files, output_dir, options, ranks)
+  first_command_file = build_first_command(raxml_exec_dir, fasta_files, output_dir, options, ranks)
   run_multiraxml(implementation, first_command_file, os.path.join(output_dir, "first_run"), ranks)
   print("### end of first multiraxml run")
   second_command_file = build_second_command(raxml_exec_dir, fasta_files, output_dir, options, ranks)
