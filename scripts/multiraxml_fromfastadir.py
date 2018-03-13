@@ -3,26 +3,9 @@ import os
 import subprocess
 import time
 
-def check_ranks(ranks):
-  command = []
-  command.append("mpirun")
-  #command.append("-display-allocation")
-  command.append("-np")
-  command.append(str(ranks))
-  command.append("sleep")
-  command.append("0.1")
-  try:
-    subprocess.check_call(command)
-  except:
-    print("Invalid number of ranks: " + str(ranks))
-    sys.exit(1)
-
 def getMultiraxmlExec():
   repo_root = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
   return os.path.join(repo_root, "build", "multi-raxml")
-
-def print_help():
-  print("python raxml_runner.py --split-scheduler raxml_exec_dir fasta_dir output_dir additionnal_options_file")
 
 def run_multiraxml(raxml_library, command_filename, output_dir, ranks):
   sys.stdout.flush()
@@ -48,10 +31,12 @@ def build_first_command(raxml_exec_dir, fasta_files, output_dir, options, ranks)
   with open(first_command_file, "w") as writer:
     for fasta in fasta_files:
       base = os.path.splitext(os.path.basename(fasta))[0]
+      fasta_output_dir = os.path.join(first_run_results, base)
+      os.makedirs(fasta_output_dir)
       writer.write("first_" + base + " 1 1 ")
       writer.write(" --parse ")
       writer.write( " --msa " + fasta + " " + options[:-1])
-      writer.write(" --prefix " + os.path.join(first_run_results, base))
+      writer.write(" --prefix " + os.path.join(fasta_output_dir, base))
       writer.write(" --threads 1 ")
       writer.write("\n")
   return first_command_file
@@ -87,8 +72,11 @@ def build_second_command(raxml_exec_dir, fasta_files, output_dir, options, ranks
   with open(second_command_file, "w") as writer:
     for fasta in fasta_files:
       base = os.path.splitext(os.path.basename(fasta))[0]
-      first_run_log = os.path.join(os.path.join(first_run_results, base + ".raxml.log"))
-      compressed_fasta = os.path.join(os.path.join(first_run_results, base + ".raxml.rba"))
+      first_fasta_output_dir = os.path.join(first_run_results, base)
+      second_fasta_output_dir = os.path.join(second_run_results, base)
+      os.makedirs(second_fasta_output_dir)
+      first_run_log = os.path.join(os.path.join(first_fasta_output_dir, base + ".raxml.log"))
+      compressed_fasta = os.path.join(os.path.join(first_fasta_output_dir, base + ".raxml.rba"))
       parse_result = parse_msa_info(first_run_log)
       cores = str(parse_result[0])
       taxa = str(parse_result[1])
@@ -98,13 +86,12 @@ def build_second_command(raxml_exec_dir, fasta_files, output_dir, options, ranks
       writer.write("second_" + base + " ")
       writer.write(cores + " " + taxa )
       writer.write(" --msa " + compressed_fasta + " " + options[:-1])
-      writer.write(" --prefix " + os.path.join(second_run_results, base))
+      writer.write(" --prefix " + os.path.join(second_fasta_output_dir, base))
       writer.write(" --threads 1 ")
       writer.write("\n")
   return second_command_file
 
 def main_raxml_runner(implementation, raxml_exec_dir, fasta_dir, output_dir, options_file, ranks):
-  check_ranks(ranks)
   try:
     os.makedirs(output_dir)
   except:
@@ -121,6 +108,9 @@ def main_raxml_runner(implementation, raxml_exec_dir, fasta_dir, output_dir, opt
   run_multiraxml(raxml_library, second_command_file, os.path.join(output_dir, "second_run"), ranks)
   print("### end of second multiraxml run")
 
+def print_help():
+  print("python raxml_runner.py --split-scheduler raxml_exec_dir fasta_dir output_dir additionnal_options_file cores_number")
+
 
 if (len(sys.argv) != 7):
     print_help()
@@ -132,7 +122,6 @@ fasta_dir = sys.argv[3]
 output_dir = sys.argv[4]
 options_file = sys.argv[5]
 ranks = sys.argv[6]
-
 start = time.time()
 main_raxml_runner(implementation, raxml_exec_dir, fasta_dir, output_dir, options_file, ranks)
 end = time.time()
