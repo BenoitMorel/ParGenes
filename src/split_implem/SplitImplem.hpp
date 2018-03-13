@@ -26,7 +26,7 @@ struct Slot {
 
 class Slave {
 public:
-  Slave() {}
+  Slave(): _handle(0) {}
   ~Slave();
   int main_split_slave(int argc, char **argv);
 private:
@@ -45,6 +45,7 @@ private:
   Timer _globalTimer;
   void *_handle;
   mainFct _raxmlMain;
+  string _libraryPath;
 };
 
 /*

@@ -24,6 +24,10 @@ Slave::~Slave()
 
 int Slave::loadLibrary(const string &libraryPath)
 {
+  _libraryPath = libraryPath;
+  if  (_handle) {
+    dlclose(_handle);
+  }
   _handle = dlopen(libraryPath.c_str(), RTLD_LAZY);
   if (!_handle) {
     cerr << "Cannot open shared library " << libraryPath << endl;
@@ -45,6 +49,7 @@ int Slave::doWork(const CommandPtr command,
     MPI_Comm workersComm,
     const string &outputDir) 
 {
+  loadLibrary(_libraryPath);
   std::ofstream out(Common::joinPaths(outputDir, "per_job_logs", command->getId() + "_out.txt"));
   std::streambuf *coutbuf = std::cout.rdbuf(); 
   std::cout.rdbuf(out.rdbuf()); 
