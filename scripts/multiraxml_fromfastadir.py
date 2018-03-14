@@ -62,13 +62,16 @@ def parse_msa_info(log_file):
   result[0] = sites_to_maxcores(unique_sites)
   return result
 
-def build_second_command(raxml_exec_dir, fasta_files, output_dir, options, ranks):
+def build_second_command(raxml_exec_dir, fasta_files, output_dir, options, bootstraps, ranks):
   second_command_file = os.path.join(output_dir, "second_command.txt")
   first_run_output_dir = os.path.join(output_dir, "first_run")
   first_run_results = os.path.join(first_run_output_dir, "results")
   second_run_output_dir = os.path.join(output_dir, "second_run")
   second_run_results = os.path.join(second_run_output_dir, "results")
+  second_run_bootstraps = os.path.join(second_run_output_dir, "bootstraps")
   os.makedirs(second_run_results)
+  if (bootstraps != 0):
+    os.makedirs(second_run_bootstraps)
   with open(second_command_file, "w") as writer:
     for fasta in fasta_files:
       base = os.path.splitext(os.path.basename(fasta))[0]
@@ -76,6 +79,7 @@ def build_second_command(raxml_exec_dir, fasta_files, output_dir, options, ranks
       second_fasta_output_dir = os.path.join(second_run_results, base)
       os.makedirs(second_fasta_output_dir)
       first_run_log = os.path.join(os.path.join(first_fasta_output_dir, base + ".raxml.log"))
+      uncompressed_fasta = fasta
       compressed_fasta = os.path.join(os.path.join(first_fasta_output_dir, base + ".raxml.rba"))
       parse_result = parse_msa_info(first_run_log)
       cores = str(parse_result[0])
@@ -89,9 +93,23 @@ def build_second_command(raxml_exec_dir, fasta_files, output_dir, options, ranks
       writer.write(" --prefix " + os.path.join(second_fasta_output_dir, base))
       writer.write(" --threads 1 ")
       writer.write("\n")
+      bs_output_dir = os.path.join(second_run_bootstraps, base)
+      os.makedirs(bs_output_dir)
+      for bs in range(0, bootstraps):
+        bsbase = base + "_bs" + str(bs)
+        writer.write(bsbase + " ")
+        writer.write(cores + " " + taxa )
+        writer.write(" --bootstrap")
+        writer.write(" --msa " + uncompressed_fasta + " " + options[:-1])
+        writer.write(" --prefix " + os.path.join(bs_output_dir, bsbase))
+        writer.write(" --threads 1 ")
+        writer.write(" --seed " + str(bs))
+        writer.write(" --bs-trees 1 ")
+        writer.write("\n")
+         
   return second_command_file
 
-def main_raxml_runner(implementation, raxml_exec_dir, fasta_dir, output_dir, options_file, ranks):
+def main_raxml_runner(implementation, raxml_exec_dir, fasta_dir, output_dir, options_file, bootstraps, ranks):
   try:
     os.makedirs(output_dir)
   except:
@@ -103,16 +121,16 @@ def main_raxml_runner(implementation, raxml_exec_dir, fasta_dir, output_dir, opt
   first_command_file = build_first_command(raxml_exec_dir, fasta_files, output_dir, options, ranks)
   run_multiraxml(raxml_library, first_command_file, os.path.join(output_dir, "first_run"), ranks)
   print("### end of first multiraxml run")
-  second_command_file = build_second_command(raxml_exec_dir, fasta_files, output_dir, options, ranks)
+  second_command_file = build_second_command(raxml_exec_dir, fasta_files, output_dir, options, bootstraps, ranks)
   print("### end of build_second_command")
   run_multiraxml(raxml_library, second_command_file, os.path.join(output_dir, "second_run"), ranks)
   print("### end of second multiraxml run")
 
 def print_help():
-  print("python raxml_runner.py --split-scheduler raxml_exec_dir fasta_dir output_dir additionnal_options_file cores_number")
+  print("python raxml_runner.py --split-scheduler raxml_exec_dir fasta_dir output_dir additionnal_options_file bootstraps_number cores_number")
 
 
-if (len(sys.argv) != 7):
+if (len(sys.argv) != 8):
     print_help()
     sys.exit(0)
 
@@ -121,9 +139,10 @@ raxml_exec_dir = sys.argv[2]
 fasta_dir = sys.argv[3] 
 output_dir = sys.argv[4]
 options_file = sys.argv[5]
-ranks = sys.argv[6]
+bootstraps = int(sys.argv[6])
+ranks = sys.argv[7]
 start = time.time()
-main_raxml_runner(implementation, raxml_exec_dir, fasta_dir, output_dir, options_file, ranks)
+main_raxml_runner(implementation, raxml_exec_dir, fasta_dir, output_dir, options_file, bootstraps, ranks)
 end = time.time()
-print("TOTAL ELAPSED TIME " + str(end-start) + "s")
+print("TOTAL ELAPSED TIME SPENT IN " + os.path.basename(__file__) + " " + str(end-start) + "s")
 

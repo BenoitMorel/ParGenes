@@ -181,11 +181,8 @@ public:
     }
     unsigned int i = 2;
     library = string(argv[i++]);
-    cout <<"library  " << library << endl;
     commandsFilename = string(argv[i++]);
-    cout <<" command " << commandsFilename << endl;
     outputDir = string(argv[i++]);
-    cout << "output " << outputDir << endl;
   }
   
   void print_help() 
