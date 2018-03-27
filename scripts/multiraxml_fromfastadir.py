@@ -22,7 +22,7 @@ def run_multiraxml(raxml_library, command_filename, output_dir, ranks):
   print ("Calling multiraxml: " + " ".join(command))
   subprocess.check_call(command)
 
-def build_first_command(raxml_exec_dir, fasta_files, output_dir, options, ranks):
+def build_first_command(fasta_files, output_dir, options, ranks):
   first_command_file = os.path.join(output_dir, "first_command.txt")
   first_run_output_dir = os.path.join(output_dir, "first_run")
   first_run_results = os.path.join(first_run_output_dir, "results")
@@ -63,7 +63,7 @@ def parse_msa_info(log_file):
   result[0] = sites_to_maxcores(unique_sites)
   return result
 
-def build_second_command(raxml_exec_dir, fasta_files, output_dir, options, bootstraps, ranks):
+def build_second_command(fasta_files, output_dir, options, bootstraps, ranks):
   second_command_file = os.path.join(output_dir, "second_command.txt")
   first_run_output_dir = os.path.join(output_dir, "first_run")
   first_run_results = os.path.join(first_run_output_dir, "results")
@@ -131,6 +131,7 @@ def concatenate_bootstraps(output_dir):
   end = time.time()
   print("concatenation time: " + str(end-start) + "s")
 
+
 def main_raxml_runner(implementation, raxml_exec_dir, fasta_dir, output_dir, options_file, bootstraps, ranks):
   try:
     os.makedirs(output_dir)
@@ -140,10 +141,10 @@ def main_raxml_runner(implementation, raxml_exec_dir, fasta_dir, output_dir, opt
   fasta_files = [os.path.join(fasta_dir, f) for f in os.listdir(fasta_dir)]
   options = open(options_file, "r").readlines()[0]
   raxml_library = os.path.join(raxml_exec_dir, "raxml-ng-mpi.so")
-  first_command_file = build_first_command(raxml_exec_dir, fasta_files, output_dir, options, ranks)
+  first_command_file = build_first_command(fasta_files, output_dir, options, ranks)
   run_multiraxml(raxml_library, first_command_file, os.path.join(output_dir, "first_run"), ranks)
   print("### end of first multiraxml run")
-  second_command_file = build_second_command(raxml_exec_dir, fasta_files, output_dir, options, bootstraps, ranks)
+  second_command_file = build_second_command(fasta_files, output_dir, options, bootstraps, ranks)
   print("### end of build_second_command")
   run_multiraxml(raxml_library, second_command_file, os.path.join(output_dir, "second_run"), ranks)
   print("### end of second multiraxml run")
@@ -151,7 +152,10 @@ def main_raxml_runner(implementation, raxml_exec_dir, fasta_dir, output_dir, opt
   print("### end of bootstraps concatenation")
 
 def print_help():
-  print("python raxml_runner.py --split-scheduler raxml_exec_dir fasta_dir output_dir additionnal_options_file bootstraps_number cores_number")
+  print("python raxml_runner.py --split-scheduler raxml_binary_dir fasta_dir output_dir additionnal_options_file bootstraps_number cores_number")
+
+concatenate_bootstraps("/hits/basement/sco/morel/github/phd_experiments/results/multi-raxml/bootstraps_5/haswell_32/phyldog_example_5")
+sys.exit(0)
 
 if (len(sys.argv) != 8):
     print_help()
