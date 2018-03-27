@@ -131,6 +131,31 @@ def concatenate_bootstraps(output_dir):
   end = time.time()
   print("concatenation time: " + str(end-start) + "s")
 
+def build_support_command(output_dir):
+  ml_trees_dir = os.path.join(output_dir, "second_run", "results")
+  concatenated_dir = os.path.join(output_dir, "concatenated_bootstraps")
+  support_command_file = os.path.join(output_dir, "supports_commands.txt")
+  support_dir = os.path.join(output_dir, "supports_run")
+  try:
+    print("todobenoit remove try catch")
+    os.makedirs(support_dir)
+  except:
+    pass
+  print("Writing supports commands in " + support_command_file)
+  with open(support_command_file, "w") as writer:
+    for fasta in os.listdir(ml_trees_dir):
+      ml_tree = os.path.join(ml_trees_dir, fasta, fasta + ".raxml.bestTree")
+      bs_trees = os.path.join(concatenated_dir, fasta + ".bs")
+      writer.write("support_" + fasta + " 1 1")
+      writer.write(" --support")
+      writer.write(" --tree " + ml_tree)
+      writer.write(" --bs-trees " + bs_trees)
+      writer.write(" --threads 1")
+      writer.write(" --prefix " + os.path.join(support_dir, fasta + ".support"))
+      writer.write("\n") 
+  return support_command_file
+    
+
 
 def main_raxml_runner(implementation, raxml_exec_dir, fasta_dir, output_dir, options_file, bootstraps, ranks):
   try:
@@ -150,12 +175,11 @@ def main_raxml_runner(implementation, raxml_exec_dir, fasta_dir, output_dir, opt
   print("### end of second multiraxml run")
   concatenate_bootstraps(output_dir)
   print("### end of bootstraps concatenation")
+  support_command_file = build_support_command(output_dir)
+  run_multiraxml(raxml_library, support_command_file, os.path.join(output_dir, "supports_run"), ranks)
 
 def print_help():
   print("python raxml_runner.py --split-scheduler raxml_binary_dir fasta_dir output_dir additionnal_options_file bootstraps_number cores_number")
-
-concatenate_bootstraps("/hits/basement/sco/morel/github/phd_experiments/results/multi-raxml/bootstraps_5/haswell_32/phyldog_example_5")
-sys.exit(0)
 
 if (len(sys.argv) != 8):
     print_help()
