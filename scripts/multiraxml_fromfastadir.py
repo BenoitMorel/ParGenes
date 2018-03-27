@@ -2,6 +2,7 @@ import sys
 import os
 import subprocess
 import time
+import shutil
 
 def getMultiraxmlExec():
   repo_root = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
@@ -109,6 +110,27 @@ def build_second_command(raxml_exec_dir, fasta_files, output_dir, options, boots
          
   return second_command_file
 
+def concatenate_bootstraps(output_dir):
+  start = time.time()
+  print("concatenate_bootstraps")
+  concatenated_dir = os.path.join(output_dir, "concatenated_bootstraps")
+  try:
+    print("todobenoit remove the try catch")
+    os.makedirs(concatenated_dir)
+  except:
+    pass
+  bootstraps_dir = os.path.join(output_dir, "second_run", "bootstraps")
+  for fasta in os.listdir(bootstraps_dir):
+    concatenated_file = os.path.join(concatenated_dir, fasta + ".bs")
+    with open(concatenated_file,'wb') as writer:
+      fasta_bs_dir = os.path.join(bootstraps_dir, fasta)
+      for bs_file in os.listdir(fasta_bs_dir):
+        if (bs_file.endswith("bootstraps")):
+          with open(os.path.join(fasta_bs_dir, bs_file),'rb') as reader:
+            shutil.copyfileobj(reader, writer)
+  end = time.time()
+  print("concatenation time: " + str(end-start) + "s")
+
 def main_raxml_runner(implementation, raxml_exec_dir, fasta_dir, output_dir, options_file, bootstraps, ranks):
   try:
     os.makedirs(output_dir)
@@ -125,10 +147,11 @@ def main_raxml_runner(implementation, raxml_exec_dir, fasta_dir, output_dir, opt
   print("### end of build_second_command")
   run_multiraxml(raxml_library, second_command_file, os.path.join(output_dir, "second_run"), ranks)
   print("### end of second multiraxml run")
+  concatenate_bootstraps(output_dir)
+  print("### end of bootstraps concatenation")
 
 def print_help():
   print("python raxml_runner.py --split-scheduler raxml_exec_dir fasta_dir output_dir additionnal_options_file bootstraps_number cores_number")
-
 
 if (len(sys.argv) != 8):
     print_help()
