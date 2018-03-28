@@ -2,11 +2,9 @@
 
 Run a high number of raxml instances on a given number of cores.
 
-The project is still under developement. 
 
 ## Requirement
 
-You must have the following tools/libraries installed on your machine:
 * git
 * cmake
 * MPI
@@ -25,10 +23,17 @@ cd build
 cmake ..
 ```
 
-Build the raxml-ng library:
+
+Clone and build raxml:
+In another directory
 ```
-TODO
+git clone https://github.com/amkozlov/raxml-ng.git
+cd raxml-ng
+mkdir build
+cmake -DBUILD_AS_LIBRARY=ON -DUSE_MPI=ON ..
+make
 ```
+
 
 ## Run
 
