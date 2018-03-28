@@ -7,7 +7,7 @@
 
 using namespace std;
 
-namespace MultiRaxml {
+namespace MPIScheduler {
 
 class Checkpoint {
 public:
@@ -24,7 +24,7 @@ private:
   ofstream _os;
 };
 
-} // namespace MultiRaxml
+} // namespace MPIScheduler
 
 #endif
 

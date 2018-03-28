@@ -1,10 +1,11 @@
 
-build_multiraxml() {
+build_mpi_scheduler() {
+  cd mpi-scheduler
   mkdir -p build
   cd build
   cmake ..
   make
-  cd ..
+  cd ../..
 }
 
 build_raxml() {
@@ -19,16 +20,16 @@ build_raxml() {
   cd ../../
 }
 
-build_multiraxml
+build_mpi_scheduler
 build_raxml
 
-multi_raxml="`pwd`/build/multi-raxml"
+mpi_scheduler="`pwd`mpi-scheduler/build/mpi-scheduler"
 raxml="`pwd`/raxml-ng/bin/raxml-ng-mpi.so"
 
 
-echo "- multi_raxml executable built in ${multi_raxml}"
+echo "- mpi_scheduler executable built in ${mpi_scheduler}"
 echo "- raxml library built in ${raxml}"
 
-echo "Run with :"
-echo "mpirun -np cores_number ${multi_raxml} ${raxml} command_file output_dir"
+#echo "Run with :"
+#echo "mpirun -np cores_number ${mpi_scheduler} ${raxml} command_file output_dir"
 

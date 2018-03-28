@@ -3,7 +3,7 @@
 #include <iostream>
 #include <dlfcn.h>
 
-namespace MultiRaxml {
+namespace MPIScheduler {
 
 const int SIGNAL_SPLIT = 1;
 const int SIGNAL_JOB = 2;
@@ -309,7 +309,7 @@ bool SplitInstance::execute(InstancePtr self)
 {
   _beginTime = Common::getTime();
   if (_ranksNumber == 0) {
-    throw MultiRaxmlException("Error in SplitInstance::execute: invalid number of ranks ", to_string(_ranksNumber));
+    throw MPISchedulerException("Error in SplitInstance::execute: invalid number of ranks ", to_string(_ranksNumber));
   }
   int signal = SIGNAL_JOB;
   MPI_Send(&signal, 1, MPI_INT, self->getStartingRank(), TAG_MASTER_SIGNAL, MPI_COMM_WORLD);
@@ -325,5 +325,5 @@ void SplitInstance::writeSVGStatistics(SVGDrawer &drawer, const Time &initialTim
     getElapsedMs());
 }
 
-} // namespace MultiRaxml
+} // namespace MPIScheduler
 

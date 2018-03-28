@@ -7,7 +7,7 @@
 #include <iterator>
 #include <algorithm>
 
-namespace MultiRaxml {
+namespace MPIScheduler {
 
 Command::Command(const string &id, 
     unsigned int ranks,
@@ -75,7 +75,7 @@ CommandsContainer::CommandsContainer(const string &commandsFilename)
 {
   ifstream reader(commandsFilename);
   if (!reader)
-    throw MultiRaxmlException("Cannot open commands file ", commandsFilename);
+    throw MPISchedulerException("Cannot open commands file ", commandsFilename);
   
   string line;
   while (readNextLine(reader, line)) {
@@ -255,5 +255,5 @@ void RunStatistics::exportSVG(const string &svgfile)
   cout << "Time spent writting svg: " << t.getElapsedMs() / 1000 << "s" << endl;
 }
 
-} // namespace MultiRaxml
+} // namespace MPIScheduler
 

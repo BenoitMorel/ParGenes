@@ -4,43 +4,9 @@ import subprocess
 import time
 import shutil
 
-def getMultiraxmlExec():
+def get_mpi_scheduler_exec():
   repo_root = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
-  return os.path.join(repo_root, "build", "multi-raxml")
-
-def run_multiraxml(raxml_library, command_filename, output_dir, ranks):
-  sys.stdout.flush()
-  command = []
-  command.append("mpirun")
-  command.append("-np")
-  command.append(str(ranks))
-  command.append(getMultiraxmlExec())
-  command.append(implementation)
-  command.append(raxml_library)
-  command.append(command_filename)
-  command.append(output_dir)
-  print ("Calling multiraxml: " + " ".join(command))
-  subprocess.check_call(command)
-
-def build_first_command(fasta_files, output_dir, options, ranks):
-  first_command_file = os.path.join(output_dir, "first_command.txt")
-  first_run_output_dir = os.path.join(output_dir, "first_run")
-  first_run_results = os.path.join(first_run_output_dir, "results")
-  os.makedirs(first_run_results)
-  fasta_chuncks = []
-  fasta_chuncks.append([])
-  with open(first_command_file, "w") as writer:
-    for fasta in fasta_files:
-      base = os.path.splitext(os.path.basename(fasta))[0]
-      fasta_output_dir = os.path.join(first_run_results, base)
-      os.makedirs(fasta_output_dir)
-      writer.write("first_" + base + " 1 1 ")
-      writer.write(" --parse ")
-      writer.write( " --msa " + fasta + " " + options[:-1])
-      writer.write(" --prefix " + os.path.join(fasta_output_dir, base))
-      writer.write(" --threads 1 ")
-      writer.write("\n")
-  return first_command_file
+  return os.path.join(repo_root, "mpi-scheduler", "build", "mpi-scheduler")
 
 def sites_to_maxcores(sites):
   if sites == 0:
@@ -63,8 +29,42 @@ def parse_msa_info(log_file):
   result[0] = sites_to_maxcores(unique_sites)
   return result
 
+def run_mpi_scheduler(raxml_library, commands_filename, output_dir, ranks):
+  sys.stdout.flush()
+  command = []
+  command.append("mpirun")
+  command.append("-np")
+  command.append(str(ranks))
+  command.append(get_mpi_scheduler_exec())
+  command.append(implementation)
+  command.append(raxml_library)
+  command.append(commands_filename)
+  command.append(output_dir)
+  print ("Calling mpi-scheduler: " + " ".join(command))
+  subprocess.check_call(command)
+
+def build_first_command(fasta_files, output_dir, options, ranks):
+  first_commands_file = os.path.join(output_dir, "first_command.txt")
+  first_run_output_dir = os.path.join(output_dir, "first_run")
+  first_run_results = os.path.join(first_run_output_dir, "results")
+  os.makedirs(first_run_results)
+  fasta_chuncks = []
+  fasta_chuncks.append([])
+  with open(first_commands_file, "w") as writer:
+    for fasta in fasta_files:
+      base = os.path.splitext(os.path.basename(fasta))[0]
+      fasta_output_dir = os.path.join(first_run_results, base)
+      os.makedirs(fasta_output_dir)
+      writer.write("first_" + base + " 1 1 ")
+      writer.write(" --parse ")
+      writer.write( " --msa " + fasta + " " + options[:-1])
+      writer.write(" --prefix " + os.path.join(fasta_output_dir, base))
+      writer.write(" --threads 1 ")
+      writer.write("\n")
+  return first_commands_file
+
 def build_second_command(fasta_files, output_dir, options, bootstraps, ranks):
-  second_command_file = os.path.join(output_dir, "second_command.txt")
+  second_commands_file = os.path.join(output_dir, "second_command.txt")
   first_run_output_dir = os.path.join(output_dir, "first_run")
   first_run_results = os.path.join(first_run_output_dir, "results")
   second_run_output_dir = os.path.join(output_dir, "second_run")
@@ -73,7 +73,7 @@ def build_second_command(fasta_files, output_dir, options, bootstraps, ranks):
   os.makedirs(second_run_results)
   if (bootstraps != 0):
     os.makedirs(second_run_bootstraps)
-  with open(second_command_file, "w") as writer:
+  with open(second_commands_file, "w") as writer:
     for fasta in fasta_files:
       base = os.path.splitext(os.path.basename(fasta))[0]
       first_fasta_output_dir = os.path.join(first_run_results, base)
@@ -108,7 +108,7 @@ def build_second_command(fasta_files, output_dir, options, bootstraps, ranks):
         writer.write(" --bs-trees 1 ")
         writer.write("\n")
          
-  return second_command_file
+  return second_commands_file
 
 def concatenate_bootstraps(output_dir):
   start = time.time()
@@ -131,18 +131,18 @@ def concatenate_bootstraps(output_dir):
   end = time.time()
   print("concatenation time: " + str(end-start) + "s")
 
-def build_support_command(output_dir):
+def build_supports_commands(output_dir):
   ml_trees_dir = os.path.join(output_dir, "second_run", "results")
   concatenated_dir = os.path.join(output_dir, "concatenated_bootstraps")
-  support_command_file = os.path.join(output_dir, "supports_commands.txt")
+  supports_commands_file = os.path.join(output_dir, "supports_commands.txt")
   support_dir = os.path.join(output_dir, "supports_run")
   try:
     print("todobenoit remove try catch")
     os.makedirs(support_dir)
   except:
     pass
-  print("Writing supports commands in " + support_command_file)
-  with open(support_command_file, "w") as writer:
+  print("Writing supports commands in " + supports_commands_file)
+  with open(supports_commands_file, "w") as writer:
     for fasta in os.listdir(ml_trees_dir):
       ml_tree = os.path.join(ml_trees_dir, fasta, fasta + ".raxml.bestTree")
       bs_trees = os.path.join(concatenated_dir, fasta + ".bs")
@@ -153,7 +153,7 @@ def build_support_command(output_dir):
       writer.write(" --threads 1")
       writer.write(" --prefix " + os.path.join(support_dir, fasta + ".support"))
       writer.write("\n") 
-  return support_command_file
+  return supports_commands_file
     
 
 
@@ -166,17 +166,19 @@ def main_raxml_runner(implementation, raxml_exec_dir, fasta_dir, output_dir, opt
   fasta_files = [os.path.join(fasta_dir, f) for f in os.listdir(fasta_dir)]
   options = open(options_file, "r").readlines()[0]
   raxml_library = os.path.join(raxml_exec_dir, "raxml-ng-mpi.so")
-  first_command_file = build_first_command(fasta_files, output_dir, options, ranks)
-  run_multiraxml(raxml_library, first_command_file, os.path.join(output_dir, "first_run"), ranks)
-  print("### end of first multiraxml run")
-  second_command_file = build_second_command(fasta_files, output_dir, options, bootstraps, ranks)
+  first_commands_file = build_first_command(fasta_files, output_dir, options, ranks)
+  run_mpi_scheduler(raxml_library, first_commands_file, os.path.join(output_dir, "first_run"), ranks)
+  print("### end of first mpi-scheduler run")
+  second_commands_file = build_second_command(fasta_files, output_dir, options, bootstraps, ranks)
   print("### end of build_second_command")
-  run_multiraxml(raxml_library, second_command_file, os.path.join(output_dir, "second_run"), ranks)
-  print("### end of second multiraxml run")
+  run_mpi_scheduler(raxml_library, second_commands_file, os.path.join(output_dir, "second_run"), ranks)
+  print("### end of second mpi-scheduler run")
   concatenate_bootstraps(output_dir)
   print("### end of bootstraps concatenation")
-  support_command_file = build_support_command(output_dir)
-  run_multiraxml(raxml_library, support_command_file, os.path.join(output_dir, "supports_run"), ranks)
+  supports_commands_file = build_supports_commands(output_dir)
+  print("### end of build_supports_command")
+  run_mpi_scheduler(raxml_library, supports_commands_file, os.path.join(output_dir, "supports_run"), ranks)
+  print("### end of supports mpi-scheduler run")
 
 def print_help():
   print("python raxml_runner.py --split-scheduler raxml_binary_dir fasta_dir output_dir additionnal_options_file bootstraps_number cores_number")

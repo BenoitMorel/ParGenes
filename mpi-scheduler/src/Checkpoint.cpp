@@ -1,7 +1,7 @@
 #include "Checkpoint.hpp"
 #include "Common.hpp"
 
-namespace MultiRaxml {
+namespace MPIScheduler {
 
 Checkpoint::Checkpoint(const string &outputDir)
 {
@@ -35,5 +35,5 @@ string Checkpoint::getCheckpointCommandsFile(const string &outputDir)
   return Common::joinPaths(outputDir, "checkpoint_commands.txt");
 }
 
-} // namespace MultiRaxml
+} // namespace MPIScheduler
 

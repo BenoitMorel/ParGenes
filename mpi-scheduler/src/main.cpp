@@ -15,7 +15,7 @@
 
 using namespace std;
 
-namespace MultiRaxml {
+namespace MPIScheduler {
 
   
 int _main(int argc, char** argv); 
@@ -51,11 +51,11 @@ void main_scheduler(int argc, char **argv)
   exit(0);
 }
 
-} // namespace MultiRaxml
+} // namespace MPIScheduler
 
 int main(int argc, char** argv) 
 {
-  MultiRaxml::main_scheduler(argc, argv);
+  MPIScheduler::main_scheduler(argc, argv);
   return 0;
 }
 

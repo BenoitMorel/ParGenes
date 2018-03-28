@@ -17,12 +17,12 @@
 
 using namespace std;
 
-namespace MultiRaxml {
+namespace MPIScheduler {
 
-class MultiRaxmlException: public exception {
+class MPISchedulerException: public exception {
 public:
-  MultiRaxmlException(const string &s): msg_(s) {}
-  MultiRaxmlException(const string &s1, 
+  MPISchedulerException(const string &s): msg_(s) {}
+  MPISchedulerException(const string &s1, 
       const string s2): msg_(s1 + s2) {}
   virtual const char* what() const throw() { return msg_.c_str(); }
   void append(const string &str) {msg_ += str;}
@@ -97,7 +97,7 @@ public:
 
   static void check(int mpiError) {
     if (mpiError != MPI_SUCCESS) {
-      throw MultiRaxmlException("MPI error !");
+      throw MPISchedulerException("MPI error !");
     }
   }
 
@@ -177,7 +177,7 @@ public:
   {
     if (argc != 5) {
       print_help();
-      throw MultiRaxmlException("Error: invalid syntax");
+      throw MPISchedulerException("Error: invalid syntax");
     }
     unsigned int i = 2;
     library = string(argv[i++]);
@@ -196,6 +196,6 @@ public:
   string outputDir;
 };
 
-} // namespace MultiRaxml
+} // namespace MPIScheduler
 
 #endif

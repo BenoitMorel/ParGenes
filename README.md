@@ -13,29 +13,12 @@ Run a high number of raxml instances on a given number of cores.
 
 ## Installation
 
-Clone and build Multi-raxml:
-
+To build and clone raxml, and build mpi-scheduler:
 ```
-git clone https://github.com/BenoitMorel/multi-raxml.git
-cd multi-raxml
-mkdir build
-cd build
-cmake ..
+./install.sh
 ```
 
+## Running the scheduler and multi-raxml
 
-Clone and build raxml:
-In another directory
-```
-git clone https://github.com/amkozlov/raxml-ng.git
-cd raxml-ng
-mkdir build
-cmake -DBUILD_AS_LIBRARY=ON -DUSE_MPI=ON ..
-make
-```
-
-
-## Run
-
-See wiki
+See the wiki section!
 

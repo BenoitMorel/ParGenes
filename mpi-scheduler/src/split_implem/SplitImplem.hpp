@@ -4,7 +4,7 @@
 #include "../Command.hpp"
 #include <queue>
 
-namespace MultiRaxml {
+namespace MPIScheduler {
 
 int main_split_master(int argc, char **argv);
 int main_split_slave(int argc, char **argv);
@@ -92,7 +92,7 @@ private:
   string _outputDir;
 };
 
-} // namespace MultiRaxml
+} // namespace MPIScheduler
 
 
 #endif

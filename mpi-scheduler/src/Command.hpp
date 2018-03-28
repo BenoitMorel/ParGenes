@@ -11,7 +11,7 @@
 
 using namespace std;
 
-namespace MultiRaxml {
+namespace MPIScheduler {
 
 class Command {
 public:
@@ -131,6 +131,6 @@ private:
   double _lbRatio;
 };
 
-} // namespace MultiRaxml
+} // namespace MPIScheduler
 
 #endif

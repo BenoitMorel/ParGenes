@@ -6,7 +6,7 @@ def get_parent_path(path):
   return os.path.abspath(os.path.join(path, os.pardir))
 
 root = get_parent_path(get_parent_path(os.path.realpath(__file__)))
-binary = os.path.join(root, "build", "multi-raxml")
+binary = os.path.join(root, "mpi-scheduler", "build", "mpi-scheduler")
 library = os.path.join(root, "..", "raxml-ng", "bin", "raxml-ng-mpi.so")
 commandsFile = os.path.join(root, "examples", "commands", "commands.txt")
 outputDir = os.path.join(root, "examples", "results")
