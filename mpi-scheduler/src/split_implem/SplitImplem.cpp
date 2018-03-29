@@ -33,10 +33,10 @@ int Slave::loadLibrary(const string &libraryPath)
     cerr << "Cannot open shared library " << libraryPath << endl;
     return 1;
   }
-  _raxmlMain = (mainFct) dlsym(_handle, "exportable_main");
+  _raxmlMain = (mainFct) dlsym(_handle, "dll_main");
   const char *dlsym_error = dlerror();
   if (dlsym_error) {
-    cerr << "Cannot load symbole exportable_main " << dlsym_error << endl;
+    cerr << "Cannot load symbole dll_main " << dlsym_error << endl;
     dlclose(_handle);
     _handle = 0;
     return 1;
