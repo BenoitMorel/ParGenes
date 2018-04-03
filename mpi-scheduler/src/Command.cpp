@@ -224,9 +224,9 @@ RunStatistics::RunStatistics(const InstancesHistoric &historic,
 
 void RunStatistics::printGeneralStatistics()
 {
-  int totalElapsedTime = Common::getElapsedMs(_begin, _end);
-  int cumulatedTime = 0;
-  int longestTime = 0;
+  long totalElapsedTime = Common::getElapsedMs(_begin, _end);
+  long cumulatedTime = 0;
+  long longestTime = 0;
   for (auto instance: _historic) {
     cumulatedTime += instance->getElapsedMs() * instance->getRanksNumber();
   }
