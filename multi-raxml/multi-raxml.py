@@ -127,7 +127,13 @@ def concatenate_bootstraps(output_dir):
       for bs_file in os.listdir(fasta_bs_dir):
         if (bs_file.endswith("bootstraps")):
           with open(os.path.join(fasta_bs_dir, bs_file),'rb') as reader:
-            shutil.copyfileobj(reader, writer)
+            try:
+              shutil.copyfileobj(reader, writer)
+            except OSError as e:
+              print("ERROR!")
+              print("OS error when copying " + os.path.join(fasta_bs_dir, bs_file) + " to " + concatenated_file)
+              raise e
+              
   end = time.time()
   print("concatenation time: " + str(end-start) + "s")
 
