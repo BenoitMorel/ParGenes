@@ -96,16 +96,20 @@ def build_second_command(fasta_files, output_dir, options, bootstraps, ranks):
       writer.write("\n")
       bs_output_dir = os.path.join(second_run_bootstraps, base)
       os.makedirs(bs_output_dir)
-      for bs in range(0, bootstraps):
-        bsbase = base + "_bs" + str(bs)
+      chunks_size = 1
+      if (bootstraps > 30): # arbitrary threshold... todobenoit!
+        chunk_size = 10
+      for current_bs in range(0, (bootstraps - 1) // chunk_size + 1):
+        bsbase = base + "_bs" + str(current_bs)
+        bs_number = min(chunk_size, bootstraps - current_bs * chunks_size)
         writer.write(bsbase + " ")
         writer.write(cores + " " + taxa )
         writer.write(" --bootstrap")
         writer.write(" --msa " + uncompressed_fasta + " " + options[:-1])
         writer.write(" --prefix " + os.path.join(bs_output_dir, bsbase))
         writer.write(" --threads 1 ")
-        writer.write(" --seed " + str(bs))
-        writer.write(" --bs-trees 1 ")
+        writer.write(" --seed " + str(current_bs))
+        writer.write(" --bs-trees " + str(bs_number))
         writer.write("\n")
          
   return second_commands_file
