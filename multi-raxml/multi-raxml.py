@@ -96,12 +96,12 @@ def build_second_command(fasta_files, output_dir, options, bootstraps, ranks):
       writer.write("\n")
       bs_output_dir = os.path.join(second_run_bootstraps, base)
       os.makedirs(bs_output_dir)
-      chunks_size = 1
+      chunk_size = 1
       if (bootstraps > 30): # arbitrary threshold... todobenoit!
         chunk_size = 10
       for current_bs in range(0, (bootstraps - 1) // chunk_size + 1):
         bsbase = base + "_bs" + str(current_bs)
-        bs_number = min(chunk_size, bootstraps - current_bs * chunks_size)
+        bs_number = min(chunk_size, bootstraps - current_bs * chunk_size)
         writer.write(bsbase + " ")
         writer.write(cores + " " + taxa )
         writer.write(" --bootstrap")
@@ -167,15 +167,16 @@ def build_supports_commands(output_dir):
     
 
 
-def main_raxml_runner(implementation, raxml_exec_dir, fasta_dir, output_dir, options_file, bootstraps, ranks):
+def main_raxml_runner(implementation, fasta_dir, output_dir, options_file, bootstraps, ranks):
   try:
     os.makedirs(output_dir)
   except:
     pass
+  scriptdir = os.path.dirname(os.path.realpath(__file__))
+  raxml_library = os.path.join(scriptdir, "..", "raxml-ng", "bin", "raxml-ng-mpi.so")
   print("Results in " + output_dir)
   fasta_files = [os.path.join(fasta_dir, f) for f in os.listdir(fasta_dir)]
   options = open(options_file, "r").readlines()[0]
-  raxml_library = os.path.join(raxml_exec_dir, "raxml-ng-mpi.so")
   first_commands_file = build_first_command(fasta_files, output_dir, options, ranks)
   run_mpi_scheduler(raxml_library, first_commands_file, os.path.join(output_dir, "first_run"), ranks)
   print("### end of first mpi-scheduler run")
@@ -191,21 +192,21 @@ def main_raxml_runner(implementation, raxml_exec_dir, fasta_dir, output_dir, opt
   print("### end of supports mpi-scheduler run")
 
 def print_help():
-  print("python raxml_runner.py --split-scheduler raxml_binary_dir fasta_dir output_dir additionnal_options_file bootstraps_number cores_number")
+  print("python raxml_runner.py --split-scheduler fasta_dir output_dir additionnal_options_file bootstraps_number cores_number")
 
-if (len(sys.argv) != 8):
+if (len(sys.argv) != 7):
     print_help()
     sys.exit(0)
 
+
 implementation = sys.argv[1]
-raxml_exec_dir = sys.argv[2]
-fasta_dir = sys.argv[3] 
-output_dir = sys.argv[4]
-options_file = sys.argv[5]
-bootstraps = int(sys.argv[6])
-ranks = sys.argv[7]
+fasta_dir = sys.argv[2] 
+output_dir = sys.argv[3]
+options_file = sys.argv[4]
+bootstraps = int(sys.argv[5])
+ranks = sys.argv[6]
 start = time.time()
-main_raxml_runner(implementation, raxml_exec_dir, fasta_dir, output_dir, options_file, bootstraps, ranks)
+main_raxml_runner(implementation, fasta_dir, output_dir, options_file, bootstraps, ranks)
 end = time.time()
 print("TOTAL ELAPSED TIME SPENT IN " + os.path.basename(__file__) + " " + str(end-start) + "s")
 
