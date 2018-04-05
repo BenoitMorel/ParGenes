@@ -20,16 +20,25 @@ build_raxml() {
   cd ../../
 }
 
+build_modeltest() {
+  cd modeltest
+  mkdir -p build
+  cd build
+  cmake ..
+  make
+  cd ../../
+}
+
 build_mpi_scheduler
 build_raxml
+build_modeltest
 
 mpi_scheduler="`pwd`mpi-scheduler/build/mpi-scheduler"
 raxml="`pwd`/raxml-ng/bin/raxml-ng-mpi.so"
+modeltest="`pwd`/modeltest/bin/modeltest-ng"
 
 
 echo "- mpi_scheduler executable built in ${mpi_scheduler}"
 echo "- raxml library built in ${raxml}"
-
-#echo "Run with :"
-#echo "mpirun -np cores_number ${mpi_scheduler} ${raxml} command_file output_dir"
+echo "- modeltest built in ${modeltest}"
 

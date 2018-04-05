@@ -1,0 +1,3 @@
+[submodule "modeltest"]
+	path = modeltest
+	url = git://github.com/ddarriba/modeltest.git
