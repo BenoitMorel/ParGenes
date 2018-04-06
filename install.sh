@@ -9,9 +9,6 @@ build_mpi_scheduler() {
 }
 
 build_raxml() {
-  if [ ! -d "raxml-ng" ]; then
-    git clone --recursive https://github.com/amkozlov/raxml-ng.git --branch multi-raxml
-  fi
   cd raxml-ng
   mkdir -p build
   cd build
