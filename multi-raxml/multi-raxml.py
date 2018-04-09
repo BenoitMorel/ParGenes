@@ -86,7 +86,7 @@ def build_modeltest_command(fasta_files, output_dir, ranks):
       
       os.makedirs(modeltest_fasta_output_dir)
       writer.write("modeltest_" + base + " ") 
-      writer.write("4 1") #todobenoit smarter ordering
+      writer.write("4 " + str(parse_result[0] * parse_result[1])) #todobenoit smarter ordering
       writer.write(" -i ")
       writer.write(fasta)
       writer.write(" -t mp ")
@@ -232,6 +232,8 @@ def print_help():
 if (len(sys.argv) != 7):
     print_help()
     sys.exit(0)
+
+
 
 
 implementation = sys.argv[1]
