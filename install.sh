@@ -21,7 +21,7 @@ build_modeltest() {
   cd modeltest
   mkdir -p build
   cd build
-  cmake ..
+  cmake -DUSE_MPI=ON -DBUILD_AS_LIBRARY=ON ..
   make
   cd ../../
 }

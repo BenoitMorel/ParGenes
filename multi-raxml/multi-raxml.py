@@ -63,6 +63,38 @@ def build_first_command(fasta_files, output_dir, options, ranks):
       writer.write("\n")
   return first_commands_file
 
+def build_modeltest_command(fasta_files, output_dir, ranks): 
+  modeltest_commands_file = os.path.join(output_dir, "modeltest_command.txt")
+  modeltest_run_output_dir = os.path.join(output_dir, "modeltest_run")
+  modeltest_results = os.path.join(modeltest_run_output_dir, "results")
+  first_run_output_dir = os.path.join(output_dir, "first_run")
+  first_run_results = os.path.join(first_run_output_dir, "results")
+  os.makedirs(modeltest_results)
+  with open(modeltest_commands_file, "w") as writer:
+    for fasta in fasta_files:
+      base = os.path.splitext(os.path.basename(fasta))[0]
+      first_fasta_output_dir = os.path.join(first_run_results, base)
+      modeltest_fasta_output_dir = os.path.join(modeltest_results, base)
+      
+      first_run_log = os.path.join(os.path.join(first_fasta_output_dir, base + ".raxml.log"))
+      parse_result = parse_msa_info(first_run_log)
+      cores = str(parse_result[0])
+      taxa = str(parse_result[1])
+      if (cores == "0" or taxa == "0"):
+        print("warning with fasta " + fasta + ", skipping")
+        continue
+      
+      os.makedirs(modeltest_fasta_output_dir)
+      writer.write("modeltest_" + base + " ") 
+      writer.write("4 1") #todobenoit smarter ordering
+      writer.write(" -i ")
+      writer.write(fasta)
+      writer.write(" -t mp ")
+      writer.write(" -o " +  os.path.join(modeltest_results, base, base))
+      writer.write("\n")
+  return modeltest_commands_file
+
+
 def build_second_command(fasta_files, output_dir, options, bootstraps, ranks):
   second_commands_file = os.path.join(output_dir, "second_command.txt")
   first_run_output_dir = os.path.join(output_dir, "first_run")
@@ -174,11 +206,14 @@ def main_raxml_runner(implementation, fasta_dir, output_dir, options_file, boots
     pass
   scriptdir = os.path.dirname(os.path.realpath(__file__))
   raxml_library = os.path.join(scriptdir, "..", "raxml-ng", "bin", "raxml-ng-mpi.so")
+  modeltest_library = os.path.join(scriptdir, "..", "modeltest", "build", "src", "modeltest-ng-mpi.so")
   print("Results in " + output_dir)
   fasta_files = [os.path.join(fasta_dir, f) for f in os.listdir(fasta_dir)]
   options = open(options_file, "r").readlines()[0]
   first_commands_file = build_first_command(fasta_files, output_dir, options, ranks)
   run_mpi_scheduler(raxml_library, first_commands_file, os.path.join(output_dir, "first_run"), ranks)
+  modeltest_commands_file = build_modeltest_command(fasta_files, output_dir, ranks)
+  run_mpi_scheduler(modeltest_library, modeltest_commands_file, os.path.join(output_dir, "modeltest_run"), ranks)
   print("### end of first mpi-scheduler run")
   second_commands_file = build_second_command(fasta_files, output_dir, options, bootstraps, ranks)
   print("### end of build_second_command")
@@ -205,6 +240,7 @@ output_dir = sys.argv[3]
 options_file = sys.argv[4]
 bootstraps = int(sys.argv[5])
 ranks = sys.argv[6]
+modeltest = True
 start = time.time()
 main_raxml_runner(implementation, fasta_dir, output_dir, options_file, bootstraps, ranks)
 end = time.time()
