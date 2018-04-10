@@ -3,6 +3,7 @@ import os
 import subprocess
 import time
 import shutil
+import optparse
 
 def get_mpi_scheduler_exec():
   repo_root = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
@@ -36,7 +37,7 @@ def run_mpi_scheduler(raxml_library, commands_filename, output_dir, ranks):
   command.append("-np")
   command.append(str(ranks))
   command.append(get_mpi_scheduler_exec())
-  command.append(implementation)
+  command.append("--split-scheduler")
   command.append(raxml_library)
   command.append(commands_filename)
   command.append(output_dir)
@@ -199,7 +200,7 @@ def build_supports_commands(output_dir):
     
 
 
-def main_raxml_runner(implementation, fasta_dir, output_dir, options_file, bootstraps, ranks):
+def main_raxml_runner(fasta_dir, output_dir, options_file, bootstraps, use_modeltest, ranks):
   try:
     os.makedirs(output_dir)
   except:
@@ -212,39 +213,53 @@ def main_raxml_runner(implementation, fasta_dir, output_dir, options_file, boots
   options = open(options_file, "r").readlines()[0]
   first_commands_file = build_first_command(fasta_files, output_dir, options, ranks)
   run_mpi_scheduler(raxml_library, first_commands_file, os.path.join(output_dir, "first_run"), ranks)
-  modeltest_commands_file = build_modeltest_command(fasta_files, output_dir, ranks)
-  run_mpi_scheduler(modeltest_library, modeltest_commands_file, os.path.join(output_dir, "modeltest_run"), ranks)
   print("### end of first mpi-scheduler run")
+  if (use_modeltest):
+    modeltest_commands_file = build_modeltest_command(fasta_files, output_dir, ranks)
+    run_mpi_scheduler(modeltest_library, modeltest_commands_file, os.path.join(output_dir, "modeltest_run"), ranks)
+    print("### end of modeltest mpi-scheduler run")
   second_commands_file = build_second_command(fasta_files, output_dir, options, bootstraps, ranks)
   print("### end of build_second_command")
   run_mpi_scheduler(raxml_library, second_commands_file, os.path.join(output_dir, "second_run"), ranks)
   print("### end of second mpi-scheduler run")
-  concatenate_bootstraps(output_dir)
-  print("### end of bootstraps concatenation")
-  supports_commands_file = build_supports_commands(output_dir)
-  print("### end of build_supports_command")
-  run_mpi_scheduler(raxml_library, supports_commands_file, os.path.join(output_dir, "supports_run"), ranks)
-  print("### end of supports mpi-scheduler run")
+  if (bootstraps != 0):
+    concatenate_bootstraps(output_dir)
+    print("### end of bootstraps concatenation")
+    supports_commands_file = build_supports_commands(output_dir)
+    print("### end of build_supports_command")
+    run_mpi_scheduler(raxml_library, supports_commands_file, os.path.join(output_dir, "supports_run"), ranks)
+    print("### end of supports mpi-scheduler run")
 
-def print_help():
-  print("python raxml_runner.py --split-scheduler fasta_dir output_dir additionnal_options_file bootstraps_number cores_number")
+parser = optparse.OptionParser()
+parser.add_option('-f', "--fasta-dir", 
+    dest="fasta_dir", 
+    help="Directory containing the fasta files")
+parser.add_option('-o', "--output-dir", 
+    dest="output_dir", 
+    help="Output directory")
+parser.add_option("-r", "--raxml-arguments-file", 
+    dest="options_file", 
+    help="A file containing the additional arguments to pass to raxml")
+parser.add_option("-b", "--bs-trees", 
+    dest="bootstraps", 
+    type=int,
+    default=0,
+    help="The number of bootstraps trees to compute")
+parser.add_option("-c", "--cores", 
+    dest="cores",
+    type=int,
+    help="The number of computational cores available for computation")
+parser.add_option("-m", "--use-modeltest",
+    dest="use_modeltest",
+    action="store_true",
+    default=False,
+    help="Autodetect the model with modeltest")
+op, remainder = parser.parse_args()
 
-if (len(sys.argv) != 7):
-    print_help()
-    sys.exit(0)
+print(op)
 
-
-
-
-implementation = sys.argv[1]
-fasta_dir = sys.argv[2] 
-output_dir = sys.argv[3]
-options_file = sys.argv[4]
-bootstraps = int(sys.argv[5])
-ranks = sys.argv[6]
-modeltest = True
 start = time.time()
-main_raxml_runner(implementation, fasta_dir, output_dir, options_file, bootstraps, ranks)
+main_raxml_runner(op.fasta_dir, op.output_dir, op.options_file, op.bootstraps, op.use_modeltest, op.cores)
 end = time.time()
 print("TOTAL ELAPSED TIME SPENT IN " + os.path.basename(__file__) + " " + str(end-start) + "s")
 
