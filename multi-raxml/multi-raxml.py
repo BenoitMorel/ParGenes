@@ -13,6 +13,8 @@ class MSA:
   taxa = 0
   sites = 0
   cores = 0
+  model = ""
+
   def __init__(self, name, path):
     self.name = name
     self.path = path
@@ -104,9 +106,27 @@ def build_modeltest_command(msas, output_dir, ranks):
       writer.write(msa.path)
       writer.write(" -t mp ")
       writer.write(" -o " +  os.path.join(modeltest_results, name, name))
+      writer.write(" --template raxml ")
       writer.write("\n")
   return modeltest_commands_file
 
+def parse_modeltest_results(msas, output_dir):
+  modeltest_run_output_dir = os.path.join(output_dir, "modeltest_run")
+  modeltest_results = os.path.join(modeltest_run_output_dir, "results")
+  for name, msa in msas.items():
+    if (not msa.valid):
+      continue
+    modeltest_outfile = os.path.join(modeltest_results, name, name + ".out")  
+    with open(modeltest_outfile) as reader:
+      read_next_model = False
+      for line in reader.readlines():
+        if (line.startswith("Best model according to AICc")):
+            read_next_model = True
+        if (read_next_model and line.startswith("Model")):
+          msa.model = line.split(" ")[-1]
+          print(name + " model: " + msa.model)
+          print(line)
+          break
 
 def build_second_command(msas, output_dir, options, bootstraps, ranks):
   second_commands_file = os.path.join(output_dir, "second_command.txt")
@@ -223,6 +243,7 @@ def main_raxml_runner(fasta_dir, output_dir, options_file, bootstraps, use_model
     modeltest_commands_file = build_modeltest_command(msas, output_dir, ranks)
     run_mpi_scheduler(modeltest_library, modeltest_commands_file, os.path.join(output_dir, "modeltest_run"), ranks)
     print("### end of modeltest mpi-scheduler run")
+    parse_modeltest_results(msas, output_dir)
   second_commands_file = build_second_command(msas, output_dir, options, bootstraps, ranks)
   run_mpi_scheduler(raxml_library, second_commands_file, os.path.join(output_dir, "second_run"), ranks)
   print("### end of second mpi-scheduler run")
