@@ -14,11 +14,25 @@ class MSA:
   sites = 0
   cores = 0
   model = ""
+  raxml_arguments = ""
 
-  def __init__(self, name, path):
+  def __init__(self, name, path, raxml_arguments):
     self.name = name
     self.path = path
     self.valid = True
+    self.raxml_arguments = raxml_arguments
+
+  def set_model(self, model):
+    self.model = model
+
+  def set_model(self, model):
+    self.model = model
+    args = self.raxml_arguments.split(" ")
+    for index, obj in enumerate(args):
+      if (obj == "--model"):
+        args[index + 1] = self.model
+    self.raxml_arguments = " ".join(args)
+
 
 def get_mpi_scheduler_exec():
   repo_root = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
@@ -59,7 +73,7 @@ def run_mpi_scheduler(raxml_library, commands_filename, output_dir, ranks):
   print ("Calling mpi-scheduler: " + " ".join(command))
   subprocess.check_call(command)
 
-def build_first_command(msas, output_dir, options, ranks):
+def build_first_command(msas, output_dir, ranks):
   first_commands_file = os.path.join(output_dir, "first_command.txt")
   first_run_output_dir = os.path.join(output_dir, "first_run")
   first_run_results = os.path.join(first_run_output_dir, "results")
@@ -72,7 +86,7 @@ def build_first_command(msas, output_dir, options, ranks):
       os.makedirs(fasta_output_dir)
       writer.write("first_" + name + " 1 1 ")
       writer.write(" --parse ")
-      writer.write( " --msa " + msa.path + " " + options[:-1])
+      writer.write( " --msa " + msa.path + " " + msa.raxml_arguments)
       writer.write(" --prefix " + os.path.join(fasta_output_dir, name))
       writer.write(" --threads 1 ")
       writer.write("\n")
@@ -123,12 +137,10 @@ def parse_modeltest_results(msas, output_dir):
         if (line.startswith("Best model according to AICc")):
             read_next_model = True
         if (read_next_model and line.startswith("Model")):
-          msa.model = line.split(" ")[-1]
-          print(name + " model: " + msa.model)
-          print(line)
+          msa.set_model(line.split(" ")[-1][:-1])
           break
 
-def build_second_command(msas, output_dir, options, bootstraps, ranks):
+def build_second_command(msas, output_dir, bootstraps, ranks):
   second_commands_file = os.path.join(output_dir, "second_command.txt")
   second_run_output_dir = os.path.join(output_dir, "second_run")
   second_run_results = os.path.join(second_run_output_dir, "results")
@@ -144,7 +156,7 @@ def build_second_command(msas, output_dir, options, bootstraps, ranks):
       os.makedirs(second_fasta_output_dir)
       writer.write("second_" + name + " ")
       writer.write(str(msa.cores) + " " + str(msa.taxa))
-      writer.write(" --msa " + msa.compressed_path + " " + options[:-1])
+      writer.write(" --msa " + msa.compressed_path + " " + msa.raxml_arguments)
       writer.write(" --prefix " + os.path.join(second_fasta_output_dir, name))
       writer.write(" --threads 1 ")
       writer.write("\n")
@@ -159,7 +171,7 @@ def build_second_command(msas, output_dir, options, bootstraps, ranks):
         writer.write(bsbase + " ")
         writer.write(str(msa.cores) + " " + str(msa.taxa))
         writer.write(" --bootstrap")
-        writer.write(" --msa " + msa.path + " " + options[:-1])
+        writer.write(" --msa " + msa.path + " " + msa.raxml_arguments)
         writer.write(" --prefix " + os.path.join(bs_output_dir, bsbase))
         writer.write(" --threads 1 ")
         writer.write(" --seed " + str(current_bs))
@@ -230,12 +242,12 @@ def main_raxml_runner(fasta_dir, output_dir, options_file, bootstraps, use_model
   raxml_library = os.path.join(scriptdir, "..", "raxml-ng", "bin", "raxml-ng-mpi.so")
   modeltest_library = os.path.join(scriptdir, "..", "modeltest", "build", "src", "modeltest-ng-mpi.so")
   print("Results in " + output_dir)
+  options = open(options_file, "r").readlines()[0][:-1]
   for f in os.listdir(fasta_dir):
     name = os.path.splitext(f)[0]
     path = os.path.join(fasta_dir, f)
-    msas[name] = MSA(name, path)
-  options = open(options_file, "r").readlines()[0]
-  first_commands_file = build_first_command(msas, output_dir, options, ranks)
+    msas[name] = MSA(name, path, options)
+  first_commands_file = build_first_command(msas, output_dir, ranks)
   run_mpi_scheduler(raxml_library, first_commands_file, os.path.join(output_dir, "first_run"), ranks)
   print("### end of first mpi-scheduler run")
   analyse_parsed_msas(msas, output_dir)
@@ -244,7 +256,7 @@ def main_raxml_runner(fasta_dir, output_dir, options_file, bootstraps, use_model
     run_mpi_scheduler(modeltest_library, modeltest_commands_file, os.path.join(output_dir, "modeltest_run"), ranks)
     print("### end of modeltest mpi-scheduler run")
     parse_modeltest_results(msas, output_dir)
-  second_commands_file = build_second_command(msas, output_dir, options, bootstraps, ranks)
+  second_commands_file = build_second_command(msas, output_dir, bootstraps, ranks)
   run_mpi_scheduler(raxml_library, second_commands_file, os.path.join(output_dir, "second_run"), ranks)
   print("### end of second mpi-scheduler run")
   if (bootstraps != 0):
