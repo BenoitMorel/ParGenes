@@ -232,7 +232,7 @@ def build_supports_commands(output_dir):
       writer.write("\n") 
   return supports_commands_file
     
-def main_raxml_runner(fasta_dir, output_dir, options_file, bootstraps, use_modeltest, ranks):
+def main_raxml_runner(alignments_dir, output_dir, raxml_global_parameters, bootstraps, use_modeltest, ranks):
   if (os.path.exists(output_dir)):
     print("[Error] The output directory " + output_dir + " already exists. Please use another output directory.")
     sys.exit(1)
@@ -242,10 +242,10 @@ def main_raxml_runner(fasta_dir, output_dir, options_file, bootstraps, use_model
   raxml_library = os.path.join(scriptdir, "..", "raxml-ng", "bin", "raxml-ng-mpi.so")
   modeltest_library = os.path.join(scriptdir, "..", "modeltest", "build", "src", "modeltest-ng-mpi.so")
   print("Results in " + output_dir)
-  options = open(options_file, "r").readlines()[0][:-1]
-  for f in os.listdir(fasta_dir):
+  options = open(raxml_global_parameters, "r").readlines()[0][:-1]
+  for f in os.listdir(alignments_dir):
     name = os.path.splitext(f)[0]
-    path = os.path.join(fasta_dir, f)
+    path = os.path.join(alignments_dir, f)
     msas[name] = MSA(name, path, options)
   first_commands_file = build_first_command(msas, output_dir, ranks)
   run_mpi_scheduler(raxml_library, first_commands_file, os.path.join(output_dir, "first_run"), ranks)
@@ -273,15 +273,15 @@ print("Multi-raxml was called as follow:")
 print(" ".join(sys.argv))
 
 parser = optparse.OptionParser()
-parser.add_option('-f', "--fasta-dir", 
-    dest="fasta_dir", 
+parser.add_option('-a', "--alignments-dir", 
+    dest="alignments_dir", 
     help="Directory containing the fasta files")
 parser.add_option('-o', "--output-dir", 
     dest="output_dir", 
     help="Output directory")
-parser.add_option("-r", "--raxml-arguments-file", 
-    dest="options_file", 
-    help="A file containing the additional arguments to pass to raxml")
+parser.add_option("-r", "--raxml-global-parameters", 
+    dest="raxml_global_parameters", 
+    help="A file containing the parameters to pass to raxml")
 parser.add_option("-b", "--bs-trees", 
     dest="bootstraps", 
     type=int,
@@ -306,7 +306,7 @@ parser.add_option("-m", "--use-modeltest",
 op, remainder = parser.parse_args()
 
 start = time.time()
-main_raxml_runner(op.fasta_dir, op.output_dir, op.options_file, op.bootstraps, op.use_modeltest, op.cores)
+main_raxml_runner(op.alignments_dir, op.output_dir, op.raxml_global_parameters, op.bootstraps, op.use_modeltest, op.cores)
 end = time.time()
 print("TOTAL ELAPSED TIME SPENT IN " + os.path.basename(__file__) + " " + str(end-start) + "s")
 
