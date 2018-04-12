@@ -245,8 +245,8 @@ def init_msas(op):
   if (op.modeltest_global_parameters != None):
     modeltest_options = open(op.modeltest_global_parameters, "r").readlines()[0][:-1]
   for f in os.listdir(op.alignments_dir):
-    name = os.path.splitext(f)[0]
     path = os.path.join(op.alignments_dir, f)
+    name = f.replace(".", "_")
     msas[name] = MSA(name, path, raxml_options, modeltest_options)
   return msas
 
