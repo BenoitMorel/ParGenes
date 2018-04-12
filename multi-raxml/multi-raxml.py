@@ -235,7 +235,17 @@ def build_supports_commands(output_dir):
       writer.write(" --prefix " + os.path.join(support_dir, fasta + ".support"))
       writer.write("\n") 
   return supports_commands_file
-    
+   
+def get_filter_content(op):
+  if (op.msa_filter == None):
+    return None
+  msas_to_process = {}
+  with open(op.msa_filter, "r") as reader:
+    for line in reader.readlines():
+      msa = line[:-1]
+      msas_to_process[msa] = msa
+  return msas_to_process
+
 def init_msas(op):
   msas = {}
   raxml_options = ""
@@ -244,10 +254,20 @@ def init_msas(op):
     raxml_options = open(op.raxml_global_parameters, "r").readlines()[0][:-1]
   if (op.modeltest_global_parameters != None):
     modeltest_options = open(op.modeltest_global_parameters, "r").readlines()[0][:-1]
+  msa_filter = get_filter_content(op)
+  print("filter content " + str(msa_filter))
   for f in os.listdir(op.alignments_dir):
+    if (msa_filter != None):
+      if (not (f in msa_filter)):
+        continue
+      del msa_filter[f]
     path = os.path.join(op.alignments_dir, f)
     name = f.replace(".", "_")
     msas[name] = MSA(name, path, raxml_options, modeltest_options)
+
+  if (msa_filter != None): # check that all lines in the filter are present in the directory
+    for msa in msa_filter.values():
+      print("[Warning] File " + msa + " was found in the filter file, but not in the MSAs directory")
   return msas
 
 def main_raxml_runner(op):
@@ -313,6 +333,9 @@ parser.add_option("-m", "--use-modeltest",
     action="store_true",
     default=False,
     help="Autodetect the model with modeltest")
+parser.add_option("--msa-filter",
+    dest="msa_filter", 
+    help="A file containing the names of the msa files to process")
 #parser.add_option("--per-msa-raxml-arguments", 
 #    dest="per_msa_raxml_arguments", 
 #    help="A file containing per-msa raxml arguments")
