@@ -17,11 +17,12 @@ class MSA:
   raxml_arguments = ""
   modeltest_arguments = ""
 
-  def __init__(self, name, path, raxml_arguments):
+  def __init__(self, name, path, raxml_arguments, modeltest_arguments):
     self.name = name
     self.path = path
     self.valid = True
     self.raxml_arguments = raxml_arguments
+    self.modeltest_arguments = modeltest_arguments
 
   def set_model(self, model):
     self.model = model
@@ -125,7 +126,7 @@ def build_modeltest_command(msas, output_dir, ranks):
       writer.write(msa.path)
       writer.write(" -t mp ")
       writer.write(" -o " +  os.path.join(modeltest_results, name, name))
-      writer.write(" --template raxml ")
+      writer.write(" " + msa.modeltest_arguments + " ")
       writer.write("\n")
   return modeltest_commands_file
 
@@ -237,11 +238,16 @@ def build_supports_commands(output_dir):
     
 def init_msas(op):
   msas = {}
-  raxml_options = open(op.raxml_global_parameters, "r").readlines()[0][:-1]
+  raxml_options = ""
+  modeltest_options = ""
+  if (op.raxml_global_parameters != None):
+    raxml_options = open(op.raxml_global_parameters, "r").readlines()[0][:-1]
+  if (op.modeltest_global_parameters != None):
+    modeltest_options = open(op.modeltest_global_parameters, "r").readlines()[0][:-1]
   for f in os.listdir(op.alignments_dir):
     name = os.path.splitext(f)[0]
     path = os.path.join(op.alignments_dir, f)
-    msas[name] = MSA(name, path, raxml_options)
+    msas[name] = MSA(name, path, raxml_options, modeltest_options)
   return msas
 
 def main_raxml_runner(op):
