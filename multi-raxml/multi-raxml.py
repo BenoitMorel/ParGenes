@@ -232,7 +232,8 @@ def build_supports_commands(output_dir):
       writer.write("\n") 
   return supports_commands_file
     
-def main_raxml_runner(alignments_dir, output_dir, raxml_global_parameters, bootstraps, use_modeltest, ranks):
+def main_raxml_runner(op):
+  output_dir = op.output_dir
   if (os.path.exists(output_dir)):
     print("[Error] The output directory " + output_dir + " already exists. Please use another output directory.")
     sys.exit(1)
@@ -242,28 +243,28 @@ def main_raxml_runner(alignments_dir, output_dir, raxml_global_parameters, boots
   raxml_library = os.path.join(scriptdir, "..", "raxml-ng", "bin", "raxml-ng-mpi.so")
   modeltest_library = os.path.join(scriptdir, "..", "modeltest", "build", "src", "modeltest-ng-mpi.so")
   print("Results in " + output_dir)
-  options = open(raxml_global_parameters, "r").readlines()[0][:-1]
-  for f in os.listdir(alignments_dir):
+  options = open(op.raxml_global_parameters, "r").readlines()[0][:-1]
+  for f in os.listdir(op.alignments_dir):
     name = os.path.splitext(f)[0]
-    path = os.path.join(alignments_dir, f)
+    path = os.path.join(op.alignments_dir, f)
     msas[name] = MSA(name, path, options)
-  first_commands_file = build_first_command(msas, output_dir, ranks)
-  run_mpi_scheduler(raxml_library, first_commands_file, os.path.join(output_dir, "first_run"), ranks)
+  first_commands_file = build_first_command(msas, output_dir, op.cores)
+  run_mpi_scheduler(raxml_library, first_commands_file, os.path.join(output_dir, "first_run"), op.cores)
   print("### end of first mpi-scheduler run")
   analyse_parsed_msas(msas, output_dir)
-  if (use_modeltest):
-    modeltest_commands_file = build_modeltest_command(msas, output_dir, ranks)
-    run_mpi_scheduler(modeltest_library, modeltest_commands_file, os.path.join(output_dir, "modeltest_run"), ranks)
+  if (op.use_modeltest):
+    modeltest_commands_file = build_modeltest_command(msas, output_dir, op.cores)
+    run_mpi_scheduler(modeltest_library, modeltest_commands_file, os.path.join(output_dir, "modeltest_run"), op.cores)
     print("### end of modeltest mpi-scheduler run")
     parse_modeltest_results(msas, output_dir)
-  second_commands_file = build_second_command(msas, output_dir, bootstraps, ranks)
-  run_mpi_scheduler(raxml_library, second_commands_file, os.path.join(output_dir, "second_run"), ranks)
+  second_commands_file = build_second_command(msas, output_dir, op.bootstraps, op.cores)
+  run_mpi_scheduler(raxml_library, second_commands_file, os.path.join(output_dir, "second_run"), op.cores)
   print("### end of second mpi-scheduler run")
-  if (bootstraps != 0):
+  if (op.bootstraps != 0):
     concatenate_bootstraps(output_dir)
     print("### end of bootstraps concatenation")
     supports_commands_file = build_supports_commands(output_dir)
-    run_mpi_scheduler(raxml_library, supports_commands_file, os.path.join(output_dir, "supports_run"), ranks)
+    run_mpi_scheduler(raxml_library, supports_commands_file, os.path.join(output_dir, "supports_run"), op.cores)
     print("### end of supports mpi-scheduler run")
 
 print("#################")
@@ -282,6 +283,9 @@ parser.add_option('-o', "--output-dir",
 parser.add_option("-r", "--raxml-global-parameters", 
     dest="raxml_global_parameters", 
     help="A file containing the parameters to pass to raxml")
+#parser.add_option("--modeltest-global-parameters", 
+#    dest="modeltest_global_parameters", 
+#    help="A file containing the parameters to pass to modeltest")
 parser.add_option("-b", "--bs-trees", 
     dest="bootstraps", 
     type=int,
@@ -306,7 +310,7 @@ parser.add_option("-m", "--use-modeltest",
 op, remainder = parser.parse_args()
 
 start = time.time()
-main_raxml_runner(op.alignments_dir, op.output_dir, op.raxml_global_parameters, op.bootstraps, op.use_modeltest, op.cores)
+main_raxml_runner(op)
 end = time.time()
 print("TOTAL ELAPSED TIME SPENT IN " + os.path.basename(__file__) + " " + str(end-start) + "s")
 
