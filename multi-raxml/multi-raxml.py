@@ -15,8 +15,7 @@ class MSA:
   cores = 0
   model = ""
   raxml_arguments = ""
-  raxml_additional_arguments = ""
-  modeltest_additional_arguments = ""
+  modeltest_arguments = ""
 
   def __init__(self, name, path, raxml_arguments):
     self.name = name
@@ -75,35 +74,35 @@ def run_mpi_scheduler(raxml_library, commands_filename, output_dir, ranks):
   print ("Calling mpi-scheduler: " + " ".join(command))
   subprocess.check_call(command)
 
-def build_first_command(msas, output_dir, ranks):
-  first_commands_file = os.path.join(output_dir, "first_command.txt")
-  first_run_output_dir = os.path.join(output_dir, "first_run")
-  first_run_results = os.path.join(first_run_output_dir, "results")
-  os.makedirs(first_run_results)
+def build_parse_command(msas, output_dir, ranks):
+  parse_commands_file = os.path.join(output_dir, "parse_command.txt")
+  parse_run_output_dir = os.path.join(output_dir, "parse_run")
+  parse_run_results = os.path.join(parse_run_output_dir, "results")
+  os.makedirs(parse_run_results)
   fasta_chuncks = []
   fasta_chuncks.append([])
-  with open(first_commands_file, "w") as writer:
+  with open(parse_commands_file, "w") as writer:
     for name, msa in msas.items():
-      fasta_output_dir = os.path.join(first_run_results, name)
+      fasta_output_dir = os.path.join(parse_run_results, name)
       os.makedirs(fasta_output_dir)
-      writer.write("first_" + name + " 1 1 ")
+      writer.write("parse_" + name + " 1 1 ")
       writer.write(" --parse ")
       writer.write( " --msa " + msa.path + " " + msa.raxml_arguments)
       writer.write(" --prefix " + os.path.join(fasta_output_dir, name))
       writer.write(" --threads 1 ")
       writer.write("\n")
-  return first_commands_file
+  return parse_commands_file
   
 def analyse_parsed_msas(msas, output_dir):
-  first_run_output_dir = os.path.join(output_dir, "first_run")
-  first_run_results = os.path.join(first_run_output_dir, "results")
+  parse_run_output_dir = os.path.join(output_dir, "parse_run")
+  parse_run_results = os.path.join(parse_run_output_dir, "results")
   for name, msa in msas.items():
-    first_fasta_output_dir = os.path.join(first_run_results, name)
-    first_run_log = os.path.join(os.path.join(first_fasta_output_dir, name + ".raxml.log"))
-    parse_result = parse_msa_info(first_run_log, msa)
+    parse_fasta_output_dir = os.path.join(parse_run_results, name)
+    parse_run_log = os.path.join(os.path.join(parse_fasta_output_dir, name + ".raxml.log"))
+    parse_result = parse_msa_info(parse_run_log, msa)
     if (not msa.valid):
       print("Warning, invalid MSA: " + name)
-    msa.compressed_path = os.path.join(os.path.join(first_fasta_output_dir, name + ".raxml.rba"))
+    msa.compressed_path = os.path.join(os.path.join(parse_fasta_output_dir, name + ".raxml.rba"))
 
 def build_modeltest_command(msas, output_dir, ranks): 
   modeltest_commands_file = os.path.join(output_dir, "modeltest_command.txt")
@@ -142,27 +141,27 @@ def parse_modeltest_results(msas, output_dir):
           msa.set_model(line.split(" ")[-1][:-1])
           break
 
-def build_second_command(msas, output_dir, bootstraps, ranks):
-  second_commands_file = os.path.join(output_dir, "second_command.txt")
-  second_run_output_dir = os.path.join(output_dir, "second_run")
-  second_run_results = os.path.join(second_run_output_dir, "results")
-  second_run_bootstraps = os.path.join(second_run_output_dir, "bootstraps")
-  os.makedirs(second_run_results)
+def build_mlsearch_command(msas, output_dir, bootstraps, ranks):
+  mlsearch_commands_file = os.path.join(output_dir, "mlsearch_command.txt")
+  mlsearch_run_output_dir = os.path.join(output_dir, "mlsearch_run")
+  mlsearch_run_results = os.path.join(mlsearch_run_output_dir, "results")
+  mlsearch_run_bootstraps = os.path.join(mlsearch_run_output_dir, "bootstraps")
+  os.makedirs(mlsearch_run_results)
   if (bootstraps != 0):
-    os.makedirs(second_run_bootstraps)
-  with open(second_commands_file, "w") as writer:
+    os.makedirs(mlsearch_run_bootstraps)
+  with open(mlsearch_commands_file, "w") as writer:
     for name, msa in msas.items():
       if (not msa.valid):
         continue
-      second_fasta_output_dir = os.path.join(second_run_results, name)
-      os.makedirs(second_fasta_output_dir)
-      writer.write("second_" + name + " ")
+      mlsearch_fasta_output_dir = os.path.join(mlsearch_run_results, name)
+      os.makedirs(mlsearch_fasta_output_dir)
+      writer.write("mlsearch_" + name + " ")
       writer.write(str(msa.cores) + " " + str(msa.taxa))
       writer.write(" --msa " + msa.compressed_path + " " + msa.raxml_arguments)
-      writer.write(" --prefix " + os.path.join(second_fasta_output_dir, name))
+      writer.write(" --prefix " + os.path.join(mlsearch_fasta_output_dir, name))
       writer.write(" --threads 1 ")
       writer.write("\n")
-      bs_output_dir = os.path.join(second_run_bootstraps, name)
+      bs_output_dir = os.path.join(mlsearch_run_bootstraps, name)
       os.makedirs(bs_output_dir)
       chunk_size = 1
       if (bootstraps > 30): # arbitrary threshold... todobenoit!
@@ -179,7 +178,7 @@ def build_second_command(msas, output_dir, bootstraps, ranks):
         writer.write(" --seed " + str(current_bs))
         writer.write(" --bs-trees " + str(bs_number))
         writer.write("\n")
-  return second_commands_file
+  return mlsearch_commands_file
 
 def concatenate_bootstraps(output_dir):
   start = time.time()
@@ -190,7 +189,7 @@ def concatenate_bootstraps(output_dir):
     os.makedirs(concatenated_dir)
   except:
     pass
-  bootstraps_dir = os.path.join(output_dir, "second_run", "bootstraps")
+  bootstraps_dir = os.path.join(output_dir, "mlsearch_run", "bootstraps")
   for fasta in os.listdir(bootstraps_dir):
     concatenated_file = os.path.join(concatenated_dir, fasta + ".bs")
     with open(concatenated_file,'wb') as writer:
@@ -209,7 +208,7 @@ def concatenate_bootstraps(output_dir):
   print("concatenation time: " + str(end-start) + "s")
 
 def build_supports_commands(output_dir):
-  ml_trees_dir = os.path.join(output_dir, "second_run", "results")
+  ml_trees_dir = os.path.join(output_dir, "mlsearch_run", "results")
   concatenated_dir = os.path.join(output_dir, "concatenated_bootstraps")
   supports_commands_file = os.path.join(output_dir, "supports_commands.txt")
   support_dir = os.path.join(output_dir, "supports_run")
@@ -232,24 +231,30 @@ def build_supports_commands(output_dir):
       writer.write("\n") 
   return supports_commands_file
     
+def init_msas(op):
+  msas = {}
+  raxml_options = open(op.raxml_global_parameters, "r").readlines()[0][:-1]
+  for f in os.listdir(op.alignments_dir):
+    name = os.path.splitext(f)[0]
+    path = os.path.join(op.alignments_dir, f)
+    msas[name] = MSA(name, path, raxml_options)
+  return msas
+
 def main_raxml_runner(op):
   output_dir = op.output_dir
   if (os.path.exists(output_dir)):
     print("[Error] The output directory " + output_dir + " already exists. Please use another output directory.")
     sys.exit(1)
   os.makedirs(output_dir)
-  msas = {}
+  print("Results in " + output_dir)
+
+  msas = init_msas(op)
+
   scriptdir = os.path.dirname(os.path.realpath(__file__))
   raxml_library = os.path.join(scriptdir, "..", "raxml-ng", "bin", "raxml-ng-mpi.so")
   modeltest_library = os.path.join(scriptdir, "..", "modeltest", "build", "src", "modeltest-ng-mpi.so")
-  print("Results in " + output_dir)
-  options = open(op.raxml_global_parameters, "r").readlines()[0][:-1]
-  for f in os.listdir(op.alignments_dir):
-    name = os.path.splitext(f)[0]
-    path = os.path.join(op.alignments_dir, f)
-    msas[name] = MSA(name, path, options)
-  first_commands_file = build_first_command(msas, output_dir, op.cores)
-  run_mpi_scheduler(raxml_library, first_commands_file, os.path.join(output_dir, "first_run"), op.cores)
+  parse_commands_file = build_parse_command(msas, output_dir, op.cores)
+  run_mpi_scheduler(raxml_library, parse_commands_file, os.path.join(output_dir, "parse_run"), op.cores)
   print("### end of first mpi-scheduler run")
   analyse_parsed_msas(msas, output_dir)
   if (op.use_modeltest):
@@ -257,8 +262,8 @@ def main_raxml_runner(op):
     run_mpi_scheduler(modeltest_library, modeltest_commands_file, os.path.join(output_dir, "modeltest_run"), op.cores)
     print("### end of modeltest mpi-scheduler run")
     parse_modeltest_results(msas, output_dir)
-  second_commands_file = build_second_command(msas, output_dir, op.bootstraps, op.cores)
-  run_mpi_scheduler(raxml_library, second_commands_file, os.path.join(output_dir, "second_run"), op.cores)
+  mlsearch_commands_file = build_mlsearch_command(msas, output_dir, op.bootstraps, op.cores)
+  run_mpi_scheduler(raxml_library, mlsearch_commands_file, os.path.join(output_dir, "mlsearch_run"), op.cores)
   print("### end of second mpi-scheduler run")
   if (op.bootstraps != 0):
     concatenate_bootstraps(output_dir)
@@ -283,9 +288,9 @@ parser.add_option('-o', "--output-dir",
 parser.add_option("-r", "--raxml-global-parameters", 
     dest="raxml_global_parameters", 
     help="A file containing the parameters to pass to raxml")
-#parser.add_option("--modeltest-global-parameters", 
-#    dest="modeltest_global_parameters", 
-#    help="A file containing the parameters to pass to modeltest")
+parser.add_option("--modeltest-global-parameters", 
+    dest="modeltest_global_parameters", 
+    help="A file containing the parameters to pass to modeltest")
 parser.add_option("-b", "--bs-trees", 
     dest="bootstraps", 
     type=int,
