@@ -35,6 +35,8 @@ class MSA:
         args[index + 1] = self.model
     self.raxml_arguments = " ".join(args)
 
+def get_msa_name(msa_file):
+  return msa_file.replace(".", "_")
 
 def get_mpi_scheduler_exec():
   repo_root = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
@@ -236,15 +238,41 @@ def build_supports_commands(output_dir):
       writer.write("\n") 
   return supports_commands_file
    
-def get_filter_content(op):
-  if (op.msa_filter == None):
+def get_filter_content(msa_filter):
+  if (msa_filter == None):
     return None
   msas_to_process = {}
-  with open(op.msa_filter, "r") as reader:
+  with open(msa_filter, "r") as reader:
     for line in reader.readlines():
       msa = line[:-1]
       msas_to_process[msa] = msa
   return msas_to_process
+
+def add_per_msa_raxml_options(msas, options_file):
+  if (options_file == None):
+    return
+  per_msa_options = {}
+  with open(options_file, "r") as reader:
+    for line in reader.readlines():
+      split = line[:-1].split(" ")
+      msa = get_msa_name(split[0])
+      if (not msa in msas):
+        print("[Warning] Found msa " + msa + " in options file " + options_file + " but not in the msas directory")
+        continue
+      msas[msa].raxml_arguments += " " + " ".join(split[1:])
+
+def add_per_msa_modeltest_options(msas, options_file):
+  if (options_file == None):
+    return
+  per_msa_options = {}
+  with open(options_file, "r") as reader:
+    for line in reader.readlines():
+      split = line[:-1].split(" ")
+      msa = get_msa_name(split[0])
+      if (not msa in msas):
+        print("[Warning] Found msa " + msa + " in options file " + options_file + " but not in the msas directory")
+        continue
+      msas[msa].modeltest_arguments += " " + " ".join(split[1:])
 
 def init_msas(op):
   msas = {}
@@ -254,20 +282,20 @@ def init_msas(op):
     raxml_options = open(op.raxml_global_parameters, "r").readlines()[0][:-1]
   if (op.modeltest_global_parameters != None):
     modeltest_options = open(op.modeltest_global_parameters, "r").readlines()[0][:-1]
-  msa_filter = get_filter_content(op)
-  print("filter content " + str(msa_filter))
+  msa_filter = get_filter_content(op.msa_filter)
   for f in os.listdir(op.alignments_dir):
     if (msa_filter != None):
       if (not (f in msa_filter)):
         continue
       del msa_filter[f]
     path = os.path.join(op.alignments_dir, f)
-    name = f.replace(".", "_")
+    name = get_msa_name(f)
     msas[name] = MSA(name, path, raxml_options, modeltest_options)
-
-  if (msa_filter != None): # check that all lines in the filter are present in the directory
+  if (msa_filter != None): # check that all files in the filter are present in the directory
     for msa in msa_filter.values():
       print("[Warning] File " + msa + " was found in the filter file, but not in the MSAs directory")
+  add_per_msa_raxml_options(msas, op.per_msa_raxml_parameters)
+  add_per_msa_modeltest_options(msas, op.per_msa_modeltest_parameters)
   return msas
 
 def main_raxml_runner(op):
@@ -336,12 +364,12 @@ parser.add_option("-m", "--use-modeltest",
 parser.add_option("--msa-filter",
     dest="msa_filter", 
     help="A file containing the names of the msa files to process")
-#parser.add_option("--per-msa-raxml-arguments", 
-#    dest="per_msa_raxml_arguments", 
-#    help="A file containing per-msa raxml arguments")
-#parser.add_option("--per-msa-modeltest-arguments", 
-#    dest="per_msa_modeltest_arguments", 
-#    help="A file containing per-msa modeltest arguments")
+parser.add_option("--per-msa-raxml-parameters", 
+    dest="per_msa_raxml_parameters", 
+    help="A file containing per-msa raxml parameters")
+parser.add_option("--per-msa-modeltest-parameters",
+    dest="per_msa_modeltest_parameters", 
+    help="A file containing per-msa modeltest parameters")
 
 op, remainder = parser.parse_args()
 
