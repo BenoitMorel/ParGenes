@@ -71,8 +71,12 @@ def run_mpi_scheduler(raxml_library, commands_filename, output_dir, ranks):
   command.append(raxml_library)
   command.append(commands_filename)
   command.append(output_dir)
-  print ("Calling mpi-scheduler: " + " ".join(command))
-  subprocess.check_call(command)
+  logs_file = os.path.join(output_dir, "logs.txt")
+  out = open(logs_file, "w")
+  print("Calling mpi-scheduler: " + " ".join(command))
+  print("Logs will be redirected to " + logs_file)
+  p = subprocess.Popen(command, stdout=out, stderr=out)
+  p.wait()
 
 def build_parse_command(msas, output_dir, ranks):
   parse_commands_file = os.path.join(output_dir, "parse_command.txt")
@@ -247,9 +251,7 @@ def main_raxml_runner(op):
     sys.exit(1)
   os.makedirs(output_dir)
   print("Results in " + output_dir)
-
   msas = init_msas(op)
-
   scriptdir = os.path.dirname(os.path.realpath(__file__))
   raxml_library = os.path.join(scriptdir, "..", "raxml-ng", "bin", "raxml-ng-mpi.so")
   modeltest_library = os.path.join(scriptdir, "..", "modeltest", "build", "src", "modeltest-ng-mpi.so")
