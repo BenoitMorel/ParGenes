@@ -1,1 +1,0 @@
---model GTR --seed 1 --site-repeats on
