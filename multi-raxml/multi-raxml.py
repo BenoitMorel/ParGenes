@@ -15,6 +15,8 @@ class MSA:
   cores = 0
   model = ""
   raxml_arguments = ""
+  raxml_additional_arguments = ""
+  modeltest_additional_arguments = ""
 
   def __init__(self, name, path, raxml_arguments):
     self.name = name
@@ -230,13 +232,11 @@ def build_supports_commands(output_dir):
       writer.write("\n") 
   return supports_commands_file
     
-
-
 def main_raxml_runner(fasta_dir, output_dir, options_file, bootstraps, use_modeltest, ranks):
-  try:
-    os.makedirs(output_dir)
-  except:
-    pass
+  if (os.path.exists(output_dir)):
+    print("[Error] The output directory " + output_dir + " already exists. Please use another output directory.")
+    sys.exit(1)
+  os.makedirs(output_dir)
   msas = {}
   scriptdir = os.path.dirname(os.path.realpath(__file__))
   raxml_library = os.path.join(scriptdir, "..", "raxml-ng", "bin", "raxml-ng-mpi.so")
@@ -266,6 +266,12 @@ def main_raxml_runner(fasta_dir, output_dir, options_file, bootstraps, use_model
     run_mpi_scheduler(raxml_library, supports_commands_file, os.path.join(output_dir, "supports_run"), ranks)
     print("### end of supports mpi-scheduler run")
 
+print("#################")
+print("#  MULTI RAXML  #")
+print("#################")
+print("Multi-raxml was called as follow:")
+print(" ".join(sys.argv))
+
 parser = optparse.OptionParser()
 parser.add_option('-f', "--fasta-dir", 
     dest="fasta_dir", 
@@ -290,9 +296,14 @@ parser.add_option("-m", "--use-modeltest",
     action="store_true",
     default=False,
     help="Autodetect the model with modeltest")
-op, remainder = parser.parse_args()
+#parser.add_option("--per-msa-raxml-arguments", 
+#    dest="per_msa_raxml_arguments", 
+#    help="A file containing per-msa raxml arguments")
+#parser.add_option("--per-msa-modeltest-arguments", 
+#    dest="per_msa_modeltest_arguments", 
+#    help="A file containing per-msa modeltest arguments")
 
-print(op)
+op, remainder = parser.parse_args()
 
 start = time.time()
 main_raxml_runner(op.fasta_dir, op.output_dir, op.options_file, op.bootstraps, op.use_modeltest, op.cores)
