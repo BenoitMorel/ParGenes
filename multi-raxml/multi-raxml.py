@@ -148,7 +148,7 @@ def parse_modeltest_results(msas, output_dir):
           msa.set_model(line.split(" ")[-1][:-1])
           break
 
-def build_mlsearch_command(msas, output_dir, bootstraps, ranks):
+def build_mlsearch_command(msas, output_dir, starting_trees, bootstraps, ranks):
   mlsearch_commands_file = os.path.join(output_dir, "mlsearch_command.txt")
   mlsearch_run_output_dir = os.path.join(output_dir, "mlsearch_run")
   mlsearch_run_results = os.path.join(mlsearch_run_output_dir, "results")
@@ -161,13 +161,16 @@ def build_mlsearch_command(msas, output_dir, bootstraps, ranks):
       if (not msa.valid):
         continue
       mlsearch_fasta_output_dir = os.path.join(mlsearch_run_results, name)
+      if (starting_trees > 1):
+        mlsearch_fasta_output_dir = os.path.join(mlsearch_fasta_output_dir, "multiple_runs")
       os.makedirs(mlsearch_fasta_output_dir)
-      writer.write("mlsearch_" + name + " ")
-      writer.write(str(msa.cores) + " " + str(msa.taxa))
-      writer.write(" --msa " + msa.compressed_path + " " + msa.raxml_arguments)
-      writer.write(" --prefix " + os.path.join(mlsearch_fasta_output_dir, name))
-      writer.write(" --threads 1 ")
-      writer.write("\n")
+      for starting_tree in range(0, starting_trees):
+        writer.write("mlsearch_" + name + " ")
+        writer.write(str(msa.cores) + " " + str(msa.taxa))
+        writer.write(" --msa " + msa.compressed_path + " " + msa.raxml_arguments)
+        writer.write(" --prefix " + os.path.join(mlsearch_fasta_output_dir, name + "_" + str(starting_tree)))
+        writer.write(" --threads 1 ")
+        writer.write("\n")
       bs_output_dir = os.path.join(mlsearch_run_bootstraps, name)
       os.makedirs(bs_output_dir)
       chunk_size = 1
@@ -318,7 +321,7 @@ def main_raxml_runner(op):
     run_mpi_scheduler(modeltest_library, modeltest_commands_file, os.path.join(output_dir, "modeltest_run"), op.cores)
     print("### end of modeltest mpi-scheduler run")
     parse_modeltest_results(msas, output_dir)
-  mlsearch_commands_file = build_mlsearch_command(msas, output_dir, op.bootstraps, op.cores)
+  mlsearch_commands_file = build_mlsearch_command(msas, output_dir, op.starting_trees, op.bootstraps, op.cores)
   run_mpi_scheduler(raxml_library, mlsearch_commands_file, os.path.join(output_dir, "mlsearch_run"), op.cores)
   print("### end of second mpi-scheduler run")
   if (op.bootstraps != 0):
@@ -351,7 +354,12 @@ parser.add_option("-b", "--bs-trees",
     dest="bootstraps", 
     type=int,
     default=0,
-    help="The number of bootstraps trees to compute")
+    help="The number of bootstrap trees to compute")
+parser.add_option("-s", "--raxml-starting-trees", 
+    dest="starting_trees", 
+    type=int,
+    default=1,
+    help="The number of starting trees")
 parser.add_option("-c", "--cores", 
     dest="cores",
     type=int,
