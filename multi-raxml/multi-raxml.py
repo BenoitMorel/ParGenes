@@ -4,6 +4,7 @@ import subprocess
 import time
 import shutil
 import argparse
+import glob
 
 class MSA:
   name = ""
@@ -161,15 +162,21 @@ def build_mlsearch_command(msas, output_dir, starting_trees, bootstraps, ranks):
       if (not msa.valid):
         continue
       mlsearch_fasta_output_dir = os.path.join(mlsearch_run_results, name)
-      if (starting_trees > 1):
-        mlsearch_fasta_output_dir = os.path.join(mlsearch_fasta_output_dir, "multiple_runs")
       os.makedirs(mlsearch_fasta_output_dir)
       for starting_tree in range(0, starting_trees):
-        writer.write("mlsearch_" + name + " ")
+        if (starting_trees > 1):
+          prefix = os.path.join(mlsearch_fasta_output_dir, "multiple_runs", str(starting_tree))
+          os.makedirs(prefix)
+          prefix = os.path.join(prefix, name)
+        else:
+          prefix = os.path.join(mlsearch_fasta_output_dir, name)
+        writer.write("mlsearch_" + name + "_" + str(starting_tree) + " ")
         writer.write(str(msa.cores) + " " + str(msa.taxa))
         writer.write(" --msa " + msa.compressed_path + " " + msa.raxml_arguments)
-        writer.write(" --prefix " + os.path.join(mlsearch_fasta_output_dir, name + "_" + str(starting_tree)))
+        writer.write(" --prefix " + prefix)
         writer.write(" --threads 1 ")
+        if (starting_trees > 1):
+          writer.write(" --seed " + str(starting_tree) + " ")
         writer.write("\n")
       bs_output_dir = os.path.join(mlsearch_run_bootstraps, name)
       os.makedirs(bs_output_dir)
@@ -303,6 +310,27 @@ def init_msas(op):
   add_per_msa_modeltest_options(msas, op.per_msa_modeltest_parameters)
   return msas
 
+def extract_ll_from_raxml_logs(raxml_log_file):
+  return 0.0
+
+def select_best_ml_tree(msas, op):
+  results_path = os.path.join(op.output_dir, "mlsearch_run", "results")
+  for name, msa in msas.items():
+    msa_results_path = os.path.join(results_path, name)
+    msa_multiple_results_path = os.path.join(msa_results_path, "multiple_runs")
+    best_ll = -float('inf')
+    best_starting_tree = 0
+    for starting_tree in range(0, op.starting_trees):
+      raxml_logs = os.path.join(msa_multiple_results_path, str(starting_tree), name + ".raxml.log")
+      ll = extract_ll_from_raxml_logs(raxml_logs)
+      if (ll > best_ll):
+        best_ll = ll
+        best_starting_tree = starting_tree
+    directory_to_copy = os.path.join(msa_multiple_results_path, str(best_starting_tree))
+    files_to_copy = os.listdir(directory_to_copy)
+    for f in files_to_copy:
+      shutil.copy(os.path.join(directory_to_copy, f), msa_results_path)
+
 def main_raxml_runner(op):
   output_dir = op.output_dir
   if (os.path.exists(output_dir)):
@@ -316,7 +344,7 @@ def main_raxml_runner(op):
   modeltest_library = os.path.join(scriptdir, "..", "modeltest", "build", "src", "modeltest-ng-mpi.so")
   parse_commands_file = build_parse_command(msas, output_dir, op.cores)
   run_mpi_scheduler(raxml_library, parse_commands_file, os.path.join(output_dir, "parse_run"), op.cores)
-  print("### end of first mpi-scheduler run")
+  print("### end of parsing mpi-scheduler run")
   analyse_parsed_msas(msas, output_dir)
   if (op.use_modeltest):
     modeltest_commands_file = build_modeltest_command(msas, output_dir, op.cores)
@@ -325,7 +353,9 @@ def main_raxml_runner(op):
     parse_modeltest_results(msas, output_dir)
   mlsearch_commands_file = build_mlsearch_command(msas, output_dir, op.starting_trees, op.bootstraps, op.cores)
   run_mpi_scheduler(raxml_library, mlsearch_commands_file, os.path.join(output_dir, "mlsearch_run"), op.cores)
-  print("### end of second mpi-scheduler run")
+  if (op.starting_trees > 1):
+    select_best_ml_tree(msas, op)
+  print("### end of mlsearch mpi-scheduler run")
   if (op.bootstraps != 0):
     concatenate_bootstraps(output_dir)
     print("### end of bootstraps concatenation")
