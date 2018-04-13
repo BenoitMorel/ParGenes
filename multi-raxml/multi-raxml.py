@@ -379,7 +379,7 @@ parser.add_argument('-o', "--output-dir",
 parser.add_argument("-r", "--raxml-global-parameters", 
     dest="raxml_global_parameters", 
     help="A file containing the parameters to pass to raxml")
-parser.add_argument("--raxml-global-parameters-string", 
+parser.add_argument("-R", "--raxml-global-parameters-string", 
     dest="raxml_global_parameters_string", 
     help="List of parameters to pass to raxml (see also --raxml-global-parameters)")
 parser.add_argument("--modeltest-global-parameters", 
