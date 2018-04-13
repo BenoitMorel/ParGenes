@@ -311,7 +311,12 @@ def init_msas(op):
   return msas
 
 def extract_ll_from_raxml_logs(raxml_log_file):
-  return 0.0
+  res = 0.0
+  with open(raxml_log_file) as reader:
+    for line in reader.readlines():
+      if (line.startswith("Final LogLikelihood:")):
+        res = float(line.split(" ")[2][:-1])
+  return res
 
 def select_best_ml_tree(msas, op):
   results_path = os.path.join(op.output_dir, "mlsearch_run", "results")
