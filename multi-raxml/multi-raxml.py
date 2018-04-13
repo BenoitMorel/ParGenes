@@ -3,7 +3,7 @@ import os
 import subprocess
 import time
 import shutil
-import optparse
+import argparse
 
 class MSA:
   name = ""
@@ -283,6 +283,8 @@ def init_msas(op):
   modeltest_options = ""
   if (op.raxml_global_parameters != None):
     raxml_options = open(op.raxml_global_parameters, "r").readlines()[0][:-1]
+  if (op.raxml_global_parameters_string != None):
+    raxml_options += " " + op.raxml_global_parameters_string
   if (op.modeltest_global_parameters != None):
     modeltest_options = open(op.modeltest_global_parameters, "r").readlines()[0][:-1]
   msa_filter = get_filter_content(op.msa_filter)
@@ -337,49 +339,52 @@ print("#################")
 print("Multi-raxml was called as follow:")
 print(" ".join(sys.argv))
 
-parser = optparse.OptionParser()
-parser.add_option('-a', "--alignments-dir", 
+parser = argparse.ArgumentParser()
+parser.add_argument('-a', "--alignments-dir", 
     dest="alignments_dir", 
     help="Directory containing the fasta files")
-parser.add_option('-o', "--output-dir", 
+parser.add_argument('-o', "--output-dir", 
     dest="output_dir", 
     help="Output directory")
-parser.add_option("-r", "--raxml-global-parameters", 
+parser.add_argument("-r", "--raxml-global-parameters", 
     dest="raxml_global_parameters", 
     help="A file containing the parameters to pass to raxml")
-parser.add_option("--modeltest-global-parameters", 
+parser.add_argument("--raxml-global-parameters-string", 
+    dest="raxml_global_parameters_string", 
+    help="List of parameters to pass to raxml (see also --raxml-global-parameters)")
+parser.add_argument("--modeltest-global-parameters", 
     dest="modeltest_global_parameters", 
     help="A file containing the parameters to pass to modeltest")
-parser.add_option("-b", "--bs-trees", 
+parser.add_argument("-b", "--bs-trees", 
     dest="bootstraps", 
     type=int,
     default=0,
     help="The number of bootstrap trees to compute")
-parser.add_option("-s", "--raxml-starting-trees", 
+parser.add_argument("-s", "--raxml-starting-trees", 
     dest="starting_trees", 
     type=int,
     default=1,
     help="The number of starting trees")
-parser.add_option("-c", "--cores", 
+parser.add_argument("-c", "--cores", 
     dest="cores",
     type=int,
     help="The number of computational cores available for computation")
-parser.add_option("-m", "--use-modeltest",
+parser.add_argument("-m", "--use-modeltest",
     dest="use_modeltest",
     action="store_true",
     default=False,
     help="Autodetect the model with modeltest")
-parser.add_option("--msa-filter",
+parser.add_argument("--msa-filter",
     dest="msa_filter", 
     help="A file containing the names of the msa files to process")
-parser.add_option("--per-msa-raxml-parameters", 
+parser.add_argument("--per-msa-raxml-parameters", 
     dest="per_msa_raxml_parameters", 
     help="A file containing per-msa raxml parameters")
-parser.add_option("--per-msa-modeltest-parameters",
+parser.add_argument("--per-msa-modeltest-parameters",
     dest="per_msa_modeltest_parameters", 
     help="A file containing per-msa modeltest parameters")
 
-op, remainder = parser.parse_args()
+op = parser.parse_args()
 
 start = time.time()
 main_raxml_runner(op)
