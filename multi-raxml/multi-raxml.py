@@ -304,7 +304,7 @@ def init_msas(op):
     name = get_msa_name(f)
     msas[name] = MSA(name, path, raxml_options, modeltest_options)
     if (op.datatype == "aa"):
-      msa[name].modeltest_options += " -d aa"
+      msas[name].modeltest_arguments += " -d aa"
   if (msa_filter != None): # check that all files in the filter are present in the directory
     for msa in msa_filter.values():
       print("[Warning] File " + msa + " was found in the filter file, but not in the MSAs directory")
@@ -340,7 +340,7 @@ def select_best_ml_tree(msas, op):
 
 def main_raxml_runner(op):
   output_dir = op.output_dir
-  if (os.path.exists(output_dir)):
+  if (os.path.exists(output_dir) and not op.do_continue):
     print("[Error] The output directory " + output_dir + " already exists. Please use another output directory.")
     sys.exit(1)
   os.makedirs(output_dir)
@@ -411,6 +411,11 @@ parser.add_argument("-m", "--use-modeltest",
     action="store_true",
     default=False,
     help="Autodetect the model with modeltest")
+parser.add_argument("--continue",
+    dest="do_continue",
+    action="store_true",
+    default=False,
+    help="Allow multi-raxml to continue the analysis from the last checkpoint")
 parser.add_argument("--msa-filter",
     dest="msa_filter", 
     help="A file containing the names of the msa files to process")
@@ -424,7 +429,7 @@ parser.add_argument("-d", "--datatype",
     dest="datatype",
     choices=["nt", "aa"],
     default="nt",
-    help="A file containing per-msa modeltest parameters")
+    help="Alignments datatype")
 
 op = parser.parse_args()
 
