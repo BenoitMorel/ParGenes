@@ -133,7 +133,7 @@ def build_modeltest_command(msas, output_dir, ranks):
       writer.write("\n")
   return modeltest_commands_file
 
-def parse_modeltest_results(msas, output_dir):
+def parse_modeltest_results(modeltest_criteria, msas, output_dir):
   modeltest_run_output_dir = os.path.join(output_dir, "modeltest_run")
   modeltest_results = os.path.join(modeltest_run_output_dir, "results")
   for name, msa in msas.items():
@@ -143,7 +143,7 @@ def parse_modeltest_results(msas, output_dir):
     with open(modeltest_outfile) as reader:
       read_next_model = False
       for line in reader.readlines():
-        if (line.startswith("Best model according to AICc")):
+        if (line.startswith("Best model according to " + modeltest_criteria)):
             read_next_model = True
         if (read_next_model and line.startswith("Model")):
           msa.set_model(line.split(" ")[-1][:-1])
@@ -357,7 +357,7 @@ def main_raxml_runner(op):
     modeltest_commands_file = build_modeltest_command(msas, output_dir, op.cores)
     run_mpi_scheduler(modeltest_library, modeltest_commands_file, os.path.join(output_dir, "modeltest_run"), op.cores)
     print("### end of modeltest mpi-scheduler run")
-    parse_modeltest_results(msas, output_dir)
+    parse_modeltest_results(op.modeltest_criteria, msas, output_dir)
   mlsearch_commands_file = build_mlsearch_command(msas, output_dir, op.starting_trees, op.bootstraps, op.cores)
   run_mpi_scheduler(raxml_library, mlsearch_commands_file, os.path.join(output_dir, "mlsearch_run"), op.cores)
   if (op.starting_trees > 1):
@@ -433,6 +433,12 @@ parser.add_argument("--modeltest-global-parameters",
 parser.add_argument("--per-msa-modeltest-parameters",
     dest="per_msa_modeltest_parameters", 
     help="A file containing per-msa modeltest parameters")
+parser.add_argument("--modeltest-criteria",
+    dest="modeltest_criteria",
+    choices=["AICc", "AIC", "BIC"],
+    default="AICc",
+    help="Alignments datatype")
+
 
 op = parser.parse_args()
 
