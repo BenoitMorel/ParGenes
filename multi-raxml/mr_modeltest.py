@@ -25,6 +25,7 @@ def build_modeltest_command(msas, output_dir, ranks):
 def parse_modeltest_results(modeltest_criteria, msas, output_dir):
   modeltest_run_output_dir = os.path.join(output_dir, "modeltest_run")
   modeltest_results = os.path.join(modeltest_run_output_dir, "results")
+  models = {}
   for name, msa in msas.items():
     if (not msa.valid):
       continue
@@ -35,6 +36,15 @@ def parse_modeltest_results(modeltest_criteria, msas, output_dir):
         if (line.startswith("Best model according to " + modeltest_criteria)):
             read_next_model = True
         if (read_next_model and line.startswith("Model")):
-          msa.set_model(line.split(" ")[-1][:-1])
+          model = line.split(" ")[-1][:-1]
+          msa.set_model(model)
+          if (not model in models):
+            models[model] = 0
+          models[model] += 1
           break
+  # write a summary of the models
+  with open(os.path.join(modeltest_run_output_dir, "summary.txt"), "w") as writer:
+    for model, count in sorted(models.items(), key=lambda x: x[1], reverse=True):
+      writer.write(model + " " + str(count) + "\n")
+
 
