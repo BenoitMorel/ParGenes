@@ -303,6 +303,8 @@ def init_msas(op):
     path = os.path.join(op.alignments_dir, f)
     name = get_msa_name(f)
     msas[name] = MSA(name, path, raxml_options, modeltest_options)
+    if (op.datatype == "aa"):
+      msa[name].modeltest_options += " -d aa"
   if (msa_filter != None): # check that all files in the filter are present in the directory
     for msa in msa_filter.values():
       print("[Warning] File " + msa + " was found in the filter file, but not in the MSAs directory")
@@ -417,6 +419,11 @@ parser.add_argument("--per-msa-raxml-parameters",
     help="A file containing per-msa raxml parameters")
 parser.add_argument("--per-msa-modeltest-parameters",
     dest="per_msa_modeltest_parameters", 
+    help="A file containing per-msa modeltest parameters")
+parser.add_argument("-d", "--datatype",
+    dest="datatype",
+    choices=["nt", "aa"],
+    default="nt",
     help="A file containing per-msa modeltest parameters")
 
 op = parser.parse_args()
