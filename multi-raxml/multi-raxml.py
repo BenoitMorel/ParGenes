@@ -81,7 +81,12 @@ def run_mpi_scheduler(raxml_library, commands_filename, output_dir, ranks):
   command.append(raxml_library)
   command.append(commands_filename)
   command.append(output_dir)
+  
   logs_file = os.path.join(output_dir, "logs.txt")
+  index = 1
+  while (os.path.exists(logs_file)): # maybe from a checkpoint
+    logs_file = os.path.join(output_dir, "logs_" + str(index) + ".txt")
+    index += 1
   out = open(logs_file, "w")
   print("Calling mpi-scheduler: " + " ".join(command))
   print("Logs will be redirected to " + logs_file)
