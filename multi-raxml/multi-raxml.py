@@ -6,6 +6,12 @@ import shutil
 import argparse
 import glob
 
+def makedirs_nocheck(path):
+  try:
+    os.makedirs(path)
+  except:
+    pass
+
 class MSA:
   name = ""
   path = ""
@@ -86,13 +92,13 @@ def build_parse_command(msas, output_dir, ranks):
   parse_commands_file = os.path.join(output_dir, "parse_command.txt")
   parse_run_output_dir = os.path.join(output_dir, "parse_run")
   parse_run_results = os.path.join(parse_run_output_dir, "results")
-  os.makedirs(parse_run_results)
+  makedirs_nocheck(parse_run_results)
   fasta_chuncks = []
   fasta_chuncks.append([])
   with open(parse_commands_file, "w") as writer:
     for name, msa in msas.items():
       fasta_output_dir = os.path.join(parse_run_results, name)
-      os.makedirs(fasta_output_dir)
+      makedirs_nocheck(fasta_output_dir)
       writer.write("parse_" + name + " 1 1 ")
       writer.write(" --parse ")
       writer.write( " --msa " + msa.path + " " + msa.raxml_arguments)
@@ -116,13 +122,13 @@ def build_modeltest_command(msas, output_dir, ranks):
   modeltest_commands_file = os.path.join(output_dir, "modeltest_command.txt")
   modeltest_run_output_dir = os.path.join(output_dir, "modeltest_run")
   modeltest_results = os.path.join(modeltest_run_output_dir, "results")
-  os.makedirs(modeltest_results)
+  makedirs_nocheck(modeltest_results)
   with open(modeltest_commands_file, "w") as writer:
     for name, msa in msas.items():
       if (not msa.valid):
         continue
       modeltest_fasta_output_dir = os.path.join(modeltest_results, name)
-      os.makedirs(modeltest_fasta_output_dir)
+      makedirs_nocheck(modeltest_fasta_output_dir)
       writer.write("modeltest_" + name + " ") 
       writer.write("4 " + str(msa.taxa * msa.sites)) #todobenoit smarter ordering
       writer.write(" -i ")
@@ -154,19 +160,19 @@ def build_mlsearch_command(msas, output_dir, starting_trees, bootstraps, ranks):
   mlsearch_run_output_dir = os.path.join(output_dir, "mlsearch_run")
   mlsearch_run_results = os.path.join(mlsearch_run_output_dir, "results")
   mlsearch_run_bootstraps = os.path.join(mlsearch_run_output_dir, "bootstraps")
-  os.makedirs(mlsearch_run_results)
+  makedirs_nocheck(mlsearch_run_results)
   if (bootstraps != 0):
-    os.makedirs(mlsearch_run_bootstraps)
+    makedirs_nocheck(mlsearch_run_bootstraps)
   with open(mlsearch_commands_file, "w") as writer:
     for name, msa in msas.items():
       if (not msa.valid):
         continue
       mlsearch_fasta_output_dir = os.path.join(mlsearch_run_results, name)
-      os.makedirs(mlsearch_fasta_output_dir)
+      makedirs_nocheck(mlsearch_fasta_output_dir)
       for starting_tree in range(0, starting_trees):
         if (starting_trees > 1):
           prefix = os.path.join(mlsearch_fasta_output_dir, "multiple_runs", str(starting_tree))
-          os.makedirs(prefix)
+          makedirs_nocheck(prefix)
           prefix = os.path.join(prefix, name)
         else:
           prefix = os.path.join(mlsearch_fasta_output_dir, name)
@@ -179,7 +185,7 @@ def build_mlsearch_command(msas, output_dir, starting_trees, bootstraps, ranks):
           writer.write(" --seed " + str(starting_tree) + " ")
         writer.write("\n")
       bs_output_dir = os.path.join(mlsearch_run_bootstraps, name)
-      os.makedirs(bs_output_dir)
+      makedirs_nocheck(bs_output_dir)
       chunk_size = 1
       if (bootstraps > 30): # arbitrary threshold... todobenoit!
         chunk_size = 10
@@ -203,7 +209,7 @@ def concatenate_bootstraps(output_dir):
   concatenated_dir = os.path.join(output_dir, "concatenated_bootstraps")
   try:
     print("todobenoit remove the try catch")
-    os.makedirs(concatenated_dir)
+    makedirs_nocheck(concatenated_dir)
   except:
     pass
   bootstraps_dir = os.path.join(output_dir, "mlsearch_run", "bootstraps")
@@ -229,11 +235,7 @@ def build_supports_commands(output_dir):
   concatenated_dir = os.path.join(output_dir, "concatenated_bootstraps")
   supports_commands_file = os.path.join(output_dir, "supports_commands.txt")
   support_dir = os.path.join(output_dir, "supports_run")
-  try:
-    print("todobenoit remove try catch")
-    os.makedirs(support_dir)
-  except:
-    pass
+  makedirs_nocheck(support_dir)
   print("Writing supports commands in " + supports_commands_file)
   with open(supports_commands_file, "w") as writer:
     for fasta in os.listdir(ml_trees_dir):
@@ -343,7 +345,7 @@ def main_raxml_runner(op):
   if (os.path.exists(output_dir) and not op.do_continue):
     print("[Error] The output directory " + output_dir + " already exists. Please use another output directory.")
     sys.exit(1)
-  os.makedirs(output_dir)
+  makedirs_nocheck(output_dir)
   print("Results in " + output_dir)
   msas = init_msas(op)
   scriptdir = os.path.dirname(os.path.realpath(__file__))
