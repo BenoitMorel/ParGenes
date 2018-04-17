@@ -1,4 +1,18 @@
 import argparse
+import sys
+import os
+
+def exit_msg(msg):
+  print(msg)
+  sys.exit(1)
+
+def check_argument_file(f, name):
+  if (None != f and not os.path.isfile(f)):
+    exit_msg("Error: invalid " + name + " file: " + f)
+
+def check_argument_dir(f, name):
+  if (None != f and not os.path.isdir(f)):
+    exit_msg("Error: invalid " + name + " directory: " + f)
 
 # parse the command line and return the arguments
 def parse_arguments():
@@ -65,5 +79,13 @@ def parse_arguments():
       default="AICc",
       help="Alignments datatype")
 
-  return parser.parse_args()
+  op = parser.parse_args()
+  check_argument_dir(op.alignments_dir, "alignment")
+  check_argument_file(op.msa_filter, "msa filter")
+  check_argument_file(op.per_msa_raxml_parameters, "per_msa_raxml_parameters")
+  check_argument_file(op.raxml_global_parameters, "raxml_global_parameters")
+  check_argument_file(op.per_msa_modeltest_parameters, "per_msa_modeltest_parameters")
+  check_argument_file(op.modeltest_global_parameters, "modeltest_global_parameters")
+
+  return op
 
