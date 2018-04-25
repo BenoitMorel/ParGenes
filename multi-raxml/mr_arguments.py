@@ -45,11 +45,16 @@ def parse_arguments():
   parser.add_argument("--per-msa-raxml-parameters", 
       dest="per_msa_raxml_parameters", 
       help="A file containing per-msa raxml parameters")
-  parser.add_argument("-s", "--raxml-starting-trees", 
-      dest="starting_trees", 
+  parser.add_argument("-s", "--random-starting-trees", 
+      dest="random_starting_trees", 
       type=int,
       default=1,
       help="The number of starting trees")
+  parser.add_argument("-p", "--parsimony-starting-trees", 
+      dest="parsimony_starting_trees", 
+      type=int,
+      default=0,
+      help="The number of starting parsimony trees")
   parser.add_argument("-r", "--raxml-global-parameters", 
       dest="raxml_global_parameters", 
       help="A file containing the parameters to pass to raxml")

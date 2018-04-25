@@ -53,12 +53,13 @@ def analyse_parsed_msas(msas, output_dir):
       print("Warning, invalid MSA: " + name)
     msa.compressed_path = os.path.join(os.path.join(parse_fasta_output_dir, name + ".raxml.rba"))
 
-def build_mlsearch_command(msas, output_dir, starting_trees, bootstraps, ranks):
+def build_mlsearch_command(msas, output_dir, random_trees, parsimony_trees, bootstraps, ranks):
   mlsearch_commands_file = os.path.join(output_dir, "mlsearch_command.txt")
   mlsearch_run_output_dir = os.path.join(output_dir, "mlsearch_run")
   mlsearch_run_results = os.path.join(mlsearch_run_output_dir, "results")
   mlsearch_run_bootstraps = os.path.join(mlsearch_run_output_dir, "bootstraps")
   mr_commons.makedirs(mlsearch_run_results)
+  starting_trees = random_trees + parsimony_trees
   if (bootstraps != 0):
     mr_commons.makedirs(mlsearch_run_bootstraps)
   with open(mlsearch_commands_file, "w") as writer:
@@ -79,6 +80,8 @@ def build_mlsearch_command(msas, output_dir, starting_trees, bootstraps, ranks):
         writer.write(" --msa " + msa.compressed_path + " " + msa.raxml_arguments)
         writer.write(" --prefix " + prefix)
         writer.write(" --threads 1 ")
+        if (starting_tree >= random_trees):
+          writer.write(" --tree pars ")
         if (starting_trees > 1):
           writer.write(" --seed " + str(starting_tree + 1) + " ")
         writer.write("\n")
