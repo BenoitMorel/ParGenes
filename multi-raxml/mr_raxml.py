@@ -80,7 +80,7 @@ def build_mlsearch_command(msas, output_dir, starting_trees, bootstraps, ranks):
         writer.write(" --prefix " + prefix)
         writer.write(" --threads 1 ")
         if (starting_trees > 1):
-          writer.write(" --seed " + str(starting_tree) + " ")
+          writer.write(" --seed " + str(starting_tree + 1) + " ")
         writer.write("\n")
       bs_output_dir = os.path.join(mlsearch_run_bootstraps, name)
       mr_commons.makedirs(bs_output_dir)
@@ -96,7 +96,7 @@ def build_mlsearch_command(msas, output_dir, starting_trees, bootstraps, ranks):
         writer.write(" --msa " + msa.path + " " + msa.raxml_arguments)
         writer.write(" --prefix " + os.path.join(bs_output_dir, bsbase))
         writer.write(" --threads 1 ")
-        writer.write(" --seed " + str(current_bs))
+        writer.write(" --seed " + str(current_bs + 1))
         writer.write(" --bs-trees " + str(bs_number))
         writer.write("\n")
   return mlsearch_commands_file
@@ -113,6 +113,8 @@ def extract_ll_from_raxml_logs(raxml_log_file):
 def select_best_ml_tree(msas, op):
   results_path = os.path.join(op.output_dir, "mlsearch_run", "results")
   for name, msa in msas.items():
+    if (not msa.valid):
+      continue
     msa_results_path = os.path.join(results_path, name)
     msa_multiple_results_path = os.path.join(msa_results_path, "multiple_runs")
     best_ll = -float('inf')
