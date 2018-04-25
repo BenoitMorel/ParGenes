@@ -2,6 +2,8 @@
 #include <mpi.h>
 #include <iostream>
 #include <dlfcn.h>
+#include <fstream>
+#include <stdio.h>
 
 namespace MPIScheduler {
 
@@ -15,6 +17,19 @@ const int TAG_SPLIT = 3;
 const int TAG_MASTER_SIGNAL = 4;
 
 const int MSG_SIZE_END_JOB = 3;
+
+
+int getRank(MPI_Comm comm) {
+  int rank = 0;
+  MPI_Comm_rank(comm, &rank);
+  return rank;
+}
+int getSize(MPI_Comm comm) {
+  int size = 0;
+  MPI_Comm_size(comm, &size);
+  return size;
+}
+
 
 Slave::~Slave()
 {
@@ -49,8 +64,16 @@ int Slave::doWork(const CommandPtr command,
     MPI_Comm workersComm,
     const string &outputDir) 
 {
+  bool isMaster = !getRank(workersComm);
+  string logsFile = Common::joinPaths(outputDir, "per_job_logs", command->getId() + "_out.txt");
+  string runningFile = Common::joinPaths(outputDir, "running_jobs", command->getId());
+  if (isMaster) {
+    ofstream os(runningFile);
+    os << logsFile << endl;
+    os.close();
+  }
   loadLibrary(_libraryPath);
-  std::ofstream out(Common::joinPaths(outputDir, "per_job_logs", command->getId() + "_out.txt"));
+  std::ofstream out(logsFile);
   std::streambuf *coutbuf = std::cout.rdbuf(); 
   std::cout.rdbuf(out.rdbuf()); 
   const vector<string> &args  = command->getArgs();
@@ -64,20 +87,11 @@ int Slave::doWork(const CommandPtr command,
   int res = _raxmlMain(argc, argv, (void*)&workersComm);
   delete[] argv;
   MPI_Barrier(workersComm);
-  std::cout.rdbuf(coutbuf); 
+  std::cout.rdbuf(coutbuf);
+  if (isMaster) {
+    remove(runningFile.c_str());
+  }
   return res;
-}
-
-
-int getRank(MPI_Comm comm) {
-  int rank = 0;
-  MPI_Comm_rank(comm, &rank);
-  return rank;
-}
-int getSize(MPI_Comm comm) {
-  int size = 0;
-  MPI_Comm_size(comm, &size);
-  return size;
 }
 
 
@@ -188,6 +202,7 @@ SplitRanksAllocator::SplitRanksAllocator(int availableRanks,
   _outputDir(outputDir)
 {
   Common::makedir(Common::joinPaths(outputDir, "per_job_logs"));
+  Common::makedir(Common::joinPaths(outputDir, "running_jobs"));
   MPI_Comm fakeComm;
   MPI_Comm_split(MPI_COMM_WORLD, 0, 0, &fakeComm);
   _slots.push(Slot(0, availableRanks - 1));

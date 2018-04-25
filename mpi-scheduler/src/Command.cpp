@@ -152,9 +152,7 @@ void CommandsRunner::run()
     } 
     if (!isCommandsEmpty()) {
       if (_allocator->ranksAvailable()) {
-        if (executePendingCommand()) {
-
-        }
+        executePendingCommand();
       }
     }
     vector<InstancePtr> finishedInstances = _allocator->checkFinishedInstances();
@@ -184,6 +182,7 @@ bool CommandsRunner::executePendingCommand()
     _allocator->freeRanks(instance);
     return false;
   }
+    
   if (_verbose) {
     cout << "## Started " << command->getId() << " on [" 
       << instance->getStartingRank()  << ":"
