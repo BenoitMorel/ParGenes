@@ -9,7 +9,6 @@ def makedirs(path):
 class MSA:
   name = ""
   path = ""
-  compressed_path = ""
   valid = True
   taxa = 0
   sites = 0

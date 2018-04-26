@@ -33,7 +33,7 @@ def main_raxml_runner(op):
     mr_modeltest.parse_modeltest_results(op.modeltest_criteria, msas, output_dir)
   mlsearch_commands_file = mr_raxml.build_mlsearch_command(msas, output_dir, op.random_starting_trees, op.parsimony_starting_trees, op.bootstraps, op.cores)
   mr_scheduler.run_mpi_scheduler(raxml_library, mlsearch_commands_file, os.path.join(output_dir, "mlsearch_run"), op.cores)
-  if (op.starting_trees > 1):
+  if (op.random_starting_trees + op.parsimony_starting_trees > 1):
     mr_raxml.select_best_ml_tree(msas, op)
   print("### end of mlsearch mpi-scheduler run")
   if (op.bootstraps != 0):
