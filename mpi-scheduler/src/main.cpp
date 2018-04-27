@@ -7,7 +7,7 @@
 #include <cstdlib>
 #include <fstream>
 #include "split_implem/SplitImplem.hpp"
-
+#include "onecore_implem/OneCoreImplem.hpp"
 #include "Checkpoint.hpp"
 #include "Command.hpp"
 #include "Common.hpp"
@@ -23,21 +23,32 @@ int _main(int argc, char** argv);
 void main_scheduler(int argc, char **argv)
 {
   Common::check(MPI_Init(&argc, &argv));
-  
+  SchedulerArgumentsParser arg(argc, argv);
+  string implem = argv[1]; 
   int rank = 0;
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
   int ranksNumber = 0;
   MPI_Comm_size(MPI_COMM_WORLD, &ranksNumber);
   if (rank != ranksNumber - 1) {
-    Slave slave;
-    slave.main_split_slave(argc, argv);
+    if (implem == "--split-scheduler") {
+      SplitSlave slave;
+      slave.main_split_slave(argc, argv);
+    } else if (implem == "--onecore-scheduler") {
+      OneCoreSlave slave;
+      slave.main_core_slave(argc, argv);
+    }
     return;
   }
-  SchedulerArgumentsParser arg(argc, argv);
   Time begin = Common::getTime();
   CommandsContainer commands(arg.commandsFilename);
-  RanksAllocator *allocatorPtr = new SplitRanksAllocator(ranksNumber, 
+  RanksAllocator *allocatorPtr = 0;
+  if (implem == "--split-scheduler") {
+    allocatorPtr = new SplitRanksAllocator(ranksNumber, 
         arg.outputDir);
+  } else if (implem == "--onecore-scheduler") {
+    allocatorPtr = new OneCoreRanksAllocator(ranksNumber, 
+        arg.outputDir);
+  }
   shared_ptr<RanksAllocator> allocator(allocatorPtr);
   CommandsRunner runner(commands, allocator, arg.outputDir);
   runner.run(); 

@@ -31,13 +31,13 @@ int getSize(MPI_Comm comm) {
 }
 
 
-Slave::~Slave()
+SplitSlave::~SplitSlave()
 {
   if (_handle)
     dlclose(_handle);
 }
 
-int Slave::loadLibrary(const string &libraryPath)
+int SplitSlave::loadLibrary(const string &libraryPath)
 {
   _libraryPath = libraryPath;
   if  (_handle) {
@@ -60,7 +60,7 @@ int Slave::loadLibrary(const string &libraryPath)
 }
 
 
-int Slave::doWork(const CommandPtr command, 
+int SplitSlave::doWork(const CommandPtr command, 
     MPI_Comm workersComm,
     const string &outputDir) 
 {
@@ -95,7 +95,7 @@ int Slave::doWork(const CommandPtr command,
 }
 
 
-void Slave::splitSlave() 
+void SplitSlave::splitSlave() 
 {
   MPI_Status status;
   int splitSize;
@@ -113,7 +113,7 @@ void Slave::splitSlave()
   _localRank = newRank;
 }
 
-void Slave::treatJobSlave()
+void SplitSlave::treatJobSlave()
 {
   bool alone = getSize(_localComm) == 1;
   MPI_Status status;
@@ -143,7 +143,7 @@ void Slave::treatJobSlave()
   }
 }
 
-void Slave::terminateSlave()
+void SplitSlave::terminateSlave()
 {
   if (_localMasterRank == _localRank) {
     int signal = SIGNAL_TERMINATE;
@@ -152,7 +152,7 @@ void Slave::terminateSlave()
   MPI_Finalize();
 }
 
-int Slave::main_split_slave(int argc, char **argv)
+int SplitSlave::main_split_slave(int argc, char **argv)
 {
   SchedulerArgumentsParser arg(argc, argv);
   if (loadLibrary(arg.library)) {

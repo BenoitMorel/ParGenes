@@ -9,6 +9,7 @@ add_executable(mpi-scheduler main.cpp
   Command.cpp 
   Common.cpp 
   split_implem/SplitImplem.cpp
+  onecore_implem/OneCoreImplem.cpp
   )
 
 target_link_libraries(mpi-scheduler ${MPI_LIBRARIES} dl gcc_s gcc)

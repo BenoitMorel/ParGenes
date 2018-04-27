@@ -179,7 +179,8 @@ public:
       print_help();
       throw MPISchedulerException("Error: invalid syntax");
     }
-    unsigned int i = 2;
+    unsigned int i = 1;
+    implem = string(argv[i++]);
     library = string(argv[i++]);
     commandsFilename = string(argv[i++]);
     outputDir = string(argv[i++]);
@@ -191,6 +192,7 @@ public:
     cout << "multiraxml --split-scheduler library command_file output_dir" << endl;
   }
 
+  string implem;
   string library;
   string commandsFilename;
   string outputDir;

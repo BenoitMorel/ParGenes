@@ -41,6 +41,11 @@ def parse_arguments():
       choices=["nt", "aa"],
       default="nt",
       help="Alignments datatype")
+  parser.add_argument("--scheduler",
+      dest="scheduler",
+      choices=["split", "onecore"],
+      default="split",
+      help="Sceduling strategy. onecore might be interesting for debugging crashing jobs")
   # raxml arguments
   parser.add_argument("--per-msa-raxml-parameters", 
       dest="per_msa_raxml_parameters", 

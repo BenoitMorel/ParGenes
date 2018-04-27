@@ -24,10 +24,10 @@ struct Slot {
 };
 
 
-class Slave {
+class SplitSlave {
 public:
-  Slave(): _handle(0) {}
-  ~Slave();
+  SplitSlave(): _handle(0) {}
+  ~SplitSlave();
   int main_split_slave(int argc, char **argv);
 private:
   int loadLibrary(const string &libraryPath);
@@ -70,7 +70,6 @@ private:
   queue<Slot> _slots;
   int _ranksInUse;
   string _outputDir;
-  map<string, InstancePtr> _runningInstances;
   map<int, InstancePtr> _rankToInstances;
 
   MPI_Comm _availableComms;
