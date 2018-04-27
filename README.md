@@ -1,6 +1,6 @@
-# Multi-raxml 
+# ParGenes 
 
-Run a high number of raxml instances on a given number of cores.
+A massively parallel tool for model selection and tree inference on thousands of genes
 
 
 ## Requirement
@@ -13,12 +13,12 @@ Run a high number of raxml instances on a given number of cores.
 
 ## Installation
 
-To build and clone raxml, and build mpi-scheduler:
+To build the sources:
 ```
 ./install.sh
 ```
 
-## Running the scheduler and multi-raxml
 
-See the wiki section!
+## Running
 
+See the wiki (https://github.com/BenoitMorel/ParGenes/wiki)
