@@ -52,6 +52,8 @@ def analyse_parsed_msas(msas, output_dir):
     if (not msa.valid):
       print("Warning, invalid MSA: " + name)
 
+
+
 def build_mlsearch_command(msas, output_dir, random_trees, parsimony_trees, bootstraps, ranks):
   mlsearch_commands_file = os.path.join(output_dir, "mlsearch_command.txt")
   mlsearch_run_output_dir = os.path.join(output_dir, "mlsearch_run")
@@ -65,6 +67,9 @@ def build_mlsearch_command(msas, output_dir, random_trees, parsimony_trees, boot
     for name, msa in msas.items():
       if (not msa.valid):
         continue
+      msa_size = 1
+      if (not msa.flag_disable_sorting):
+        msa_size = msa.taxa * msa.sites
       mlsearch_fasta_output_dir = os.path.join(mlsearch_run_results, name)
       mr_commons.makedirs(mlsearch_fasta_output_dir)
       for starting_tree in range(0, starting_trees):
@@ -75,7 +80,7 @@ def build_mlsearch_command(msas, output_dir, random_trees, parsimony_trees, boot
         else:
           prefix = os.path.join(mlsearch_fasta_output_dir, name)
         writer.write("mlsearch_" + name + "_" + str(starting_tree) + " ")
-        writer.write(str(msa.cores) + " " + str(msa.taxa))
+        writer.write(str(msa.cores) + " " + str(msa_size))
         writer.write(" --msa " + msa.path + " " + msa.raxml_arguments)
         writer.write(" --prefix " + prefix)
         writer.write(" --threads 1 ")
@@ -93,7 +98,7 @@ def build_mlsearch_command(msas, output_dir, random_trees, parsimony_trees, boot
         bsbase = name + "_bs" + str(current_bs)
         bs_number = min(chunk_size, bootstraps - current_bs * chunk_size)
         writer.write(bsbase + " ")
-        writer.write(str(msa.cores) + " " + str(msa.taxa))
+        writer.write(str(msa.cores) + " " + str(msa_size))
         writer.write(" --bootstrap")
         writer.write(" --msa " + msa.path + " " + msa.raxml_arguments)
         writer.write(" --prefix " + os.path.join(bs_output_dir, bsbase))

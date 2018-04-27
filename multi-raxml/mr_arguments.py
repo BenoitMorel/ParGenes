@@ -88,6 +88,13 @@ def parse_arguments():
       choices=["AICc", "AIC", "BIC"],
       default="AICc",
       help="Alignments datatype")
+  # experiments
+  parser.add_argument("--experiment-disable-jobs-sorting",
+      dest="disable_job_sorting",
+      action="store_true",
+      default=False,
+      help="For experimenting only! Removes the sorting step in the scheduler")
+  
 
   op = parser.parse_args()
   check_argument_dir(op.alignments_dir, "alignment")

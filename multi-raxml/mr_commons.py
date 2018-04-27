@@ -16,6 +16,7 @@ class MSA:
   model = ""
   raxml_arguments = ""
   modeltest_arguments = ""
+  flag_disable_sorting = False 
 
   def __init__(self, name, path, raxml_arguments, modeltest_arguments):
     self.name = name
@@ -93,6 +94,8 @@ def init_msas(op):
     path = os.path.join(op.alignments_dir, f)
     name = get_msa_name(f)
     msas[name] = MSA(name, path, raxml_options, modeltest_options)
+    if (op.disable_job_sorting):
+      msas[name].flag_disable_sorting = True
     if (op.datatype == "aa"):
       msas[name].modeltest_arguments += " -d aa"
   if (msa_filter != None): # check that all files in the filter are present in the directory
