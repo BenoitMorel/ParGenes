@@ -10,20 +10,38 @@ import mr_bootstraps
 import mr_modeltest
 import mr_scheduler
 
+def print_header():
+  print("#################")
+  print("#  MULTI RAXML  #")
+  print("#################")
+  print("Multi-raxml was called as follow:")
+  print(" ".join(sys.argv))
+  print("")
+
+def get_log_file(output_dir):
+  res = os.path.join(output_dir, "multi_raxml_logs.txt")
+  index = 1
+  while (os.path.isfile(res)):
+    res = os.path.join(output_dir, "multi_raxml_logs_" + str(index) + ".txt")
+    index += 1 
+  return res
+
 def timed_print(initial_time, msg):
   
   elapsed = time.time() - initial_time
   print("### [" + str(timedelta(seconds = int(elapsed))) + "] " + msg)
 
-def main_raxml_runner(op):
-  
+def main_raxml_runner(op):  
   start = time.time()
   output_dir = op.output_dir
   if (os.path.exists(output_dir) and not op.do_continue):
     print("[Error] The output directory " + output_dir + " already exists. Please use another output directory.")
     sys.exit(1)
   mr_commons.makedirs(output_dir)
-  print("Results in " + output_dir)
+  logs = get_log_file(output_dir)
+  print("Redirecting logs to " + logs)
+  sys.stdout = open(logs, "w")
+  print_header()
   msas = mr_commons.init_msas(op)
   scriptdir = os.path.dirname(os.path.realpath(__file__))
   if (op.scheduler == "onecore"):
@@ -55,11 +73,7 @@ def main_raxml_runner(op):
     mr_scheduler.run_mpi_scheduler(raxml_library, op.scheduler, supports_commands_file, os.path.join(output_dir, "supports_run"), op.cores)
     timed_print(start, "end of supports mpi-scheduler run")
 
-print("#################")
-print("#  MULTI RAXML  #")
-print("#################")
-print("Multi-raxml was called as follow:")
-print(" ".join(sys.argv))
+print_header()
 start = time.time()
 main_raxml_runner(mr_arguments.parse_arguments())
 end = time.time()
