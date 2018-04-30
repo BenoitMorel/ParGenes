@@ -2,7 +2,8 @@ import os
 import mr_commons
 import shutil
 import time
-
+import queue
+import concurrent.futures
 def build_supports_commands(output_dir):
   ml_trees_dir = os.path.join(output_dir, "mlsearch_run", "results")
   concatenated_dir = os.path.join(output_dir, "concatenated_bootstraps")
@@ -23,32 +24,28 @@ def build_supports_commands(output_dir):
       writer.write("\n") 
   return supports_commands_file
 
+def concatenate_bootstrap_msa(bootstraps_dir, concatenated_dir, msa_name):
+  concatenated_file = os.path.join(concatenated_dir, msa_name + ".bs")
+  with open(concatenated_file,'wb') as writer:
+    fasta_bs_dir = os.path.join(bootstraps_dir, msa_name)
+    for bs_file in os.listdir(fasta_bs_dir):
+      if (bs_file.endswith("bootstraps")):
+        with open(os.path.join(fasta_bs_dir, bs_file),'rb') as reader:
+          try:
+            shutil.copyfileobj(reader, writer)
+          except OSError as e:
+            print("ERROR!")
+            print("OS error when copying " + os.path.join(fasta_bs_dir, bs_file) + " to " + concatenated_file)
+            raise e
+
 def concatenate_bootstraps(output_dir):
-  start = time.time()
-  print("concatenate_bootstraps")
   concatenated_dir = os.path.join(output_dir, "concatenated_bootstraps")
-  try:
-    print("todobenoit remove the try catch")
-    mr_commons.makedirs(concatenated_dir)
-  except:
-    pass
+  mr_commons.makedirs(concatenated_dir)
   bootstraps_dir = os.path.join(output_dir, "mlsearch_run", "bootstraps")
-  for fasta in os.listdir(bootstraps_dir):
-    concatenated_file = os.path.join(concatenated_dir, fasta + ".bs")
-    with open(concatenated_file,'wb') as writer:
-      fasta_bs_dir = os.path.join(bootstraps_dir, fasta)
-      for bs_file in os.listdir(fasta_bs_dir):
-        if (bs_file.endswith("bootstraps")):
-          with open(os.path.join(fasta_bs_dir, bs_file),'rb') as reader:
-            try:
-              shutil.copyfileobj(reader, writer)
-            except OSError as e:
-              print("ERROR!")
-              print("OS error when copying " + os.path.join(fasta_bs_dir, bs_file) + " to " + concatenated_file)
-              raise e
-              
-  end = time.time()
-  print("concatenation time: " + str(end-start) + "s")
+  with concurrent.futures.ThreadPoolExecutor() as e:
+    for msa_name in os.listdir(bootstraps_dir):
+      e.submit(concatenate_bootstrap_msa, bootstraps_dir, concatenated_dir, msa_name) 
+    e.shutdown()
 
 
 
