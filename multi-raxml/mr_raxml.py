@@ -126,7 +126,7 @@ def select_best_ml_tree(msas, op):
     msa_multiple_results_path = os.path.join(msa_results_path, "multiple_runs")
     best_ll = -float('inf')
     best_starting_tree = 0
-    for starting_tree in range(0, op.starting_trees):
+    for starting_tree in range(0, op.random_starting_trees + op.parsimony_starting_trees):
       raxml_logs = os.path.join(msa_multiple_results_path, str(starting_tree), name + ".raxml.log")
       ll = extract_ll_from_raxml_logs(raxml_logs)
       if (ll > best_ll):
