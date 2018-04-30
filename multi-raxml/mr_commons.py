@@ -105,3 +105,12 @@ def init_msas(op):
   add_per_msa_modeltest_options(msas, op.per_msa_modeltest_parameters)
   return msas
 
+def get_log_file(path, name, extension = "txt"):
+  res = os.path.join(path, name + "." + extension)
+  index = 1
+  while (os.path.isfile(res)):
+    res = os.path.join(path, "name"  + str(index) + "." + extension)
+    index += 1 
+  return res
+
+

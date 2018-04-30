@@ -18,13 +18,6 @@ def print_header():
   print(" ".join(sys.argv))
   print("")
 
-def get_log_file(output_dir):
-  res = os.path.join(output_dir, "multi_raxml_logs.txt")
-  index = 1
-  while (os.path.isfile(res)):
-    res = os.path.join(output_dir, "multi_raxml_logs_" + str(index) + ".txt")
-    index += 1 
-  return res
 
 def timed_print(initial_time, msg):
   
@@ -38,11 +31,12 @@ def main_raxml_runner(op):
     print("[Error] The output directory " + output_dir + " already exists. Please use another output directory.")
     sys.exit(1)
   mr_commons.makedirs(output_dir)
-  logs = get_log_file(output_dir)
+  logs = mr_commons.get_log_file(output_dir, "multi_raxml_logs")
   print("Redirecting logs to " + logs)
   sys.stdout = open(logs, "w")
   print_header()
   msas = mr_commons.init_msas(op)
+  timed_print(start, "end of MSAs initializations")
   scriptdir = os.path.dirname(os.path.realpath(__file__))
   if (op.scheduler == "onecore"):
     raxml_library = os.path.join(scriptdir, "..", "raxml-ng", "bin", "raxml-ng")
