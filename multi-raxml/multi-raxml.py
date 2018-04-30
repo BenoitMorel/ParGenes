@@ -38,6 +38,8 @@ def main_raxml_runner(op):
   msas = mr_commons.init_msas(op)
   timed_print(start, "end of MSAs initializations")
   scriptdir = os.path.dirname(os.path.realpath(__file__))
+  modeltest_run_path = os.path.join(output_dir, "modeltest_run")
+  raxml_run_path = os.path.join(output_dir, "mlsearch_run")
   if (op.scheduler == "onecore"):
     raxml_library = os.path.join(scriptdir, "..", "raxml-ng", "bin", "raxml-ng")
     modeltest_library = os.path.join(scriptdir, "..", "modeltest", "bin", "modeltest-ng")
@@ -50,13 +52,11 @@ def main_raxml_runner(op):
   mr_raxml.analyse_parsed_msas(msas, output_dir)
   timed_print(start, "end of anlysing parsing results") 
   if (op.use_modeltest):
-    modeltest_run_path = os.path.join(output_dir, "modeltest_run")
     mr_modeltest.run(msas, output_dir, modeltest_library, op.scheduler, modeltest_run_path, op.cores)
     timed_print(start, "end of modeltest mpi-scheduler run")
     mr_modeltest.parse_modeltest_results(op.modeltest_criteria, msas, output_dir)
     timed_print(start, "end of parsing  modeltest results")
-  mlsearch_commands_file = mr_raxml.build_mlsearch_command(msas, output_dir, op.random_starting_trees, op.parsimony_starting_trees, op.bootstraps, op.cores)
-  mr_scheduler.run_mpi_scheduler(raxml_library, op.scheduler, mlsearch_commands_file, os.path.join(output_dir, "mlsearch_run"), op.cores)
+  mr_raxml.run(msas, op.random_starting_trees, op.parsimony_starting_trees, op.bootstraps, raxml_library, op.scheduler, raxml_run_path, op.cores)
   timed_print(start, "end of mlsearch mpi-scheduler run")
   if (op.random_starting_trees + op.parsimony_starting_trees > 1):
     mr_raxml.select_best_ml_tree(msas, op)
@@ -64,8 +64,7 @@ def main_raxml_runner(op):
   if (op.bootstraps != 0):
     mr_bootstraps.concatenate_bootstraps(output_dir)
     timed_print(start, "end of bootstraps concatenation")
-    supports_commands_file = mr_bootstraps.build_supports_commands(output_dir)
-    mr_scheduler.run_mpi_scheduler(raxml_library, op.scheduler, supports_commands_file, os.path.join(output_dir, "supports_run"), op.cores)
+    mr_bootstraps.run(output_dir, raxml_library, op.scheduler, os.path.join(output_dir, "supports_run"), op.cores)
     timed_print(start, "end of supports mpi-scheduler run")
 
 print_header()

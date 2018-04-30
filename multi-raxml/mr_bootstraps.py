@@ -4,14 +4,15 @@ import shutil
 import time
 import queue
 import concurrent.futures
-def build_supports_commands(output_dir):
+import mr_scheduler
+
+def run(output_dir, library, scheduler, run_path, cores):
   ml_trees_dir = os.path.join(output_dir, "mlsearch_run", "results")
   concatenated_dir = os.path.join(output_dir, "concatenated_bootstraps")
-  supports_commands_file = os.path.join(output_dir, "supports_commands.txt")
-  support_dir = os.path.join(output_dir, "supports_run")
-  mr_commons.makedirs(support_dir)
-  print("Writing supports commands in " + supports_commands_file)
-  with open(supports_commands_file, "w") as writer:
+  commands_file = os.path.join(run_path, "supports_commands.txt")
+  mr_commons.makedirs(run_path)
+  print("Writing supports commands in " + commands_file)
+  with open(commands_file, "w") as writer:
     for fasta in os.listdir(ml_trees_dir):
       ml_tree = os.path.join(ml_trees_dir, fasta, fasta + ".raxml.bestTree")
       bs_trees = os.path.join(concatenated_dir, fasta + ".bs")
@@ -20,9 +21,10 @@ def build_supports_commands(output_dir):
       writer.write(" --tree " + ml_tree)
       writer.write(" --bs-trees " + bs_trees)
       writer.write(" --threads 1")
-      writer.write(" --prefix " + os.path.join(support_dir, fasta + ".support"))
+      writer.write(" --prefix " + os.path.join(run_path, fasta + ".support"))
       writer.write("\n") 
-  return supports_commands_file
+  mr_scheduler.run_mpi_scheduler(library, scheduler, commands_file, run_path, cores)  
+
 
 def concatenate_bootstrap_msa(bootstraps_dir, concatenated_dir, msa_name):
   concatenated_file = os.path.join(concatenated_dir, msa_name + ".bs")

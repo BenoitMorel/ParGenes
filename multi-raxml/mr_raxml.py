@@ -1,6 +1,7 @@
 import os
 import mr_commons
 import shutil
+import mr_scheduler
 
 def sites_to_maxcores(sites):
   if sites == 0:
@@ -54,16 +55,15 @@ def analyse_parsed_msas(msas, output_dir):
 
 
 
-def build_mlsearch_command(msas, output_dir, random_trees, parsimony_trees, bootstraps, ranks):
-  mlsearch_commands_file = os.path.join(output_dir, "mlsearch_command.txt")
-  mlsearch_run_output_dir = os.path.join(output_dir, "mlsearch_run")
-  mlsearch_run_results = os.path.join(mlsearch_run_output_dir, "results")
-  mlsearch_run_bootstraps = os.path.join(mlsearch_run_output_dir, "bootstraps")
+def run(msas, random_trees, parsimony_trees, bootstraps, library, scheduler, run_path, cores):
+  commands_file = os.path.join(run_path, "mlsearch_command.txt")
+  mlsearch_run_results = os.path.join(run_path, "results")
+  mlsearch_run_bootstraps = os.path.join(run_path, "bootstraps")
   mr_commons.makedirs(mlsearch_run_results)
   starting_trees = random_trees + parsimony_trees
   if (bootstraps != 0):
     mr_commons.makedirs(mlsearch_run_bootstraps)
-  with open(mlsearch_commands_file, "w") as writer:
+  with open(commands_file, "w") as writer:
     for name, msa in msas.items():
       if (not msa.valid):
         continue
@@ -106,7 +106,7 @@ def build_mlsearch_command(msas, output_dir, random_trees, parsimony_trees, boot
         writer.write(" --seed " + str(current_bs + 1))
         writer.write(" --bs-trees " + str(bs_number))
         writer.write("\n")
-  return mlsearch_commands_file
+  mr_scheduler.run_mpi_scheduler(library, scheduler, commands_file, run_path, cores)  
 
 
 def extract_ll_from_raxml_logs(raxml_log_file):
