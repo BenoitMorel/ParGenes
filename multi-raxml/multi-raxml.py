@@ -1,6 +1,7 @@
 import sys
 import os
 import time
+from datetime import timedelta
 import glob
 import mr_arguments
 import mr_commons
@@ -9,9 +10,14 @@ import mr_bootstraps
 import mr_modeltest
 import mr_scheduler
 
-
+def timed_print(initial_time, msg):
+  
+  elapsed = time.time() - initial_time
+  print("### [" + str(timedelta(seconds = int(elapsed))) + "] " + msg)
 
 def main_raxml_runner(op):
+  
+  start = time.time()
   output_dir = op.output_dir
   if (os.path.exists(output_dir) and not op.do_continue):
     print("[Error] The output directory " + output_dir + " already exists. Please use another output directory.")
@@ -28,24 +34,26 @@ def main_raxml_runner(op):
     modeltest_library = os.path.join(scriptdir, "..", "modeltest", "build", "src", "modeltest-ng-mpi.so")
   parse_commands_file = mr_raxml.build_parse_command(msas, output_dir, op.cores)
   mr_scheduler.run_mpi_scheduler(raxml_library, op.scheduler, parse_commands_file, os.path.join(output_dir, "parse_run"), op.cores)
-  print("### end of parsing mpi-scheduler run")
+  timed_print(start, "end of parsing mpi-scheduler run")
   mr_raxml.analyse_parsed_msas(msas, output_dir)
+  timed_print(start, "end of anlysing parsing results") 
   if (op.use_modeltest):
     modeltest_commands_file = mr_modeltest.build_modeltest_command(msas, output_dir, op.cores)
     mr_scheduler.run_mpi_scheduler(modeltest_library, op.scheduler, modeltest_commands_file, os.path.join(output_dir, "modeltest_run"), op.cores)
-    print("### end of modeltest mpi-scheduler run")
+    timed_print(start, "end of modeltest mpi-scheduler run")
     mr_modeltest.parse_modeltest_results(op.modeltest_criteria, msas, output_dir)
   mlsearch_commands_file = mr_raxml.build_mlsearch_command(msas, output_dir, op.random_starting_trees, op.parsimony_starting_trees, op.bootstraps, op.cores)
   mr_scheduler.run_mpi_scheduler(raxml_library, op.scheduler, mlsearch_commands_file, os.path.join(output_dir, "mlsearch_run"), op.cores)
+  timed_print(start, "end of mlsearch mpi-scheduler run")
   if (op.random_starting_trees + op.parsimony_starting_trees > 1):
     mr_raxml.select_best_ml_tree(msas, op)
-  print("### end of mlsearch mpi-scheduler run")
+    timed_print(start, "end of selecting the best ML tree")
   if (op.bootstraps != 0):
     mr_bootstraps.concatenate_bootstraps(output_dir)
-    print("### end of bootstraps concatenation")
+    timed_print(start, "end of bootstraps concatenation")
     supports_commands_file = mr_bootstraps.build_supports_commands(output_dir)
     mr_scheduler.run_mpi_scheduler(raxml_library, op.scheduler, supports_commands_file, os.path.join(output_dir, "supports_run"), op.cores)
-    print("### end of supports mpi-scheduler run")
+    timed_print(start, "end of supports mpi-scheduler run")
 
 print("#################")
 print("#  MULTI RAXML  #")
@@ -55,5 +63,5 @@ print(" ".join(sys.argv))
 start = time.time()
 main_raxml_runner(mr_arguments.parse_arguments())
 end = time.time()
-print("TOTAL ELAPSED TIME SPENT IN " + os.path.basename(__file__) + " " + str(end-start) + "s")
+timed_print(start, "END OF THE RUN OF " + os.path.basename(__file__))
 
