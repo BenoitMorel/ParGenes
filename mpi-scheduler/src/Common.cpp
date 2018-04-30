@@ -19,6 +19,20 @@ void Common::removedir(const std::string &name)
 {
   nftw(name.c_str(), unlink_cb, 64, FTW_DEPTH | FTW_PHYS);
 }
+  
+string Common::getIncrementalLogFile(const string &path, 
+      const string &name,
+      const string &extension)
+{
+  string file = joinPaths(path, name + "." + extension);
+  int index = 1;
+  while (ifstream(file).good()) {
+    file = joinPaths(path, name + "_" + to_string(index) + "." + extension);
+    index++;
+  }
+  return file;
+}
+
 
 SVGDrawer::SVGDrawer(const string &filepath,
     double maxXValue,

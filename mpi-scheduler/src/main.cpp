@@ -55,7 +55,8 @@ void main_scheduler(int argc, char **argv)
   Time end = Common::getTime();
   RunStatistics statistics(runner.getHistoric(), begin, end, ranksNumber - 1);
   statistics.printGeneralStatistics();
-  statistics.exportSVG(Common::joinPaths(arg.outputDir, "statistics.svg"));
+
+  statistics.exportSVG(Common::getIncrementalLogFile(arg.outputDir, "statistics", "svg"));
   allocator->terminate();
   Common::check(MPI_Finalize());
   cout << "End of Multiraxml run" << endl;

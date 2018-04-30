@@ -82,6 +82,10 @@ public:
     return chrono::system_clock::now();
   }
 
+  static string getIncrementalLogFile(const string &path, 
+      const string &name,
+      const string &extension);
+
   static long getElapsedMs(Time begin, Time end) {
     return chrono::duration_cast<chrono::milliseconds>
       (end-begin).count();
