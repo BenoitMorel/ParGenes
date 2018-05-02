@@ -2,6 +2,7 @@ import os
 import mr_commons
 import shutil
 import mr_scheduler
+import concurrent.futures
 
 def sites_to_maxcores(sites):
   if sites == 0:
@@ -117,24 +118,30 @@ def extract_ll_from_raxml_logs(raxml_log_file):
         res = float(line.split(" ")[2][:-1])
   return res
 
+def select_best_ml_tree_msa(msa, results_path, op):
+  name = msa.name
+  msa_results_path = os.path.join(results_path, name)
+  msa_multiple_results_path = os.path.join(msa_results_path, "multiple_runs")
+  best_ll = -float('inf')
+  best_starting_tree = 0
+  for starting_tree in range(0, op.random_starting_trees + op.parsimony_starting_trees):
+    raxml_logs = os.path.join(msa_multiple_results_path, str(starting_tree), name + ".raxml.log")
+    ll = extract_ll_from_raxml_logs(raxml_logs)
+    if (ll > best_ll):
+      best_ll = ll
+      best_starting_tree = starting_tree
+  directory_to_copy = os.path.join(msa_multiple_results_path, str(best_starting_tree))
+  files_to_copy = os.listdir(directory_to_copy)
+  for f in files_to_copy:
+    shutil.copy(os.path.join(directory_to_copy, f), msa_results_path)
+
+
+
 def select_best_ml_tree(msas, op):
   results_path = os.path.join(op.output_dir, "mlsearch_run", "results")
-  for name, msa in msas.items():
-    if (not msa.valid):
-      continue
-    msa_results_path = os.path.join(results_path, name)
-    msa_multiple_results_path = os.path.join(msa_results_path, "multiple_runs")
-    best_ll = -float('inf')
-    best_starting_tree = 0
-    for starting_tree in range(0, op.random_starting_trees + op.parsimony_starting_trees):
-      raxml_logs = os.path.join(msa_multiple_results_path, str(starting_tree), name + ".raxml.log")
-      ll = extract_ll_from_raxml_logs(raxml_logs)
-      if (ll > best_ll):
-        best_ll = ll
-        best_starting_tree = starting_tree
-    directory_to_copy = os.path.join(msa_multiple_results_path, str(best_starting_tree))
-    files_to_copy = os.listdir(directory_to_copy)
-    for f in files_to_copy:
-      shutil.copy(os.path.join(directory_to_copy, f), msa_results_path)
-
+  with concurrent.futures.ThreadPoolExecutor() as e:
+    for name, msa in msas.items():
+      if (not msa.valid):
+        continue
+      e.submit(select_best_ml_tree_msa, msa, results_path, op) 
 

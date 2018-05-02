@@ -14,7 +14,7 @@ def run(msas, output_dir, library, scheduler, run_path, cores):
       modeltest_fasta_output_dir = os.path.join(modeltest_results, name)
       mr_commons.makedirs(modeltest_fasta_output_dir)
       writer.write("modeltest_" + name + " ") 
-      writer.write("32 " + str(msa.taxa * msa.sites)) #todobenoit smarter ordering
+      writer.write("16 " + str(msa.taxa * msa.sites)) #todobenoit smarter ordering
       writer.write(" -i ")
       writer.write(msa.path)
       writer.write(" -t mp ")

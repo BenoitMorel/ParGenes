@@ -47,8 +47,6 @@ def concatenate_bootstraps(output_dir):
   with concurrent.futures.ThreadPoolExecutor() as e:
     for msa_name in os.listdir(bootstraps_dir):
       e.submit(concatenate_bootstrap_msa, bootstraps_dir, concatenated_dir, msa_name) 
-    e.shutdown()
-
 
 
 
