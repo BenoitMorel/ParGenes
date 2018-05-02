@@ -9,6 +9,7 @@ import mr_raxml
 import mr_bootstraps
 import mr_modeltest
 import mr_scheduler
+import mr_checkpoint
 
 def print_header():
   print("#################")
@@ -27,6 +28,8 @@ def timed_print(initial_time, msg):
 def main_raxml_runner(op):  
   start = time.time()
   output_dir = op.output_dir
+  checkpoint = mr_checkpoint.read_checkpoint(output_dir)
+  print("Checkpoint: " + str(checkpoint))
   if (os.path.exists(output_dir) and not op.do_continue):
     print("[Error] The output directory " + output_dir + " already exists. Please use another output directory.")
     sys.exit(1)
@@ -46,26 +49,38 @@ def main_raxml_runner(op):
   else:
     raxml_library = os.path.join(scriptdir, "..", "raxml-ng", "bin", "raxml-ng-mpi.so")
     modeltest_library = os.path.join(scriptdir, "..", "modeltest", "build", "src", "modeltest-ng-mpi.so")
-  parse_commands_file = mr_raxml.build_parse_command(msas, output_dir, op.cores)
-  mr_scheduler.run_mpi_scheduler(raxml_library, op.scheduler, parse_commands_file, os.path.join(output_dir, "parse_run"), op.cores)
-  timed_print(start, "end of parsing mpi-scheduler run")
+  if (checkpoint < 1):
+    parse_commands_file = mr_raxml.build_parse_command(msas, output_dir, op.cores)
+    mr_scheduler.run_mpi_scheduler(raxml_library, op.scheduler, parse_commands_file, os.path.join(output_dir, "parse_run"), op.cores)
+    mr_checkpoint.write_checkpoint(output_dir, 1)
+    timed_print(start, "end of parsing mpi-scheduler run")
   mr_raxml.analyse_parsed_msas(msas, output_dir)
   timed_print(start, "end of anlysing parsing results") 
   if (op.use_modeltest):
-    mr_modeltest.run(msas, output_dir, modeltest_library, op.scheduler, modeltest_run_path, op.cores)
-    timed_print(start, "end of modeltest mpi-scheduler run")
+    if (checkpoint < 2):
+      mr_modeltest.run(msas, output_dir, modeltest_library, op.scheduler, modeltest_run_path, op.cores)
+      timed_print(start, "end of modeltest mpi-scheduler run")
+      mr_checkpoint.write_checkpoint(output_dir, 2)
     mr_modeltest.parse_modeltest_results(op.modeltest_criteria, msas, output_dir)
     timed_print(start, "end of parsing  modeltest results")
-  mr_raxml.run(msas, op.random_starting_trees, op.parsimony_starting_trees, op.bootstraps, raxml_library, op.scheduler, raxml_run_path, op.cores)
-  timed_print(start, "end of mlsearch mpi-scheduler run")
+  if (checkpoint < 3):
+    mr_raxml.run(msas, op.random_starting_trees, op.parsimony_starting_trees, op.bootstraps, raxml_library, op.scheduler, raxml_run_path, op.cores)
+    timed_print(start, "end of mlsearch mpi-scheduler run")
+    mr_checkpoint.write_checkpoint(output_dir, 3)
   if (op.random_starting_trees + op.parsimony_starting_trees > 1):
-    mr_raxml.select_best_ml_tree(msas, op)
-    timed_print(start, "end of selecting the best ML tree")
+    if (checkpoint < 4):
+      mr_raxml.select_best_ml_tree(msas, op)
+      timed_print(start, "end of selecting the best ML tree")
+      mr_checkpoint.write_checkpoint(output_dir, 4)
   if (op.bootstraps != 0):
-    mr_bootstraps.concatenate_bootstraps(output_dir)
-    timed_print(start, "end of bootstraps concatenation")
-    mr_bootstraps.run(output_dir, raxml_library, op.scheduler, os.path.join(output_dir, "supports_run"), op.cores)
-    timed_print(start, "end of supports mpi-scheduler run")
+    if (checkpoint < 5):
+      mr_bootstraps.concatenate_bootstraps(output_dir)
+      timed_print(start, "end of bootstraps concatenation")
+      mr_checkpoint.write_checkpoint(output_dir, 5)
+    if (checkpoint < 6):
+      mr_bootstraps.run(output_dir, raxml_library, op.scheduler, os.path.join(output_dir, "supports_run"), op.cores)
+      timed_print(start, "end of supports mpi-scheduler run")
+      mr_checkpoint.write_checkpoint(output_dir, 6)
 
 print_header()
 start = time.time()
