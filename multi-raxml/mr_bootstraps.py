@@ -11,6 +11,8 @@ def run(output_dir, library, scheduler, run_path, cores):
   concatenated_dir = os.path.join(output_dir, "concatenated_bootstraps")
   commands_file = os.path.join(run_path, "supports_commands.txt")
   mr_commons.makedirs(run_path)
+  support_results = os.path.join(run_path, "results")
+  mr_commons.makedirs(support_results)
   print("Writing supports commands in " + commands_file)
   with open(commands_file, "w") as writer:
     for fasta in os.listdir(ml_trees_dir):
@@ -21,7 +23,7 @@ def run(output_dir, library, scheduler, run_path, cores):
       writer.write(" --tree " + ml_tree)
       writer.write(" --bs-trees " + bs_trees)
       writer.write(" --threads 1")
-      writer.write(" --prefix " + os.path.join(run_path, fasta + ".support"))
+      writer.write(" --prefix " + os.path.join(support_results, fasta + ".support"))
       writer.write("\n") 
   mr_scheduler.run_mpi_scheduler(library, scheduler, commands_file, run_path, cores)  
 
