@@ -4,11 +4,12 @@ import os
 import mr_commons
 
 def get_mpi_scheduler_exec():
+  """ Get the path to the mpi scheduler executable """
   repo_root = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
   return os.path.join(repo_root, "mpi-scheduler", "build", "mpi-scheduler")
 
 def run_mpi_scheduler(library, scheduler, commands_filename, output_dir, ranks):
-  
+  """ Run the mpi scheduler program """
   sys.stdout.flush()
   command = []
   command.append("mpirun")

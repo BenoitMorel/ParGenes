@@ -21,11 +21,12 @@ def print_header():
 
 
 def timed_print(initial_time, msg):
-  
+  """ Print the time elapsed from initial_time and the msg """ 
   elapsed = time.time() - initial_time
   print("### [" + str(timedelta(seconds = int(elapsed))) + "] " + msg)
 
-def main_raxml_runner(op):  
+def main_raxml_runner(op): 
+  """ Run multi-raxml from the parsed arguments op """
   start = time.time()
   output_dir = op.output_dir
   checkpoint = mr_checkpoint.read_checkpoint(output_dir)
@@ -50,8 +51,7 @@ def main_raxml_runner(op):
     raxml_library = os.path.join(scriptdir, "..", "raxml-ng", "bin", "raxml-ng-mpi.so")
     modeltest_library = os.path.join(scriptdir, "..", "modeltest", "build", "src", "modeltest-ng-mpi.so")
   if (checkpoint < 1):
-    parse_commands_file = mr_raxml.build_parse_command(msas, output_dir, op.cores)
-    mr_scheduler.run_mpi_scheduler(raxml_library, op.scheduler, parse_commands_file, os.path.join(output_dir, "parse_run"), op.cores)
+    mr_raxml.run_parsing_step(msas, raxml_library, op.scheduler, os.path.join(output_dir, "parse_run"), op.cores)
     mr_checkpoint.write_checkpoint(output_dir, 1)
     timed_print(start, "end of parsing mpi-scheduler run")
   mr_raxml.analyse_parsed_msas(msas, output_dir)

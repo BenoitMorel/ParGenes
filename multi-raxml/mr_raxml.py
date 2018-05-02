@@ -4,12 +4,20 @@ import shutil
 import mr_scheduler
 import concurrent.futures
 
+
+
+
 def sites_to_maxcores(sites):
+  """ Returns the maximum number of cores that should
+      be assigned to a number of sites while having
+      a good parallel efficiency """
   if sites == 0:
     return 0
   return 1 << ((sites // 1000)).bit_length()
 
 def parse_msa_info(log_file, msa):
+  """ Parse the raxml log_file and store the number of 
+  taxa and unique sites in msa. Flag invalid msas to invalid  """
   unique_sites = 0
   try:
     lines = open(log_file).readlines()
@@ -25,9 +33,10 @@ def parse_msa_info(log_file, msa):
     msa.valid = False
   msa.cores = sites_to_maxcores(msa.sites)
 
-def build_parse_command(msas, output_dir, ranks):
-  parse_commands_file = os.path.join(output_dir, "parse_command.txt")
-  parse_run_output_dir = os.path.join(output_dir, "parse_run")
+def run_parsing_step(msas, library, scheduler, parse_run_output_dir, cores):
+  """ Run raxml-ng --parse on each MSA to check it is valid and
+  to get its MSA dimensiosn """
+  parse_commands_file = os.path.join(parse_run_output_dir, "parse_command.txt")
   parse_run_results = os.path.join(parse_run_output_dir, "results")
   mr_commons.makedirs(parse_run_results)
   fasta_chuncks = []
@@ -42,9 +51,10 @@ def build_parse_command(msas, output_dir, ranks):
       writer.write(" --prefix " + os.path.join(fasta_output_dir, name))
       writer.write(" --threads 1 ")
       writer.write("\n")
-  return parse_commands_file
+  mr_scheduler.run_mpi_scheduler(library, scheduler, parse_commands_file, parse_run_output_dir, cores)  
  
 def analyse_parsed_msas(msas, output_dir):
+  """ Analyse results from run_parsing_step and store them into msas """
   parse_run_output_dir = os.path.join(output_dir, "parse_run")
   parse_run_results = os.path.join(parse_run_output_dir, "results")
   invalid_msas = []
@@ -64,6 +74,8 @@ def analyse_parsed_msas(msas, output_dir):
         f.write(msa.name + "\n")
 
 def run(msas, random_trees, parsimony_trees, bootstraps, library, scheduler, run_path, cores):
+  """ Use the MPI scheduler to run raxml-ng on all the dataset. 
+  Also schedules the bootstraps runs"""
   commands_file = os.path.join(run_path, "mlsearch_command.txt")
   mlsearch_run_results = os.path.join(run_path, "results")
   mlsearch_run_bootstraps = os.path.join(run_path, "bootstraps")
@@ -118,6 +130,7 @@ def run(msas, random_trees, parsimony_trees, bootstraps, library, scheduler, run
 
 
 def extract_ll_from_raxml_logs(raxml_log_file):
+  """ Return the final likelihood from a raxml log file """
   res = 0.0
   with open(raxml_log_file) as reader:
     for line in reader.readlines():
@@ -126,6 +139,8 @@ def extract_ll_from_raxml_logs(raxml_log_file):
   return res
 
 def select_best_ml_tree_msa(msa, results_path, op):
+  """ Find the raxml run that got the best likelihood, 
+  and copy its output files in the results directory """
   name = msa.name
   msa_results_path = os.path.join(results_path, name)
   msa_multiple_results_path = os.path.join(msa_results_path, "multiple_runs")
@@ -145,6 +160,7 @@ def select_best_ml_tree_msa(msa, results_path, op):
 
 
 def select_best_ml_tree(msas, op):
+  """ Run select_best_ml_tree_msa in parallel (one one single node) on all the MSAs """
   results_path = os.path.join(op.output_dir, "mlsearch_run", "results")
   with concurrent.futures.ThreadPoolExecutor() as e:
     for name, msa in msas.items():

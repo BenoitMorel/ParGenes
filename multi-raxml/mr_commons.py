@@ -1,12 +1,14 @@
 import os
 
 def makedirs(path):
+  """ Create a directory if it does not exists yet """
   try:
     os.makedirs(path)
   except:
     pass
 
 class MSA:
+  """ group all the information related to one MSA """
   name = ""
   path = ""
   valid = True
@@ -40,6 +42,8 @@ def get_msa_name(msa_file):
   return msa_file.replace(".", "_")
 
 def add_per_msa_raxml_options(msas, options_file):
+  """ Read the per-msa raxml options file, and append the options to
+  their corresponding MSA """
   if (options_file == None):
     return
   per_msa_options = {}
@@ -53,6 +57,8 @@ def add_per_msa_raxml_options(msas, options_file):
       msas[msa].raxml_arguments += " " + " ".join(split[1:])
 
 def add_per_msa_modeltest_options(msas, options_file):
+  """ Read the per-msa modeltest options file, and append the options to
+  their corresponding MSA """
   if (options_file == None):
     return
   per_msa_options = {}
@@ -66,6 +72,7 @@ def add_per_msa_modeltest_options(msas, options_file):
       msas[msa].modeltest_arguments += " " + " ".join(split[1:])
 
 def get_filter_content(msa_filter):
+  """ Parse the (optional) file containing the list of MSAs to process"""
   if (msa_filter == None):
     return None
   msas_to_process = {}
@@ -76,6 +83,7 @@ def get_filter_content(msa_filter):
   return msas_to_process
 
 def init_msas(op):
+  """ Init the list of MSAs from the user input arguments """
   msas = {}
   raxml_options = ""
   modeltest_options = ""
@@ -106,6 +114,8 @@ def init_msas(op):
   return msas
 
 def get_log_file(path, name, extension = "txt"):
+  """ Build a log file. If it exists, use incremental naming to create
+  a new one without erasing the previous one (useful when multi-raxml restarts)"""
   res = os.path.join(path, name + "." + extension)
   index = 1
   while (os.path.isfile(res)):

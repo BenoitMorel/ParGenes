@@ -3,6 +3,7 @@ import mr_commons
 import mr_scheduler
 
 def run(msas, output_dir, library, scheduler, run_path, cores): 
+  """ Use the MPI scheduler to run modeltest on all the MSAs"""
   run_path = os.path.join(output_dir, "modeltest_run")
   commands_file = os.path.join(run_path, "modeltest_command.txt")
   modeltest_results = os.path.join(run_path, "results")
@@ -24,6 +25,8 @@ def run(msas, output_dir, library, scheduler, run_path, cores):
   mr_scheduler.run_mpi_scheduler(library, scheduler, commands_file, run_path, cores)  
 
 def parse_modeltest_results(modeltest_criteria, msas, output_dir):
+  """ Parse the results from the MPI scheduler run to get the best-fit model
+  for each MSA """
   run_path = os.path.join(output_dir, "modeltest_run")
   modeltest_results = os.path.join(run_path, "results")
   models = {}
