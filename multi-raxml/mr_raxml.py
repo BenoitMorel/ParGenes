@@ -43,18 +43,25 @@ def build_parse_command(msas, output_dir, ranks):
       writer.write(" --threads 1 ")
       writer.write("\n")
   return parse_commands_file
-  
+ 
 def analyse_parsed_msas(msas, output_dir):
   parse_run_output_dir = os.path.join(output_dir, "parse_run")
   parse_run_results = os.path.join(parse_run_output_dir, "results")
+  invalid_msas = []
+
   for name, msa in msas.items():
     parse_fasta_output_dir = os.path.join(parse_run_results, name)
     parse_run_log = os.path.join(os.path.join(parse_fasta_output_dir, name + ".raxml.log"))
     parse_result = parse_msa_info(parse_run_log, msa)
     if (not msa.valid):
-      print("Warning, invalid MSA: " + name)
+      invalid_msas.append(msa)      
 
-
+  if (len(invalid_msas) > 0):
+    invalid_msas_file = os.path.join(output_dir, "invalid_msas.txt")
+    print("[Warning] Found " + str(len(invalid_msas)) + " invalid MSAs (see " + invalid_msas_file + ")") 
+    with open(invalid_msas_file, "w") as f:
+      for msa in invalid_msas:
+        f.write(msa.name + "\n")
 
 def run(msas, random_trees, parsimony_trees, bootstraps, library, scheduler, run_path, cores):
   commands_file = os.path.join(run_path, "mlsearch_command.txt")
