@@ -49,7 +49,7 @@ def main_raxml_runner(op):
     modeltest_library = os.path.join(scriptdir, "..", "modeltest", "bin", "modeltest-ng")
   else:
     raxml_library = os.path.join(scriptdir, "..", "raxml-ng", "bin", "raxml-ng-mpi.so")
-    modeltest_library = os.path.join(scriptdir, "..", "modeltest", "build", "src", "modeltest-ng-mpi.so")
+    modeltest_library = os.path.join(scriptdir, "..", "modeltest", "builddebug", "src", "modeltest-ng-mpi.so")
   if (checkpoint < 1):
     mr_raxml.run_parsing_step(msas, raxml_library, op.scheduler, os.path.join(output_dir, "parse_run"), op.cores)
     mr_checkpoint.write_checkpoint(output_dir, 1)
