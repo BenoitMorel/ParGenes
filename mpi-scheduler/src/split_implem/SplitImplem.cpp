@@ -115,7 +115,6 @@ void SplitSlave::splitSlave()
 
 void SplitSlave::treatJobSlave()
 {
-  cout << "treatJobSlave" << endl;
   bool alone = getSize(_localComm) == 1;
   MPI_Status status;
   const int maxCommandSize = 200;
