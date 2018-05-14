@@ -2,7 +2,7 @@
 #include <mpi.h>
 #include <iostream>
 #include <string>
-#include <thread> 
+//#include <thread> 
 #include <chrono> 
 #include <cstdlib>
 #include <fstream>

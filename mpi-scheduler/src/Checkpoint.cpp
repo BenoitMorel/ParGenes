@@ -3,7 +3,8 @@
 
 namespace MPIScheduler {
 
-Checkpoint::Checkpoint(const string &outputDir)
+Checkpoint::Checkpoint(const string &outputDir):
+  _os(getCheckpointCommandsFile(outputDir), std::fstream::app)
 {
   ifstream is(getCheckpointCommandsFile(outputDir));
   if (is) {
@@ -17,7 +18,6 @@ Checkpoint::Checkpoint(const string &outputDir)
       _ids.insert(str);
     } 
   }
-  _os = ofstream(getCheckpointCommandsFile(outputDir), std::fstream::app);
 }
 
 bool Checkpoint::isDone(const string &id)
