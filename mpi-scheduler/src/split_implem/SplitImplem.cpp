@@ -115,6 +115,7 @@ void SplitSlave::splitSlave()
 
 void SplitSlave::treatJobSlave()
 {
+  cout << "treatJobSlave" << endl;
   bool alone = getSize(_localComm) == 1;
   MPI_Status status;
   const int maxCommandSize = 200;
@@ -164,6 +165,7 @@ int SplitSlave::main_split_slave(int argc, char **argv)
   _localMasterRank = 0;
   _globalMasterRank = getSize(MPI_COMM_WORLD) - 1;
   _localRank = _globalRank;
+  // split master and slave
   Common::check(MPI_Comm_split(MPI_COMM_WORLD, 1, _localRank, &_localComm));
   while (true) {
     _localRank = getRank(_localComm);
@@ -203,8 +205,9 @@ SplitRanksAllocator::SplitRanksAllocator(int availableRanks,
 {
   Common::makedir(Common::joinPaths(outputDir, "per_job_logs"));
   Common::makedir(Common::joinPaths(outputDir, "running_jobs"));
-  //MPI_Comm fakeComm;
-  //Common::check(MPI_Comm_split(MPI_COMM_WORLD, 0, 0, &fakeComm));
+  MPI_Comm fakeComm;
+  // split master and slave
+  Common::check(MPI_Comm_split(MPI_COMM_WORLD, 0, 0, &fakeComm));
   _slots.push(Slot(0, availableRanks - 1));
 }
 

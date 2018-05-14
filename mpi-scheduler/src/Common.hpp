@@ -101,6 +101,7 @@ public:
 
   static void check(int mpiError) {
     if (mpiError != MPI_SUCCESS) {
+      cout << "MPI ERROR !!!!" << endl;
       throw MPISchedulerException("MPI error !");
     }
   }
