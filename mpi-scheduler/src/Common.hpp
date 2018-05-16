@@ -14,6 +14,7 @@
 #include <vector>
 #include <mpi.h>
 #include <signal.h>  
+#include <iostream>
 
 using namespace std;
 
