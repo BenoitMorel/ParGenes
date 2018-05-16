@@ -72,7 +72,7 @@ int mpiIprobe(int source, int tag, MPI_Comm comm, int *flag,
 
 int mpiSplit(MPI_Comm comm, int color, int key, MPI_Comm *newcomm)
 {
-  return MPI_Comm_Split(comm, color, key, newcomm);
+  return MPI_Comm_split(comm, color, key, newcomm);
 }
 
 SplitSlave::~SplitSlave()
@@ -129,10 +129,13 @@ int SplitSlave::doWork(const CommandPtr command,
   }
   cout << endl;
   //Common::check(MPI_Barrier(workersComm));
-  int res = _raxmlMain(argc, argv, (void*)&workersComm);
+  //MPI_Comm_set_errhandler(workersComm, MPI_ERRORS_RETURN);
+  MPI_Comm raxmlComm;
+  Common::check(MPI_Comm_dup(workersComm, raxmlComm));
+  int res = _raxmlMain(argc, argv, (void*)&raxmlComm);
   std::cout.rdbuf(coutbuf);
   delete[] argv;
-  Common::check(MPI_Barrier(workersComm));
+  Common::check(MPI_Barrier(raxmlComm));
   if (isMaster) {
     remove(runningFile.c_str());
   }
