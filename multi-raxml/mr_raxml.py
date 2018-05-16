@@ -106,8 +106,7 @@ def run(msas, random_trees, parsimony_trees, bootstraps, library, scheduler, run
         writer.write(" --threads 1 ")
         if (starting_tree >= random_trees):
           writer.write(" --tree pars ")
-        if (starting_trees > 1):
-          writer.write(" --seed " + str(starting_tree + 1) + " ")
+        writer.write(" --seed " + str(starting_tree + 1) + " ")
         writer.write("\n")
       bs_output_dir = os.path.join(mlsearch_run_bootstraps, name)
       mr_commons.makedirs(bs_output_dir)
