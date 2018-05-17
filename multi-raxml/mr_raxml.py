@@ -7,14 +7,6 @@ import concurrent.futures
 
 
 
-def sites_to_maxcores(sites):
-  """ Returns the maximum number of cores that should
-      be assigned to a number of sites while having
-      a good parallel efficiency """
-  if sites == 0:
-    return 0
-  return 1 << ((sites // 1000)).bit_length()
-
 def parse_msa_info(log_file, msa):
   """ Parse the raxml log_file and store the number of 
   taxa and unique sites in msa. Flag invalid msas to invalid  """
@@ -25,15 +17,14 @@ def parse_msa_info(log_file, msa):
     msa.valid = False
     return 
   for line in lines:
-    if "Alignment comprises" in line:
-      msa.sites = int(line.split(" ")[5])
     if "taxa" in line:
       msa.taxa = int(line.split(" ")[4])
     if "maximum throughput" in line:
       msa.cores = int(line.split(" : ")[1])
+    if "Per-taxon CLV size" in line:
+      msa.sites = int(line.split(" : ")[1])
   if (msa.sites * msa.taxa == 0):
     msa.valid = False
-  #msa.cores = sites_to_maxcores(msa.sites)
 
 def run_parsing_step(msas, library, scheduler, parse_run_output_dir, cores):
   """ Run raxml-ng --parse on each MSA to check it is valid and
@@ -49,6 +40,7 @@ def run_parsing_step(msas, library, scheduler, parse_run_output_dir, cores):
       mr_commons.makedirs(fasta_output_dir)
       writer.write("parse_" + name + " 1 1 ")
       writer.write(" --parse ")
+      writer.write(" --log DEBUG ")
       writer.write( " --msa " + msa.path + " " + msa.raxml_arguments)
       writer.write(" --prefix " + os.path.join(fasta_output_dir, name))
       writer.write(" --threads 1 ")
