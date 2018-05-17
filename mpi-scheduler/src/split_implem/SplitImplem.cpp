@@ -131,11 +131,12 @@ int SplitSlave::doWork(const CommandPtr command,
   //Common::check(MPI_Barrier(workersComm));
   //MPI_Comm_set_errhandler(workersComm, MPI_ERRORS_RETURN);
   MPI_Comm raxmlComm;
-  Common::check(MPI_Comm_dup(workersComm, raxmlComm));
+  Common::check(MPI_Comm_dup(workersComm, &raxmlComm));
   int res = _raxmlMain(argc, argv, (void*)&raxmlComm);
   std::cout.rdbuf(coutbuf);
   delete[] argv;
   Common::check(MPI_Barrier(raxmlComm));
+  MPI_Comm_free(&raxmlComm);
   if (isMaster) {
     remove(runningFile.c_str());
   }
