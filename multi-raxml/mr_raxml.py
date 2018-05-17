@@ -29,9 +29,11 @@ def parse_msa_info(log_file, msa):
       msa.sites = int(line.split(" ")[5])
     if "taxa" in line:
       msa.taxa = int(line.split(" ")[4])
+    if "maximum throughput" in line:
+      msa.cores = int(line.split(" : ")[1])
   if (msa.sites * msa.taxa == 0):
     msa.valid = False
-  msa.cores = sites_to_maxcores(msa.sites)
+  #msa.cores = sites_to_maxcores(msa.sites)
 
 def run_parsing_step(msas, library, scheduler, parse_run_output_dir, cores):
   """ Run raxml-ng --parse on each MSA to check it is valid and
