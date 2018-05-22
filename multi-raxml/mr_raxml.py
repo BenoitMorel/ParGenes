@@ -19,7 +19,7 @@ def parse_msa_info(log_file, msa):
   for line in lines:
     if "taxa" in line:
       msa.taxa = int(line.split(" ")[4])
-    if "maximum throughput" in line:
+    if "minimum response time" in line:
       msa.cores = int(line.split(" : ")[1])
     if "Per-taxon CLV size" in line:
       msa.sites = int(line.split(" : ")[1])
@@ -52,8 +52,12 @@ def analyse_parsed_msas(msas, output_dir):
   parse_run_output_dir = os.path.join(output_dir, "parse_run")
   parse_run_results = os.path.join(parse_run_output_dir, "results")
   invalid_msas = []
-
+  print("analyse_parsed_msas")
+  count = 0
   for name, msa in msas.items():
+    if (count % 500 == 0):
+      print("analysed " + str(count) + " msas")
+    count += 1
     parse_fasta_output_dir = os.path.join(parse_run_results, name)
     parse_run_log = os.path.join(os.path.join(parse_fasta_output_dir, name + ".raxml.log"))
     parse_result = parse_msa_info(parse_run_log, msa)
