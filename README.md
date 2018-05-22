@@ -13,6 +13,11 @@ A massively parallel tool for model selection and tree inference on thousands of
 
 ## Installation
 
+Please clone with --recursive!!!
+```
+git clone --recursive git@github.com:BenoitMorel/ParGenes.git
+```
+
 To build the sources:
 ```
 ./install.sh
