@@ -50,6 +50,9 @@ void main_scheduler(int argc, char **argv)
         arg.outputDir);
   }
   shared_ptr<RanksAllocator> allocator(allocatorPtr);
+  for (auto command: commands.getCommands()) {
+    allocator->preprocessCommand(command);
+  }
   CommandsRunner runner(commands, allocator, arg.outputDir);
   runner.run(); 
   Time end = Common::getTime();

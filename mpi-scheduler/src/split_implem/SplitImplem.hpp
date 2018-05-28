@@ -66,7 +66,10 @@ public:
   virtual void freeRanks(InstancePtr instance);
   virtual vector<InstancePtr> checkFinishedInstances();
   virtual void terminate();
+  virtual void preprocessCommand(CommandPtr cmd);
+
 private:
+  int _totalRanks;
   queue<Slot> _slots;
   int _ranksInUse;
   string _outputDir;

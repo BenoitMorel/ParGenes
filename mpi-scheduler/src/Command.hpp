@@ -23,6 +23,7 @@ public:
  
   const string &getId() const {return _id;}
   int getEstimatedCost() const {return _estimatedCost;}
+  void setRanksNumber(int ranks) {_ranksNumber = ranks;}
   int getRanksNumber() const {return _ranksNumber;}
   string toString() const;
   const vector<string> &getArgs() const {return _args;}
@@ -83,6 +84,7 @@ public:
   virtual void freeRanks(InstancePtr instance) = 0;
   virtual vector<InstancePtr> checkFinishedInstances() = 0;
   virtual void terminate() {}
+  virtual void preprocessCommand(CommandPtr cmd) {}
 };
 
 class CommandsRunner {

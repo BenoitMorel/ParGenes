@@ -248,6 +248,7 @@ int SplitSlave::main_split_slave(int argc, char **argv)
 
 SplitRanksAllocator::SplitRanksAllocator(int availableRanks,
     const string &outputDir):
+  _totalRanks(availableRanks),
   _ranksInUse(0),
   _outputDir(outputDir)
 {
@@ -298,7 +299,6 @@ InstancePtr SplitRanksAllocator::allocateRanks(int requestedRanks,
 {
   Slot slot = _slots.front();
   _slots.pop();
-  // border case around the first rank
   while (slot.ranksNumber > requestedRanks) {
     Slot slot1, slot2;
     split(slot, slot1, slot2, slot.ranksNumber / 2); 
@@ -354,12 +354,18 @@ vector<InstancePtr> SplitRanksAllocator::checkFinishedInstances()
     //_rankToInstances.erase(source);
 
   }
-  if (finished.size()) {
-    cout << "Check finished elapsed time " << t.getElapsedMs()  << " for " << finished.size() << " elements" << endl;
-  }
   return finished;
 }
 
+void SplitRanksAllocator::preprocessCommand(CommandPtr cmd)
+{
+  int ranksNumber = cmd->getRanksNumber();
+  int newNumber = _totalRanks;
+  while (newNumber > ranksNumber) {
+    newNumber /= 2;
+  }
+  cmd->setRanksNumber(newNumber);
+}
 
 SplitInstance::SplitInstance(const string &outputDir, 
   int startingRank, 

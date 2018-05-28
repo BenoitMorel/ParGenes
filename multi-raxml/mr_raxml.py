@@ -21,6 +21,8 @@ def parse_msa_info(log_file, msa):
       msa.taxa = int(line.split(" ")[4])
     if "minimum response time" in line:
       msa.cores = int(line.split(" : ")[1])
+      if (msa.cores > 1):
+        msa.cores = msa.cores // 2
     if "Per-taxon CLV size" in line:
       msa.sites = int(line.split(" : ")[1])
   if (msa.sites * msa.taxa == 0):
@@ -55,8 +57,6 @@ def analyse_parsed_msas(msas, output_dir):
   print("analyse_parsed_msas")
   count = 0
   for name, msa in msas.items():
-    if (count % 500 == 0):
-      print("analysed " + str(count) + " msas")
     count += 1
     parse_fasta_output_dir = os.path.join(parse_run_results, name)
     parse_run_log = os.path.join(os.path.join(parse_fasta_output_dir, name + ".raxml.log"))
