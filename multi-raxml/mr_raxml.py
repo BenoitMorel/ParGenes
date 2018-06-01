@@ -21,12 +21,41 @@ def parse_msa_info(log_file, msa):
       msa.taxa = int(line.split(" ")[4])
     if "minimum response time" in line:
       msa.cores = int(line.split(" : ")[1])
-      if (msa.cores > 1):
-        msa.cores = msa.cores // 2
+      #if (msa.cores > 1):
+      #  msa.cores = msa.cores // 2
+    if "Alignment sites / patterns" in line:
+      msa.patterns = int(line.split(" ")[6])
     if "Per-taxon CLV size" in line:
       msa.sites = int(line.split(" : ")[1])
   if (msa.sites * msa.taxa == 0):
     msa.valid = False
+
+def improve_cores_assignment(msas):
+  average_taxa = 0
+  max_taxa = 0
+  average_sites = 0
+  max_sites = 0
+  taxa_numbers = []
+  for name, msa in msas.items():
+    taxa_numbers.append(msa.taxa)
+    average_taxa += msa.taxa
+    average_sites += msa.patterns
+    max_taxa = max(max_taxa, msa.taxa)
+    max_sites = max(max_sites, msa.patterns)
+  taxa_numbers.sort()
+  limit_taxa = taxa_numbers[(len(msas) * 97) // 100]
+  print("Limit taxa: " + str(limit_taxa))
+  average_taxa /= len(msas)
+  average_sites /= len(msas)
+  print("Average number of taxa: " + str(average_taxa))
+  print("Max number of taxa: " + str(max_taxa))
+  print("Average number of sites: " + str(average_sites))
+  print("Max number of sites: " + str(max_sites))
+  for name, msa in msas.items():
+    if (msa.taxa < limit_taxa):
+      if (msa.cores > 1):
+        msa.cores = msa.cores // 2
+
 
 def run_parsing_step(msas, library, scheduler, parse_run_output_dir, cores):
   """ Run raxml-ng --parse on each MSA to check it is valid and
@@ -63,7 +92,7 @@ def analyse_parsed_msas(msas, output_dir):
     parse_result = parse_msa_info(parse_run_log, msa)
     if (not msa.valid):
       invalid_msas.append(msa)      
-
+  improve_cores_assignment(msas)
   if (len(invalid_msas) > 0):
     invalid_msas_file = os.path.join(output_dir, "invalid_msas.txt")
     print("[Warning] Found " + str(len(invalid_msas)) + " invalid MSAs (see " + invalid_msas_file + ")") 

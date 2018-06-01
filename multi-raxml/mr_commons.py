@@ -14,6 +14,7 @@ class MSA:
   valid = True
   taxa = 0
   sites = 0
+  patterns = 0
   cores = 0
   model = ""
   raxml_arguments = ""
