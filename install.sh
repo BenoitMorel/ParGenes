@@ -1,5 +1,8 @@
 
 build_mpi_scheduler() {
+  echo "*********************************"
+  echo "** Installing mpi_scheduler... **"
+  echo "*********************************"
   cd mpi-scheduler
   mkdir -p build
   cd build
@@ -9,6 +12,9 @@ build_mpi_scheduler() {
 }
 
 build_raxml() {
+  echo "*********************************"
+  echo "** Installing raxml-ng...      **"
+  echo "*********************************"
   cd raxml-ng
   mkdir -p build
   cd build
@@ -18,6 +24,9 @@ build_raxml() {
 }
 
 build_modeltest() {
+  echo "*********************************"
+  echo "** Installing model-test-ng... **"
+  echo "*********************************"
   cd modeltest
   mkdir -p build
   cd build
