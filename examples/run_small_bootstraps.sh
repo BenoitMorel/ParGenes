@@ -7,5 +7,5 @@ cores=4
 bootstraps=5
 
 rm -rf ${output}
-python ${multiraxml} -a ${msa_directory} -o ${output} -r ${raxml_global_options} -c ${cores} -b ${bootstraps}
+python3 ${multiraxml} -a ${msa_directory} -o ${output} -r ${raxml_global_options} -c ${cores} -b ${bootstraps}
 

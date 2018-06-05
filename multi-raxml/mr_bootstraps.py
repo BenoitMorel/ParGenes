@@ -46,12 +46,12 @@ def concatenate_bootstrap_msa(bootstraps_dir, concatenated_dir, msa_name):
             print("OS error when copying " + os.path.join(fasta_bs_dir, bs_file) + " to " + concatenated_file)
             raise e
 
-def concatenate_bootstraps(output_dir):
+def concatenate_bootstraps(output_dir, cores):
   """ Concurrently run concatenate_bootstrap_msa on all the MSA (on one single node)"""
   concatenated_dir = os.path.join(output_dir, "concatenated_bootstraps")
   mr_commons.makedirs(concatenated_dir)
   bootstraps_dir = os.path.join(output_dir, "mlsearch_run", "bootstraps")
-  with concurrent.futures.ThreadPoolExecutor() as e:
+  with concurrent.futures.ThreadPoolExecutor(max_workers = int(cores)) as e:
     for msa_name in os.listdir(bootstraps_dir):
       e.submit(concatenate_bootstrap_msa, bootstraps_dir, concatenated_dir, msa_name) 
 
