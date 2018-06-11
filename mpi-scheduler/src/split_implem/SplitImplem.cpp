@@ -103,20 +103,21 @@ int SplitSlave::loadLibrary(const string &libraryPath)
   return 0;
 }
 
+void move_file(const string &from, const string &to)
+{
+  if (std::rename(from.c_str(), to.c_str()) != 0) {
+    cout << "failed to move " << from << " to " << to << endl;
+    perror( "perror:" );
+  }
+}
 
 int SplitSlave::doWork(const CommandPtr command, 
     MPI_Comm workersComm,
     const string &outputDir) 
 {
   bool isMaster = !getRank(workersComm);
-  string logsFile = Common::joinPaths(outputDir, "per_job_logs", command->getId() + "_out.txt");
-  string errFile = Common::joinPaths(outputDir, "per_job_logs", command->getId() + "_err.txt");
-  string runningFile = Common::joinPaths(outputDir, "running_jobs", command->getId());
-  if (isMaster) {
-    ofstream os(runningFile);
-    os << logsFile << endl;
-    os.close();
-  }
+  string logsFile = Common::joinPaths(outputDir, "running_jobs", command->getId() + "_out.txt");
+  string errFile = Common::joinPaths(outputDir, "running_jobs", command->getId() + "_err.txt");
   loadLibrary(_libraryPath);
   std::ofstream out(logsFile);
   std::streambuf *coutbuf = std::cout.rdbuf(); 
@@ -132,18 +133,19 @@ int SplitSlave::doWork(const CommandPtr command,
     cout << argv[i] << " ";
   }
   cout << endl;
-  //Common::check(MPI_Barrier(workersComm));
-  //MPI_Comm_set_errhandler(workersComm, MPI_ERRORS_RETURN);
   MPI_Comm raxmlComm;
   Common::check(MPI_Comm_dup(workersComm, &raxmlComm));
   int res = _raxmlMain(argc, argv, (void*)&raxmlComm);
   std::cout.rdbuf(coutbuf);
   std::cerr.rdbuf(cerrbuf);
+  out.close();
+  err.close();
   delete[] argv;
   Common::check(MPI_Barrier(raxmlComm));
   MPI_Comm_free(&raxmlComm);
   if (isMaster) {
-    remove(runningFile.c_str());
+    move_file(logsFile,  Common::joinPaths(outputDir, "per_job_logs", command->getId() + "_out.txt"));
+    move_file(errFile, Common::joinPaths(outputDir, "per_job_logs", command->getId() + "_err.txt"));
   }
   return res;
 }
