@@ -110,6 +110,7 @@ int SplitSlave::doWork(const CommandPtr command,
 {
   bool isMaster = !getRank(workersComm);
   string logsFile = Common::joinPaths(outputDir, "per_job_logs", command->getId() + "_out.txt");
+  string errFile = Common::joinPaths(outputDir, "per_job_logs", command->getId() + "_err.txt");
   string runningFile = Common::joinPaths(outputDir, "running_jobs", command->getId());
   if (isMaster) {
     ofstream os(runningFile);
@@ -120,6 +121,9 @@ int SplitSlave::doWork(const CommandPtr command,
   std::ofstream out(logsFile);
   std::streambuf *coutbuf = std::cout.rdbuf(); 
   std::cout.rdbuf(out.rdbuf()); 
+  std::ofstream err(errFile);
+  std::streambuf *cerrbuf = std::cerr.rdbuf(); 
+  std::cerr.rdbuf(err.rdbuf()); 
   const vector<string> &args  = command->getArgs();
   int argc = args.size(); 
   char **argv = new char*[argc];
@@ -134,6 +138,7 @@ int SplitSlave::doWork(const CommandPtr command,
   Common::check(MPI_Comm_dup(workersComm, &raxmlComm));
   int res = _raxmlMain(argc, argv, (void*)&raxmlComm);
   std::cout.rdbuf(coutbuf);
+  std::cerr.rdbuf(cerrbuf);
   delete[] argv;
   Common::check(MPI_Barrier(raxmlComm));
   MPI_Comm_free(&raxmlComm);
