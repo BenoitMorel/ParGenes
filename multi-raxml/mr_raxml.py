@@ -137,9 +137,7 @@ def run(msas, random_trees, parsimony_trees, bootstraps, library, scheduler, run
         writer.write("\n")
       bs_output_dir = os.path.join(mlsearch_run_bootstraps, name)
       mr_commons.makedirs(bs_output_dir)
-      chunk_size = 1
-      if (bootstraps > 30): # arbitrary threshold... todobenoit!
-        chunk_size = 10
+      chunk_size = 10
       for current_bs in range(0, (bootstraps - 1) // chunk_size + 1):
         bsbase = name + "_bs" + str(current_bs)
         bs_number = min(chunk_size, bootstraps - current_bs * chunk_size)
