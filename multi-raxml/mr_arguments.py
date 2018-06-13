@@ -94,6 +94,11 @@ def parse_arguments():
       action="store_true",
       default=False,
       help="For experimenting only! Removes the sorting step in the scheduler")
+  parser.add_argument("--core-assignment",
+      dest="core_assignment",
+      choices=["high", "medium", "low"],
+      default="medium",
+      help="Policy to decide the per-job number of cores (low favors a low per-job number of cores)")
   
 
   op = parser.parse_args()

@@ -7,7 +7,7 @@ import concurrent.futures
 
 
 
-def parse_msa_info(log_file, msa):
+def parse_msa_info(log_file, msa, core_assignment):
   """ Parse the raxml log_file and store the number of 
   taxa and unique sites in msa. Flag invalid msas to invalid  """
   unique_sites = 0
@@ -19,14 +19,25 @@ def parse_msa_info(log_file, msa):
   for line in lines:
     if "taxa" in line:
       msa.taxa = int(line.split(" ")[4])
-    if "minimum response time" in line:
-      msa.cores = int(line.split(" : ")[1])
-      #if (msa.cores > 1):
-      #  msa.cores = msa.cores // 2
-    if "Alignment sites / patterns" in line:
+    elif "Alignment sites / patterns" in line:
       msa.patterns = int(line.split(" ")[6])
-    if "Per-taxon CLV size" in line:
+    elif "Per-taxon CLV size" in line:
       msa.sites = int(line.split(" : ")[1])
+    # find the number of cores depending on the selected policy 
+    if (core_assignment == "high"):
+      if "minimum response time" in line:
+        msa.cores = int(line.split(" : ")[1])
+    elif (core_assignment == "medium"):
+      if "minimum response time" in line:
+        msa.cores = int(line.split(" : ")[1])
+        if (msa.cores > 1):
+          msa.cores = msa.cores // 2
+    elif (core_assignment == "low"):
+      if "" in line:
+        msa.cores = int(line.split(" : ")[1])
+    else:
+      print("ERROR: unknown core_assignment " + core_assignment)
+      sys.exit(1)
   if (msa.sites * msa.taxa == 0):
     msa.valid = False
 
@@ -78,7 +89,7 @@ def run_parsing_step(msas, library, scheduler, parse_run_output_dir, cores):
       writer.write("\n")
   mr_scheduler.run_mpi_scheduler(library, scheduler, parse_commands_file, parse_run_output_dir, cores)  
  
-def analyse_parsed_msas(msas, output_dir):
+def analyse_parsed_msas(msas, core_assignment, output_dir):
   """ Analyse results from run_parsing_step and store them into msas """
   parse_run_output_dir = os.path.join(output_dir, "parse_run")
   parse_run_results = os.path.join(parse_run_output_dir, "results")
@@ -89,7 +100,7 @@ def analyse_parsed_msas(msas, output_dir):
     count += 1
     parse_fasta_output_dir = os.path.join(parse_run_results, name)
     parse_run_log = os.path.join(os.path.join(parse_fasta_output_dir, name + ".raxml.log"))
-    parse_result = parse_msa_info(parse_run_log, msa)
+    parse_result = parse_msa_info(parse_run_log, msa, core_assignment)
     if (not msa.valid):
       invalid_msas.append(msa)      
   improve_cores_assignment(msas)

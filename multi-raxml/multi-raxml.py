@@ -54,7 +54,7 @@ def main_raxml_runner(op):
     mr_raxml.run_parsing_step(msas, raxml_library, op.scheduler, os.path.join(output_dir, "parse_run"), op.cores)
     mr_checkpoint.write_checkpoint(output_dir, 1)
     timed_print(start, "end of parsing mpi-scheduler run")
-  mr_raxml.analyse_parsed_msas(msas, output_dir)
+  mr_raxml.analyse_parsed_msas(msas, op.core_assignment, output_dir)
   timed_print(start, "end of anlysing parsing results") 
   if (op.use_modeltest):
     if (checkpoint < 2):
