@@ -114,6 +114,11 @@ bool OneCoreInstance::execute(InstancePtr self)
 
 void OneCoreInstance::writeSVGStatistics(SVGDrawer &drawer, const Time &initialTime)
 {
+  drawer.writeSquare(getStartingRank(),
+    _startingElapsedMS,
+    getRanksNumber(),
+    getElapsedMs());
+
 }
 
 OneCoreRanksAllocator::OneCoreRanksAllocator(int availableRanks,
