@@ -98,6 +98,11 @@ def parse_arguments():
       choices=["AICc", "AIC", "BIC"],
       default="AICc",
       help="Alignments datatype")
+  parser.add_argument("--modeltest-perjob-cores",
+      dest="modeltest_cores",
+      type=int,
+      default=16,
+      help="Number of cores to assign to each modeltest core (at least 4)")
   # experiments
   parser.add_argument("--experiment-disable-jobs-sorting",
       dest="disable_job_sorting",

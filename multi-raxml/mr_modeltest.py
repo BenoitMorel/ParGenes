@@ -2,12 +2,17 @@ import os
 import mr_commons
 import mr_scheduler
 
-def run(msas, output_dir, library, scheduler, run_path, cores): 
+def run(msas, output_dir, library, run_path, op): 
   """ Use the MPI scheduler to run modeltest on all the MSAs"""
+  scheduler = op.scheduler
+  cores = op.cores
   run_path = os.path.join(output_dir, "modeltest_run")
   commands_file = os.path.join(run_path, "modeltest_command.txt")
   modeltest_results = os.path.join(run_path, "results")
   mr_commons.makedirs(modeltest_results)
+  if (op.modeltest_cores < 4):
+    print("[Error] The number of cores per modeltest job should at least be 4")
+    sys.exit(1)
   with open(commands_file, "w") as writer:
     for name, msa in msas.items():
       if (not msa.valid):
@@ -15,7 +20,7 @@ def run(msas, output_dir, library, scheduler, run_path, cores):
       modeltest_fasta_output_dir = os.path.join(modeltest_results, name)
       mr_commons.makedirs(modeltest_fasta_output_dir)
       writer.write("modeltest_" + name + " ") 
-      writer.write("16 " + str(msa.taxa * msa.sites)) #todobenoit smarter ordering
+      writer.write(str(op.modeltest_cores) + " " + str(msa.taxa * msa.sites))
       writer.write(" -i ")
       writer.write(msa.path)
       writer.write(" -t mp ")
