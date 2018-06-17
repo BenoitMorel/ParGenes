@@ -47,7 +47,7 @@ def concatenate_bootstrap_msa(bootstraps_dir, concatenated_dir, msa_name):
             print("ERROR!")
             print("OS error when copying " + os.path.join(fasta_bs_dir, bs_file) + " to " + concatenated_file)
             raise e
-  if (no_bs):
+  if (no_bs or os.stat(concatenated_file).st_size == 0):
     os.remove(concatenated_file)
 
 def concatenate_bootstraps(output_dir, cores):
