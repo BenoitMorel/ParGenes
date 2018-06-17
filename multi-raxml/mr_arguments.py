@@ -46,6 +46,11 @@ def parse_arguments():
       choices=["split", "onecore"],
       default="split",
       help="Sceduling strategy. onecore might be interesting for debugging crashing jobs")
+  parser.add_argument("--core-assignment",
+      dest="core_assignment",
+      choices=["high", "medium", "low"],
+      default="medium",
+      help="Policy to decide the per-job number of cores (low favors a low per-job number of cores)")
   # raxml arguments
   parser.add_argument("--per-msa-raxml-parameters", 
       dest="per_msa_raxml_parameters", 
@@ -71,6 +76,11 @@ def parse_arguments():
       type=int,
       default=0,
       help="The number of bootstrap trees to compute")
+  parser.add_argument("--percentage-jobs-double-cores",
+      dest="percentage_jobs_double_cores",
+      type=float,
+      default=0.03,
+      help="Percentage (between 0 and 1) of jobs that will receive twice more cores")
   # modeltest arguments
   parser.add_argument("-m", "--use-modeltest",
       dest="use_modeltest",
@@ -94,11 +104,6 @@ def parse_arguments():
       action="store_true",
       default=False,
       help="For experimenting only! Removes the sorting step in the scheduler")
-  parser.add_argument("--core-assignment",
-      dest="core_assignment",
-      choices=["high", "medium", "low"],
-      default="medium",
-      help="Policy to decide the per-job number of cores (low favors a low per-job number of cores)")
   
 
   op = parser.parse_args()

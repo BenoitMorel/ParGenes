@@ -41,7 +41,7 @@ def parse_msa_info(log_file, msa, core_assignment):
   if (msa.sites * msa.taxa == 0):
     msa.valid = False
 
-def improve_cores_assignment(msas):
+def improve_cores_assignment(msas, op):
   average_taxa = 0
   max_taxa = 0
   average_sites = 0
@@ -54,18 +54,20 @@ def improve_cores_assignment(msas):
     max_taxa = max(max_taxa, msa.taxa)
     max_sites = max(max_sites, msa.patterns)
   taxa_numbers.sort()
-  limit_taxa = taxa_numbers[(len(msas) * 97) // 100]
-  print("Limit taxa: " + str(limit_taxa))
   average_taxa /= len(msas)
   average_sites /= len(msas)
   print("Average number of taxa: " + str(average_taxa))
   print("Max number of taxa: " + str(max_taxa))
   print("Average number of sites: " + str(average_sites))
   print("Max number of sites: " + str(max_sites))
-  for name, msa in msas.items():
-    if (msa.taxa < limit_taxa):
-      if (msa.cores > 1):
-        msa.cores = msa.cores // 2
+  if (op.percentage_jobs_double_cores > 0.0):
+    ratio = 1.0 - op.percentage_jobs_double_cores
+    limit_taxa = taxa_numbers[int(float(len(msas)) * ratio)]
+    print("Limit taxa: " + str(limit_taxa))
+    for name, msa in msas.items():
+      if (msa.taxa < limit_taxa):
+        if (msa.cores > 1):
+          msa.cores = msa.cores // 2
 
 
 def run_parsing_step(msas, library, scheduler, parse_run_output_dir, cores):
@@ -89,8 +91,9 @@ def run_parsing_step(msas, library, scheduler, parse_run_output_dir, cores):
       writer.write("\n")
   mr_scheduler.run_mpi_scheduler(library, scheduler, parse_commands_file, parse_run_output_dir, cores)  
  
-def analyse_parsed_msas(msas, core_assignment, output_dir):
+def analyse_parsed_msas(msas, op, output_dir):
   """ Analyse results from run_parsing_step and store them into msas """
+  core_assignment = op.core_assignment
   parse_run_output_dir = os.path.join(output_dir, "parse_run")
   parse_run_results = os.path.join(parse_run_output_dir, "results")
   invalid_msas = []
@@ -103,7 +106,7 @@ def analyse_parsed_msas(msas, core_assignment, output_dir):
     parse_result = parse_msa_info(parse_run_log, msa, core_assignment)
     if (not msa.valid):
       invalid_msas.append(msa)      
-  improve_cores_assignment(msas)
+  improve_cores_assignment(msas, op)
   if (len(invalid_msas) > 0):
     invalid_msas_file = os.path.join(output_dir, "invalid_msas.txt")
     print("[Warning] Found " + str(len(invalid_msas)) + " invalid MSAs (see " + invalid_msas_file + ")") 
