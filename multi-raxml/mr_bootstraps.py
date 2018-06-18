@@ -20,6 +20,8 @@ def run(output_dir, library, scheduler, run_path, cores):
     for fasta in os.listdir(ml_trees_dir):
       ml_tree = os.path.join(ml_trees_dir, fasta, fasta + ".raxml.bestTree")
       bs_trees = os.path.join(concatenated_dir, fasta + ".bs")
+      if (not os.path.exists(bs_trees) or os.stat(bs_trees).st_size == 0):
+        continue
       writer.write("support_" + fasta + " 1 1")
       writer.write(" --support")
       writer.write(" --tree " + ml_tree)
