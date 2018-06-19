@@ -70,7 +70,7 @@ def improve_cores_assignment(msas, op):
           msa.cores = msa.cores // 2
 
 
-def run_parsing_step(msas, library, scheduler, parse_run_output_dir, cores):
+def run_parsing_step(msas, library, scheduler, parse_run_output_dir, cores, op):
   """ Run raxml-ng --parse on each MSA to check it is valid and
   to get its MSA dimensiosn """
   parse_commands_file = os.path.join(parse_run_output_dir, "parse_command.txt")
@@ -89,7 +89,7 @@ def run_parsing_step(msas, library, scheduler, parse_run_output_dir, cores):
       writer.write(" --prefix " + os.path.join(fasta_output_dir, name))
       writer.write(" --threads 1 ")
       writer.write("\n")
-  mr_scheduler.run_mpi_scheduler(library, scheduler, parse_commands_file, parse_run_output_dir, cores)  
+  mr_scheduler.run_mpi_scheduler(library, scheduler, parse_commands_file, parse_run_output_dir, cores, op)  
  
 def analyse_parsed_msas(msas, op, output_dir):
   """ Analyse results from run_parsing_step and store them into msas """
@@ -114,7 +114,7 @@ def analyse_parsed_msas(msas, op, output_dir):
       for msa in invalid_msas:
         f.write(msa.name + "\n")
 
-def run(msas, random_trees, parsimony_trees, bootstraps, library, scheduler, run_path, cores):
+def run(msas, random_trees, parsimony_trees, bootstraps, library, scheduler, run_path, cores, op):
   """ Use the MPI scheduler to run raxml-ng on all the dataset. 
   Also schedules the bootstraps runs"""
   commands_file = os.path.join(run_path, "mlsearch_command.txt")
@@ -164,7 +164,7 @@ def run(msas, random_trees, parsimony_trees, bootstraps, library, scheduler, run
         writer.write(" --seed " + str(current_bs + 1))
         writer.write(" --bs-trees " + str(bs_number))
         writer.write("\n")
-  mr_scheduler.run_mpi_scheduler(library, scheduler, commands_file, run_path, cores)  
+  mr_scheduler.run_mpi_scheduler(library, scheduler, commands_file, run_path, cores, op)  
 
 
 def extract_ll_from_raxml_logs(raxml_log_file):

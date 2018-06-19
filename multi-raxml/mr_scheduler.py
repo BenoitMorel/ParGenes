@@ -8,13 +8,18 @@ def get_mpi_scheduler_exec():
   repo_root = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
   return os.path.join(repo_root, "mpi-scheduler", "build", "mpi-scheduler")
 
-def run_mpi_scheduler(library, scheduler, commands_filename, output_dir, ranks):
+def run_mpi_scheduler(library, scheduler, commands_filename, output_dir, ranks, op):
   """ Run the mpi scheduler program """
   sys.stdout.flush()
   command = []
   command.append("mpirun")
   command.append("-np")
   command.append(str(ranks))
+  if (op.valgrind):
+    command.append("--mca")
+    command.append("btl")
+    command.append("tcp,self")
+    command.append("valgrind")
   command.append(get_mpi_scheduler_exec())
   if (scheduler == "onecore"):
     command.append("--onecore-scheduler")

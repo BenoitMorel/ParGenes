@@ -27,7 +27,7 @@ def run(msas, output_dir, library, run_path, op):
       writer.write(" -o " +  os.path.join(modeltest_results, name, name))
       writer.write(" " + msa.modeltest_arguments + " ")
       writer.write("\n")
-  mr_scheduler.run_mpi_scheduler(library, scheduler, commands_file, run_path, cores)  
+  mr_scheduler.run_mpi_scheduler(library, scheduler, commands_file, run_path, cores, op)  
 
 def parse_modeltest_results(modeltest_criteria, msas, output_dir):
   """ Parse the results from the MPI scheduler run to get the best-fit model

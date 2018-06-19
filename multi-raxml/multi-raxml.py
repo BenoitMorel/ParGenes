@@ -51,7 +51,7 @@ def main_raxml_runner(op):
     raxml_library = os.path.join(scriptdir, "..", "raxml-ng", "bin", "raxml-ng-mpi.so")
     modeltest_library = os.path.join(scriptdir, "..", "modeltest", "build", "src", "modeltest-ng-mpi.so")
   if (checkpoint < 1):
-    mr_raxml.run_parsing_step(msas, raxml_library, op.scheduler, os.path.join(output_dir, "parse_run"), op.cores)
+    mr_raxml.run_parsing_step(msas, raxml_library, op.scheduler, os.path.join(output_dir, "parse_run"), op.cores, op)
     mr_checkpoint.write_checkpoint(output_dir, 1)
     timed_print(start, "end of parsing mpi-scheduler run")
   mr_raxml.analyse_parsed_msas(msas, op, output_dir)
@@ -64,7 +64,7 @@ def main_raxml_runner(op):
     mr_modeltest.parse_modeltest_results(op.modeltest_criteria, msas, output_dir)
     timed_print(start, "end of parsing  modeltest results")
   if (checkpoint < 3):
-    mr_raxml.run(msas, op.random_starting_trees, op.parsimony_starting_trees, op.bootstraps, raxml_library, op.scheduler, raxml_run_path, op.cores)
+    mr_raxml.run(msas, op.random_starting_trees, op.parsimony_starting_trees, op.bootstraps, raxml_library, op.scheduler, raxml_run_path, op.cores, op)
     timed_print(start, "end of mlsearch mpi-scheduler run")
     mr_checkpoint.write_checkpoint(output_dir, 3)
   if (op.random_starting_trees + op.parsimony_starting_trees > 1):
@@ -78,7 +78,7 @@ def main_raxml_runner(op):
       timed_print(start, "end of bootstraps concatenation")
       mr_checkpoint.write_checkpoint(output_dir, 5)
     if (checkpoint < 6):
-      mr_bootstraps.run(output_dir, raxml_library, op.scheduler, os.path.join(output_dir, "supports_run"), op.cores)
+      mr_bootstraps.run(output_dir, raxml_library, op.scheduler, os.path.join(output_dir, "supports_run"), op.cores, op)
       timed_print(start, "end of supports mpi-scheduler run")
       mr_checkpoint.write_checkpoint(output_dir, 6)
 

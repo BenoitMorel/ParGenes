@@ -51,6 +51,11 @@ def parse_arguments():
       choices=["high", "medium", "low"],
       default="medium",
       help="Policy to decide the per-job number of cores (low favors a low per-job number of cores)")
+  parser.add_argument("--valgrind",
+      dest="valgrind",
+      action="store_true",
+      default=False,
+      help="Run the scheduler with valgrind")
   # raxml arguments
   parser.add_argument("--per-msa-raxml-parameters", 
       dest="per_msa_raxml_parameters", 
