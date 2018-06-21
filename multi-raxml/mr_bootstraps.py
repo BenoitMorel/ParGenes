@@ -57,7 +57,7 @@ def concatenate_bootstraps(output_dir, cores):
   concatenated_dir = os.path.join(output_dir, "concatenated_bootstraps")
   mr_commons.makedirs(concatenated_dir)
   bootstraps_dir = os.path.join(output_dir, "mlsearch_run", "bootstraps")
-  with concurrent.futures.ThreadPoolExecutor(max_workers = int(cores)) as e:
+  with concurrent.futures.ThreadPoolExecutor(max_workers = min(16, int(cores))) as e:
     for msa_name in os.listdir(bootstraps_dir):
       e.submit(concatenate_bootstrap_msa, bootstraps_dir, concatenated_dir, msa_name) 
 
