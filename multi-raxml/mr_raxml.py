@@ -169,7 +169,7 @@ def run(msas, random_trees, parsimony_trees, bootstraps, library, scheduler, run
 
 def extract_ll_from_raxml_logs(raxml_log_file):
   """ Return the final likelihood from a raxml log file """
-  res = 0.0
+  res = -float('inf')
   with open(raxml_log_file) as reader:
     for line in reader.readlines():
       if (line.startswith("Final LogLikelihood:")):

@@ -74,7 +74,7 @@ def main_raxml_runner(op):
       mr_checkpoint.write_checkpoint(output_dir, 4)
   if (op.bootstraps != 0):
     if (checkpoint < 5):
-      mr_bootstraps.concatenate_bootstraps(output_dir, op.cores)
+      mr_bootstraps.concatenate_bootstraps(output_dir, min(16, op.cores))
       timed_print(start, "end of bootstraps concatenation")
       mr_checkpoint.write_checkpoint(output_dir, 5)
     if (checkpoint < 6):
