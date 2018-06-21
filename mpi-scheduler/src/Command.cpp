@@ -243,14 +243,14 @@ void RunStatistics::exportSVG(const string &svgfile)
   cout << "Saving svg output in " << svgfile << endl;
   int totalWidth = _availableRanks + 1;
   int totalHeight = Common::getElapsedMs(_begin, _end);
+  string caption = "t = " + to_string(totalHeight / 1000) + "s";
+  caption += ", lb = " + to_string(_lbRatio);
   SVGDrawer svg(svgfile, double(totalWidth), double(totalHeight));
+  svg.writeHeader(caption);
   for (auto instance: _historic) {
     instance->writeSVGStatistics(svg, _begin);
   }
-  string caption = "t = " + to_string(totalHeight / 1000) + "s";
-  caption += ", lb = " + to_string(_lbRatio);
-  svg.writeHorizontalLine(totalHeight, 3);
-  svg.writeCaption(caption);
+  svg.writeFooter();
   cout << "Time spent writting svg: " << t.getElapsedMs() / 1000 << "s" << endl;
 }
 

@@ -161,13 +161,13 @@ public:
   ~SVGDrawer();
   void writeSquare(double x, double y, double w, double h, const char *color = 0);
   void writeSquareAbsolute(double x, double y, double w, double h, const char *color = 0);
-  void writeCaption(const string &text);
   void writeHorizontalLine(double y, int lineWidth); 
   static string getRandomHex();
+  void writeHeader(const string &caption);
+  void writeFooter();
 
 private:
-  void writeHeader();
-  void writeFooter();
+  void writeCaption(const string &text);
   ofstream _os;
   double _width;
   double _height;
