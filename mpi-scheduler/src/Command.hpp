@@ -17,12 +17,12 @@ class Command {
 public:
   Command(const string &id, 
       unsigned int ranks,
-      unsigned int estimatedCost,
+      long estimatedCost,
       const vector<string> &arguments);
   virtual ~Command() {}
  
   const string &getId() const {return _id;}
-  int getEstimatedCost() const {return _estimatedCost;}
+  long getEstimatedCost() const {return _estimatedCost;}
   void setRanksNumber(int ranks) {_ranksNumber = ranks;}
   int getRanksNumber() const {return _ranksNumber;}
   string toString() const;
@@ -32,7 +32,7 @@ public:
   const string _id;
   const vector<string> _args;
   int _ranksNumber;
-  int _estimatedCost;
+  long _estimatedCost;
 };
 using CommandPtr = shared_ptr<Command>;
 

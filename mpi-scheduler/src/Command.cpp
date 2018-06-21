@@ -11,7 +11,7 @@ namespace MPIScheduler {
 
 Command::Command(const string &id, 
     unsigned int ranks,
-    unsigned int estimatedCost,
+    long estimatedCost,
     const vector<string> &arguments):
   _id(id),
   _args(arguments),
@@ -83,7 +83,7 @@ CommandsContainer::CommandsContainer(const string &commandsFilename)
     string id;
     string isMPIStr;
     int ranks;
-    int estimatedCost;
+    long estimatedCost;
     
     istringstream iss(line);
     iss >> id;
