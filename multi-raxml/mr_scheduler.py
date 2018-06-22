@@ -35,4 +35,9 @@ def run_mpi_scheduler(library, scheduler, commands_filename, output_dir, ranks, 
   print("Logs will be redirected to " + logs_file)
   p = subprocess.Popen(command, stdout=out, stderr=out)
   p.wait()
+  errorcode = p.returncode
+  if (errorcode != 0):
+    print("mpi-scheduler execution failed with error code " + str(errorcode))
+    print("Will now exit...")
+    sys.exit(errorcode)
 
