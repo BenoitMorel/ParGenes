@@ -22,7 +22,7 @@ def parse_msa_info(log_file, msa, core_assignment):
     elif "Alignment sites / patterns" in line:
       msa.patterns = int(line.split(" ")[6])
     elif "Per-taxon CLV size" in line:
-      msa.sites = int(line.split(" : ")[1])
+      msa.per_taxon_clv_size = int(line.split(" : ")[1])
     # find the number of cores depending on the selected policy 
     if (core_assignment == "high"):
       if "minimum response time" in line:
@@ -38,7 +38,7 @@ def parse_msa_info(log_file, msa, core_assignment):
     else:
       print("ERROR: unknown core_assignment " + core_assignment)
       sys.exit(1)
-  if (msa.sites * msa.taxa == 0):
+  if (msa.per_taxon_clv_size * msa.taxa == 0):
     msa.valid = False
 
 def improve_cores_assignment(msas, op):
@@ -69,6 +69,23 @@ def improve_cores_assignment(msas, op):
         if (msa.cores > 1):
           msa.cores = msa.cores // 2
 
+def  predict_number_cores(msas, op):
+  msa_count = len(msas)
+  total_cost = 0
+  worst_percpu_cost = 0
+  runs_number = op.parsimony_starting_trees + op.random_starting_trees + op.bootstraps
+  for name, msa in msas.items():
+    if (not msa.valid):
+      continue
+    total_cost += msa.taxa * msa.per_taxon_clv_size
+    worst_percpu_cost = max(worst_percpu_cost, (msa.taxa * msa.per_taxon_clv_size) // msa.cores)
+  print("Total cost for one ML search: " + str(total_cost))
+  print("Worst per cpu cost for one ML search: " + str(worst_percpu_cost))
+  print("Number of ML searches per MSA: " + str(runs_number))
+  cores = total_cost // worst_percpu_cost
+  cores *= runs_number
+  print("Recommended number of cores: " + str(max(1, cores // 4)))
+  print("DISCLAIMER!!! Please note this number is a rough estimate only, and can differ on your system.")
 
 def run_parsing_step(msas, library, scheduler, parse_run_output_dir, cores, op):
   """ Run raxml-ng --parse on each MSA to check it is valid and
@@ -107,6 +124,7 @@ def analyse_parsed_msas(msas, op, output_dir):
     if (not msa.valid):
       invalid_msas.append(msa)      
   improve_cores_assignment(msas, op)
+  predict_number_cores(msas, op)
   if (len(invalid_msas) > 0):
     invalid_msas_file = os.path.join(output_dir, "invalid_msas.txt")
     print("[Warning] Found " + str(len(invalid_msas)) + " invalid MSAs (see " + invalid_msas_file + ")") 
@@ -130,7 +148,7 @@ def run(msas, random_trees, parsimony_trees, bootstraps, library, scheduler, run
         continue
       msa_size = 1
       if (not msa.flag_disable_sorting):
-        msa_size = msa.taxa * msa.sites
+        msa_size = msa.taxa * msa.per_taxon_clv_size
       mlsearch_fasta_output_dir = os.path.join(mlsearch_run_results, name)
       mr_commons.makedirs(mlsearch_fasta_output_dir)
       for starting_tree in range(0, starting_trees):

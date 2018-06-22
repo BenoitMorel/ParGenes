@@ -18,6 +18,12 @@ def check_argument_dir(f, name):
 def parse_arguments():
   parser = argparse.ArgumentParser()
   # general arguments
+  
+  parser.add_argument("--dry-run",
+      dest="dry_run",
+      action="store_true",
+      default=False,
+      help="")
   parser.add_argument('-a', "--alignments-dir", 
       dest="alignments_dir", 
       help="Directory containing the fasta files")

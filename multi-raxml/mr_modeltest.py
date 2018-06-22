@@ -20,7 +20,7 @@ def run(msas, output_dir, library, run_path, op):
       modeltest_fasta_output_dir = os.path.join(modeltest_results, name)
       mr_commons.makedirs(modeltest_fasta_output_dir)
       writer.write("modeltest_" + name + " ") 
-      writer.write(str(op.modeltest_cores) + " " + str(msa.taxa * msa.sites))
+      writer.write(str(op.modeltest_cores) + " " + str(msa.taxa * msa.per_taxon_clv_size))
       writer.write(" -i ")
       writer.write(msa.path)
       writer.write(" -t mp ")

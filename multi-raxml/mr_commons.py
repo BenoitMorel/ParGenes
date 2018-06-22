@@ -13,7 +13,7 @@ class MSA:
   path = ""
   valid = True
   taxa = 0
-  sites = 0
+  per_taxon_clv_size = 0
   patterns = 0
   cores = 0
   model = ""

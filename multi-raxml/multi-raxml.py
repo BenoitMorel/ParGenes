@@ -25,6 +25,8 @@ def timed_print(initial_time, msg):
   elapsed = time.time() - initial_time
   print("### [" + str(timedelta(seconds = int(elapsed))) + "] " + msg)
 
+
+
 def main_raxml_runner(op): 
   """ Run multi-raxml from the parsed arguments op """
   start = time.time()
@@ -32,7 +34,7 @@ def main_raxml_runner(op):
   checkpoint = mr_checkpoint.read_checkpoint(output_dir)
   print("Checkpoint: " + str(checkpoint))
   if (os.path.exists(output_dir) and not op.do_continue):
-    print("[Error] The output directory " + output_dir + " already exists. Please use another output directory.")
+    print("[Error] The output directory " + output_dir + " already exists. Please use another output directory or run with --continue.")
     sys.exit(1)
   mr_commons.makedirs(output_dir)
   logs = mr_commons.get_log_file(output_dir, "multi_raxml_logs")
@@ -55,6 +57,9 @@ def main_raxml_runner(op):
     mr_checkpoint.write_checkpoint(output_dir, 1)
     timed_print(start, "end of parsing mpi-scheduler run")
   mr_raxml.analyse_parsed_msas(msas, op, output_dir)
+  if (op.dry_run):
+    print("End of the dry run. Exiting")
+    sys.exit(1)
   timed_print(start, "end of anlysing parsing results") 
   if (op.use_modeltest):
     if (checkpoint < 2):
