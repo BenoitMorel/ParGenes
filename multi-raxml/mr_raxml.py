@@ -174,7 +174,7 @@ def run(msas, random_trees, parsimony_trees, bootstraps, library, scheduler, run
         bsbase = name + "_bs" + str(current_bs)
         bs_number = min(chunk_size, bootstraps - current_bs * chunk_size)
         writer.write(bsbase + " ")
-        writer.write(str(msa.cores) + " " + str(msa_size))
+        writer.write(str((msa.cores // 2) * chunk_size) + " " + str(msa_size))
         writer.write(" --bootstrap")
         writer.write(" --msa " + msa.path + " " + msa.raxml_arguments)
         writer.write(" --prefix " + os.path.join(bs_output_dir, bsbase))
