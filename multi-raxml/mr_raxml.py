@@ -30,8 +30,6 @@ def parse_msa_info(log_file, msa, core_assignment):
     elif (core_assignment == "medium"):
       if "minimum response time" in line:
         msa.cores = int(line.split(" : ")[1])
-        if (msa.cores > 1):
-          msa.cores = msa.cores // 2
     elif (core_assignment == "low"):
       if "" in line:
         msa.cores = int(line.split(" : ")[1])
