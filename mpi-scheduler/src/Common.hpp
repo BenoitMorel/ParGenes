@@ -153,29 +153,6 @@ private:
   Time _start;
 };
 
-class SVGDrawer {
-public:
-  SVGDrawer(const string &filepath,
-      double maxXValue,
-      double maxYValue);
-  ~SVGDrawer();
-  void writeSquare(double x, double y, double w, double h, const char *color = 0);
-  void writeSquareAbsolute(double x, double y, double w, double h, const char *color = 0);
-  void writeHorizontalLine(double y, int lineWidth); 
-  static string getRandomHex();
-  void writeHeader(const string &caption);
-  void writeFooter();
-
-private:
-  void writeCaption(const string &text);
-  ofstream _os;
-  double _width;
-  double _height;
-  double _ratioWidth;
-  double _ratioHeight;
-  double _additionalHeight;
-};
-
 class SchedulerArgumentsParser {
 public:
   SchedulerArgumentsParser(int argc, char** argv):

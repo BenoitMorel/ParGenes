@@ -2,6 +2,7 @@
 
 #include "Command.hpp"
 #include "Common.hpp"
+#include "SVGDrawer.hpp"
 #include <iostream>
 #include <sstream>
 #include <iterator>

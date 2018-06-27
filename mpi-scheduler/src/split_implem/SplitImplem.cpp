@@ -4,6 +4,7 @@
 #include <dlfcn.h>
 #include <fstream>
 #include <stdio.h>
+#include "../SVGDrawer.hpp"
 
 namespace MPIScheduler {
 

@@ -8,6 +8,7 @@ add_executable(mpi-scheduler main.cpp
   Checkpoint.cpp
   Command.cpp 
   Common.cpp 
+  SVGDrawer.cpp
   split_implem/SplitImplem.cpp
   onecore_implem/OneCoreImplem.cpp
   )

@@ -1,4 +1,5 @@
 #include "OneCoreImplem.hpp"
+#include "../SVGDrawer.hpp"
 #include <cstdlib>
 #include <stdio.h>
 #include <sys/wait.h>

@@ -13,6 +13,8 @@ using namespace std;
 
 namespace MPIScheduler {
 
+class SVGDrawer;
+
 class Command {
 public:
   Command(const string &id, 
