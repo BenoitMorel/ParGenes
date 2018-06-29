@@ -11,6 +11,7 @@ class MSA:
   """ group all the information related to one MSA """
   name = ""
   path = ""
+  binary_path = ""
   valid = True
   taxa = 0
   per_taxon_clv_size = 0

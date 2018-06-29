@@ -10,6 +10,7 @@ import mr_bootstraps
 import mr_modeltest
 import mr_scheduler
 import mr_checkpoint
+import shutil
 
 def print_header():
   print("#################")
@@ -65,9 +66,14 @@ def main_raxml_runner(op):
     if (checkpoint < 2):
       mr_modeltest.run(msas, output_dir, modeltest_library, modeltest_run_path, op)
       timed_print(start, "end of modeltest mpi-scheduler run")
+      mr_modeltest.parse_modeltest_results(op.modeltest_criteria, msas, output_dir)
+      timed_print(start, "end of parsing  modeltest results")
+      # then recompute the binary MSA files to put the correct model, and reevaluate the MSA sizes with the new models
+      shutil.move(os.path.join(output_dir, "parse_run"), os.path.join(output_dir, "old_parse_run"))
+      mr_raxml.run_parsing_step(msas, raxml_library, op.scheduler, os.path.join(output_dir, "parse_run"), op.cores, op)
+      mr_raxml.analyse_parsed_msas(msas, op, output_dir)
+      timed_print(start, "end of the second parsing step") 
       mr_checkpoint.write_checkpoint(output_dir, 2)
-    mr_modeltest.parse_modeltest_results(op.modeltest_criteria, msas, output_dir)
-    timed_print(start, "end of parsing  modeltest results")
   if (checkpoint < 3):
     mr_raxml.run(msas, op.random_starting_trees, op.parsimony_starting_trees, op.bootstraps, raxml_library, op.scheduler, raxml_run_path, op.cores, op)
     timed_print(start, "end of mlsearch mpi-scheduler run")

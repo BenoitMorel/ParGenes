@@ -118,6 +118,7 @@ def analyse_parsed_msas(msas, op, output_dir):
     count += 1
     parse_fasta_output_dir = os.path.join(parse_run_results, name)
     parse_run_log = os.path.join(os.path.join(parse_fasta_output_dir, name + ".raxml.log"))
+    msa.binary_path = os.path.join(os.path.join(parse_fasta_output_dir, name + ".raxml.rba"))
     parse_result = parse_msa_info(parse_run_log, msa, core_assignment)
     if (not msa.valid):
       invalid_msas.append(msa)      
@@ -144,6 +145,9 @@ def run(msas, random_trees, parsimony_trees, bootstraps, library, scheduler, run
     for name, msa in msas.items():
       if (not msa.valid):
         continue
+      msa_path = msa.binary_path
+      if (msa_path == "" or msa_path == None):
+        msa_path = msa.path
       msa_size = 1
       if (not msa.flag_disable_sorting):
         msa_size = msa.taxa * msa.per_taxon_clv_size
@@ -158,7 +162,7 @@ def run(msas, random_trees, parsimony_trees, bootstraps, library, scheduler, run
           prefix = os.path.join(mlsearch_fasta_output_dir, name)
         writer.write("mlsearch_" + name + "_" + str(starting_tree) + " ")
         writer.write(str(msa.cores) + " " + str(msa_size))
-        writer.write(" --msa " + msa.path + " " + msa.raxml_arguments)
+        writer.write(" --msa " + msa_path + " " + msa.raxml_arguments)
         writer.write(" --prefix " + prefix)
         writer.write(" --threads 1 ")
         if (starting_tree >= random_trees):
@@ -174,7 +178,7 @@ def run(msas, random_trees, parsimony_trees, bootstraps, library, scheduler, run
         writer.write(bsbase + " ")
         writer.write(str((msa.cores // 2) * chunk_size) + " " + str(msa_size))
         writer.write(" --bootstrap")
-        writer.write(" --msa " + msa.path + " " + msa.raxml_arguments)
+        writer.write(" --msa " + msa_path + " " + msa.raxml_arguments)
         writer.write(" --prefix " + os.path.join(bs_output_dir, bsbase))
         writer.write(" --threads 1 ")
         writer.write(" --seed " + str(current_bs + 1))
