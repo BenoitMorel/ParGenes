@@ -90,7 +90,7 @@ def parse_arguments():
   parser.add_argument("--percentage-jobs-double-cores",
       dest="percentage_jobs_double_cores",
       type=float,
-      default=0.03,
+      default=0.05,
       help="Percentage (between 0 and 1) of jobs that will receive twice more cores")
   # modeltest arguments
   parser.add_argument("-m", "--use-modeltest",
