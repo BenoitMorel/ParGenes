@@ -22,12 +22,9 @@ namespace MPIScheduler {
 
 class MPISchedulerException: public exception {
 public:
-  MPISchedulerException(const string &s): msg_(s) {}
+  explicit MPISchedulerException(const string &s): msg_(s) {}
   MPISchedulerException(const string &s1, 
-      const string s2): msg_(s1 + s2) {}
-  virtual const char* what() const throw() { return msg_.c_str(); }
-  void append(const string &str) {msg_ += str;}
-
+      const string &s2): msg_(s1 + s2) {}
 private:
   string msg_;
 };
@@ -36,24 +33,7 @@ using Time = chrono::time_point<chrono::system_clock>;
 
 class Common {
 public:
-  static void sleep(unsigned int ms) {
-    this_thread::sleep_for(chrono::milliseconds(ms));
-  }
-
   // todobenoit not portable
-  static void readDirectory(const std::string& name, 
-      vector<string> &v)
-  {
-    DIR* dirp = opendir(name.c_str());
-    struct dirent * dp;
-    while ((dp = readdir(dirp)) != NULL) {
-      if (dp->d_name[0] != '.') {
-        v.push_back(dp->d_name);
-      }
-    }
-    closedir(dirp);
-  }
-
   // todobenoit not portable
   static void makedir(const std::string &name) {
     mkdir(name.c_str(), 0755);
@@ -69,16 +49,6 @@ public:
     return joinPaths(joinPaths(path1, path2), path3);
   }
 
-  static string getParentPath(const std::string &path) {
-    return path.substr(0, path.find_last_of("/\\"));
-  }
-
-  static void removefile(const std::string &name) {
-    remove(name.c_str());
-  }
-
-  static void removedir(const std::string &name);
-
   static Time getTime() {
     return chrono::system_clock::now();
   }
@@ -92,13 +62,6 @@ public:
       (end-begin).count();
   }
 
-  // todobenoit not portable
-  static string getSelfpath() {
-    char buff[1000];
-    ssize_t len = ::readlink("/proc/self/exe", buff, sizeof(buff)-1);
-    buff[len] = '\0';
-    return string(buff);
-  }
 
   static void check(int mpiError) {
     if (mpiError != MPI_SUCCESS) {
@@ -111,27 +74,12 @@ public:
     return getpid();
   }
   
-  static bool isPidAlive(int pid) {
-    return 0 == kill(pid, 0);  
-  }
   static string getHost() {
     char hostname[HOST_NAME_MAX];
     gethostname(hostname, HOST_NAME_MAX);
     return string(hostname);
   }
 
-  static string getProcessIdentifier() {
-    return getHost() + "_" + to_string(getPid()); 
-  }
-
-  static string getHostfilePath(const string &outputDir) {
-    return joinPaths(outputDir, "hostfile");
-  }
-
-  static void printPidsNumber()
-  {
-    system("ps -eaf |  wc -l | awk '{print \"pids \"$1}'");
-  }
 };
 
 

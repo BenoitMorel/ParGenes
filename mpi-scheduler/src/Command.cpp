@@ -21,27 +21,16 @@ Command::Command(const string &id,
 {
 }
 
-string Command::toString() const 
-{
-  string res;
-  res = getId() + " ";
-  for (auto str: _args) {
-    res += str + " ";
-  }
-  res += "{ranks: " + to_string(getRanksNumber()) + ", estimated cost: "; 
-  res += to_string(getEstimatedCost()) + "}";
-  return res;
-}
-  
-  
 Instance::Instance(CommandPtr command,
     int startingRank,
     int ranksNumber):
   _command(command),
   _startingRank(startingRank),
-  _ranksNumber(ranksNumber)
+  _ranksNumber(ranksNumber),
+  _beginTime(Common::getTime()),
+  _endTime(Common::getTime()),
+  _elapsed(0)
 {
-  
 }
 
 void Instance::onFinished()
@@ -82,7 +71,6 @@ CommandsContainer::CommandsContainer(const string &commandsFilename)
   while (readNextLine(reader, line)) {
     
     string id;
-    string isMPIStr;
     int ranks;
     long estimatedCost;
     
@@ -145,7 +133,6 @@ void CommandsRunner::run()
 {
   Timer globalTimer;
   Timer minuteTimer;
-  int finishedInstancesNumber = 0;
   while (!_allocator->allRanksAvailable() || !isCommandsEmpty()) {
     if (minuteTimer.getElapsedMs() > 1000 * 60) {
       cout << "Runner is still alive after " << globalTimer.getElapsedMs() / 1000 << "s" << endl;
@@ -192,7 +179,7 @@ bool CommandsRunner::executePendingCommand()
       << endl;
   }
   _historic.push_back(instance);
-  _commandIterator++;
+  ++_commandIterator;
   if (isCommandsEmpty()) {
     cout << "All commands were launched" << endl;
   }
@@ -217,7 +204,8 @@ RunStatistics::RunStatistics(const InstancesHistoric &historic,
   _historic(historic),
   _begin(begin),
   _end(end),
-  _availableRanks(availableRanks)
+  _availableRanks(availableRanks),
+  _lbRatio(1.0)
 {
 
 }
@@ -226,7 +214,6 @@ void RunStatistics::printGeneralStatistics()
 {
   long totalElapsedTime = Common::getElapsedMs(_begin, _end);
   long cumulatedTime = 0;
-  long longestTime = 0;
   for (auto instance: _historic) {
     cumulatedTime += instance->getElapsedMs() * instance->getRanksNumber();
   }

@@ -38,15 +38,6 @@ string SVGDrawer::getRandomHex()
   return string(res);
 }
   
-void SVGDrawer::writeHorizontalLine(double y, int lineWidth)
-{
-  if (!_os)
-    return;
-  _os <<  "<line x1=\"0\" y1=\"" << y * _ratioHeight << "\" x2=\"" <<  _width   
-      << "\" y2=\""<< y * _ratioHeight<<  "\" style=\"stroke:rgb(0,0,255);stroke-width:"
-      << lineWidth << "\" />" << endl;
-}
-
 void SVGDrawer::writeSquare(double x, double y, double w, double h, const char *color)
 {
   writeSquareAbsolute(x * _ratioWidth, y * _ratioHeight, w * _ratioWidth, h * _ratioHeight, color);

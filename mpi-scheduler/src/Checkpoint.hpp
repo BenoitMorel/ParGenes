@@ -11,7 +11,7 @@ namespace MPIScheduler {
 
 class Checkpoint {
 public:
-  Checkpoint(const string &outputDir); 
+  explicit Checkpoint(const string &outputDir); 
  
   bool isDone(const string &id);
   void markDone(const string &id);

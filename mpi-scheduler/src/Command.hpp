@@ -41,7 +41,7 @@ using CommandPtr = shared_ptr<Command>;
 class CommandsContainer {
 public:
   CommandsContainer() {}
-  CommandsContainer(const string &commandsFilename);
+  explicit CommandsContainer(const string &commandsFilename);
 
   CommandPtr getCommand(string id) const;
   vector<CommandPtr> &getCommands() {return _commands;}
@@ -60,7 +60,6 @@ public:
   virtual void writeSVGStatistics(SVGDrawer &drawer, const Time &initialTime) = 0; 
   const string &getId() const {return _command->getId();}
   virtual void onFinished();
-  Time getStartTime() const {return _beginTime;} 
   int getStartingRank() const {return _startingRank;} 
   int getRanksNumber() const {return _ranksNumber;} 
   void setElapsedMs(int elapsed) {_elapsed = elapsed;}
@@ -101,7 +100,6 @@ private:
   static bool compareCommands(CommandPtr c1, CommandPtr c2);
   CommandPtr getPendingCommand() {return *_commandIterator;}
   bool isCommandsEmpty() {return _commandIterator == _commandsVector.end();}
-  const string &getOutputDir() const {return _outputDir;}
   
   bool executePendingCommand();
   void onFinishedInstance(InstancePtr instance);

@@ -9,7 +9,9 @@ namespace MPIScheduler {
 
 class OneCoreSlave {
 public:
-  OneCoreSlave() {}
+  OneCoreSlave():
+    _masterRank(-1)
+  {}
   ~OneCoreSlave();
   int main_core_slave(int argc, char **argv);
 

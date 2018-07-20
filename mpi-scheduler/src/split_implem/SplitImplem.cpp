@@ -380,7 +380,8 @@ SplitInstance::SplitInstance(const string &outputDir,
   int ranksNumber,
   CommandPtr command):
   Instance(command, startingRank, ranksNumber),
-  _outputDir(outputDir)
+  _outputDir(outputDir),
+  _startingElapsedMS(0)
 {
 }
 

@@ -17,7 +17,6 @@ public:
   ~SVGDrawer();
   void writeSquare(double x, double y, double w, double h, const char *color = 0);
   void writeSquareAbsolute(double x, double y, double w, double h, const char *color = 0);
-  void writeHorizontalLine(double y, int lineWidth); 
   static string getRandomHex();
   void writeHeader(const string &caption);
   void writeFooter();

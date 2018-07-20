@@ -13,7 +13,10 @@ void terminate_slaves();
 
 
 struct Slot {
-  Slot() {}
+  Slot():
+    startingRank(0),
+    ranksNumber(0)
+  {}
   Slot(int _startingRank, int _ranksNumber) : 
     startingRank(_startingRank),
     ranksNumber(_ranksNumber)
@@ -26,7 +29,14 @@ struct Slot {
 
 class SplitSlave {
 public:
-  SplitSlave(): _handle(0) {}
+  SplitSlave(): 
+    _localRank(-1),
+    _globalRank(-1),
+    _localMasterRank(-1),
+    _globalMasterRank(-1),
+    _handle(0),
+    _raxmlMain(0)
+  {}
   ~SplitSlave();
   int main_split_slave(int argc, char **argv);
 private:

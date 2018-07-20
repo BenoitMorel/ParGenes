@@ -65,10 +65,10 @@ void OneCoreSlave::treatJobSlave()
 int systemCall(const string &command, const string &outputFile)
 {
   int result = 0;
-  char buf[BUFSIZ];
   FILE *ptr, *file;
   file = fopen(outputFile.c_str(), "w");
   if ((ptr = popen(command.c_str(), "r")) != NULL) {
+    char buf[BUFSIZ];
     while (fgets(buf, BUFSIZ, ptr) != NULL) {
       fprintf(file, "%s", buf);
     }
@@ -99,7 +99,8 @@ int OneCoreSlave::doWork(const CommandPtr command,
 OneCoreInstance::OneCoreInstance(const string &outputDir, 
       int rank, 
       CommandPtr command):
-  Instance(command, rank, 1)
+  Instance(command, rank, 1),
+  _startingElapsedMS(0)
 {
 }
 

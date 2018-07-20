@@ -11,3 +11,9 @@ set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++11")
 add_subdirectory(${PROJECT_SOURCE_DIR}/src)
 
 
+
+set(CMAKE_CXX_FLAGS "-Weverything ${CMAKE_CXX_FLAGS}")
+set(CMAKE_C_FLAGS "-Weverything ${CMAKE_C_FLAGS}")
+
+set(CMAKE_CXX_FLAGS "-Weverything ${CMAKE_CXX_FLAGS}")
+set(CMAKE_C_FLAGS "-Weverything ${CMAKE_C_FLAGS}")

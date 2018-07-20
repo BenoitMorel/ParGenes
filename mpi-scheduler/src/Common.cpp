@@ -15,11 +15,6 @@ int unlink_cb(const char *fpath, const struct stat *sb, int typeflag, struct FTW
   return rv;
 }
 
-void Common::removedir(const std::string &name)
-{
-  nftw(name.c_str(), unlink_cb, 64, FTW_DEPTH | FTW_PHYS);
-}
-  
 string Common::getIncrementalLogFile(const string &path, 
       const string &name,
       const string &extension)
