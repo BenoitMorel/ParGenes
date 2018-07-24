@@ -17,7 +17,7 @@ def parse_msa_info(log_file, msa, core_assignment):
     msa.valid = False
     return 
   for line in lines:
-    if "taxa" in line:
+    if ("Loaded alignment") in line and ("taxa" in line):
       msa.taxa = int(line.split(" ")[4])
     elif "Alignment sites / patterns" in line:
       msa.patterns = int(line.split(" ")[6])
@@ -26,13 +26,13 @@ def parse_msa_info(log_file, msa, core_assignment):
     # find the number of cores depending on the selected policy 
     if (core_assignment == "high"):
       if "Maximum     number of threads / MPI processes" in line:
-        msa.cores = int(line.split(" :")[1])
+        msa.cores = int(line.split(": ")[1])
     elif (core_assignment == "medium"):
       if "Recommended number of threads / MPI processes" in line:
-        msa.cores = int(line.split(" :")[1])
+        msa.cores = int(line.split(": ")[1])
     elif (core_assignment == "low"):
       if "Minimum     number of threads / MPI processes" in line:
-        msa.cores = int(line.split(" :")[1])
+        msa.cores = int(line.split(": ")[1])
     else:
       print("ERROR: unknown core_assignment " + core_assignment)
       sys.exit(1)
