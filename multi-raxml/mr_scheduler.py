@@ -12,8 +12,8 @@ def run_mpi_scheduler(library, scheduler, commands_filename, output_dir, ranks, 
   """ Run the mpi scheduler program """
   sys.stdout.flush()
   command = []
-  command.append("mpirun")
-  command.append("-np")
+  command.append("mpiexec")
+  command.append("-n")
   command.append(str(ranks))
   if (op.valgrind):
     command.append("--mca")
