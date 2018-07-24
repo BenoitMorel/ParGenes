@@ -25,14 +25,14 @@ def parse_msa_info(log_file, msa, core_assignment):
       msa.per_taxon_clv_size = int(line.split(" : ")[1])
     # find the number of cores depending on the selected policy 
     if (core_assignment == "high"):
-      if "minimum response time" in line:
-        msa.cores = int(line.split(" : ")[1])
+      if "Maximum     number of threads / MPI processes" in line:
+        msa.cores = int(line.split(" :")[1])
     elif (core_assignment == "medium"):
-      if "minimum response time" in line:
-        msa.cores = int(line.split(" : ")[1])
+      if "Recommended number of threads / MPI processes" in line:
+        msa.cores = int(line.split(" :")[1])
     elif (core_assignment == "low"):
-      if "" in line:
-        msa.cores = int(line.split(" : ")[1])
+      if "Minimum     number of threads / MPI processes" in line:
+        msa.cores = int(line.split(" :")[1])
     else:
       print("ERROR: unknown core_assignment " + core_assignment)
       sys.exit(1)
