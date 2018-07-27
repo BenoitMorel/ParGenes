@@ -117,7 +117,7 @@ def init_msas(op):
 
 def get_log_file(path, name, extension = "txt"):
   """ Build a log file. If it exists, use incremental naming to create
-  a new one without erasing the previous one (useful when multi-raxml restarts)"""
+  a new one without erasing the previous one (useful when pargenes restarts)"""
   res = os.path.join(path, name + "." + extension)
   index = 1
   while (os.path.isfile(res)):

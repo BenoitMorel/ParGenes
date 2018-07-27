@@ -13,10 +13,10 @@ import checkpoint
 import shutil
 
 def print_header():
-  print("#################")
-  print("#  MULTI RAXML  #")
-  print("#################")
-  print("Multi-raxml was called as follow:")
+  print("##################")
+  print("#    PARGENES    #")
+  print("##################")
+  print("ParGenes was called as follow:")
   print(" ".join(sys.argv))
   print("")
 
@@ -29,7 +29,7 @@ def timed_print(initial_time, msg):
 
 
 def main_raxml_runner(op): 
-  """ Run multi-raxml from the parsed arguments op """
+  """ Run pargenes from the parsed arguments op """
   start = time.time()
   output_dir = op.output_dir
   checkpoint_index = checkpoint.read_checkpoint(output_dir)
@@ -38,7 +38,7 @@ def main_raxml_runner(op):
     print("[Error] The output directory " + output_dir + " already exists. Please use another output directory or run with --continue.")
     sys.exit(1)
   commons.makedirs(output_dir)
-  logs = commons.get_log_file(output_dir, "multi_raxml_logs")
+  logs = commons.get_log_file(output_dir, "pargenes_logs")
   print("Redirecting logs to " + logs)
   sys.stdout = open(logs, "w")
   print_header()

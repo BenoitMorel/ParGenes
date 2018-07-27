@@ -38,7 +38,7 @@ def parse_arguments():
       dest="do_continue",
       action="store_true",
       default=False,
-      help="Allow multi-raxml to continue the analysis from the last checkpoint")
+      help="Allow pargenes to continue the analysis from the last checkpoint")
   parser.add_argument("--msa-filter",
       dest="msa_filter", 
       help="A file containing the names of the msa files to process")
