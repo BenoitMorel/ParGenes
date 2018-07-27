@@ -16,7 +16,9 @@ def parse_msa_info(log_file, msa, core_assignment):
   except:
     msa.valid = False
     return 
+  msa.cores = 0
   for line in lines:
+    line = line[:-1]
     if ("Loaded alignment") in line and ("taxa" in line):
       msa.taxa = int(line.split(" ")[4])
     elif "Alignment sites / patterns" in line:
@@ -35,8 +37,7 @@ def parse_msa_info(log_file, msa, core_assignment):
         msa.cores = int(line.split(": ")[1])
     else:
       print("ERROR: unknown core_assignment " + core_assignment)
-      sys.exit(1)
-  if (msa.per_taxon_clv_size * msa.taxa == 0):
+  if (msa.per_taxon_clv_size * msa.taxa * msa.cores == 0):
     msa.valid = False
 
 def improve_cores_assignment(msas, op):
@@ -77,13 +78,13 @@ def  predict_number_cores(msas, op):
       continue
     total_cost += msa.taxa * msa.per_taxon_clv_size
     worst_percpu_cost = max(worst_percpu_cost, (msa.taxa * msa.per_taxon_clv_size) // msa.cores)
-  print("Total cost for one ML search: " + str(total_cost))
-  print("Worst per cpu cost for one ML search: " + str(worst_percpu_cost))
-  print("Number of ML searches per MSA: " + str(runs_number))
+  #print("Total cost for one ML search: " + str(total_cost))
+  #print("Worst per cpu cost for one ML search: " + str(worst_percpu_cost))
+  #print("Number of ML searches per MSA: " + str(runs_number))
   cores = total_cost // worst_percpu_cost
   cores *= runs_number
   print("Recommended number of cores: " + str(max(1, cores // 4)))
-  print("DISCLAIMER!!! Please note this number is a rough estimate only, and can differ on your system.")
+  print("DISCLAIMER!!! Please note that this number is a rough estimate only.")
 
 def run_parsing_step(msas, library, scheduler_mode, parse_run_output_dir, cores, op):
   """ Run raxml-ng --parse on each MSA to check it is valid and
@@ -176,7 +177,7 @@ def run(msas, random_trees, parsimony_trees, bootstraps, library, scheduler_mode
         bsbase = name + "_bs" + str(current_bs)
         bs_number = min(chunk_size, bootstraps - current_bs * chunk_size)
         writer.write(bsbase + " ")
-        writer.write(str((msa.cores // 2) * chunk_size) + " " + str(msa_size))
+        writer.write(str(max(1, msa.cores // 2)) + " " + str(msa_size * chunk_size))
         writer.write(" --bootstrap")
         writer.write(" --msa " + msa_path + " " + msa.raxml_arguments)
         writer.write(" --prefix " + os.path.join(bs_output_dir, bsbase))

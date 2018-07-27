@@ -79,6 +79,11 @@ CommandsContainer::CommandsContainer(const string &commandsFilename)
     iss >> ranks;
     iss >> estimatedCost;
     
+    if (ranks == 0) {
+      cerr << "[mpi-scheduler warning] Found a job with 0 ranks... will assign 1 rank instead" << endl;
+      ranks = 1;
+    }
+
     vector<string> commandVector;
     commandVector.push_back("multi-raxml");
     while (!iss.eof()) {

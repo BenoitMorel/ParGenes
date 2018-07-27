@@ -6,7 +6,7 @@ import queue
 import concurrent.futures
 import scheduler
 
-def run(output_dir, library, scheduler, run_path, cores, op):
+def run(output_dir, library, scheduler_mode, run_path, cores, op):
   """ Use the MPI scheduler to run raxml --support on all the MSAs. 
   This call builds the trees withs support values from bootstraps"""
   ml_trees_dir = os.path.join(output_dir, "mlsearch_run", "results")
@@ -29,7 +29,7 @@ def run(output_dir, library, scheduler, run_path, cores, op):
       writer.write(" --threads 1")
       writer.write(" --prefix " + os.path.join(support_results, fasta + ".support"))
       writer.write("\n") 
-  scheduler.run_mpi_scheduler(library, scheduler, commands_file, run_path, cores, op)  
+  scheduler.run_mpi_scheduler(library, scheduler_mode, commands_file, run_path, cores, op)  
 
 
 def concatenate_bootstrap_msa(bootstraps_dir, concatenated_dir, msa_name):
