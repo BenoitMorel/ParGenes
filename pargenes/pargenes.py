@@ -1,4 +1,8 @@
 import sys
+if sys.version_info[0] < 3:
+      print("Please use Python 3 to run ParGenes")
+      sys.exit(1)
+
 import os
 import time
 from datetime import timedelta
