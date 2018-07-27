@@ -39,5 +39,5 @@ def run_mpi_scheduler(library, scheduler, commands_filename, output_dir, ranks, 
   if (errorcode != 0):
     print("mpi-scheduler execution failed with error code " + str(errorcode))
     print("Will now exit...")
-    sys.exit(errorcode)
+    raise RuntimeError("mpi-scheduler  execution failed with error code " + str(errorcode))
 

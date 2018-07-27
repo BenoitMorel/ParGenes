@@ -60,7 +60,7 @@ def main_raxml_runner(op):
   raxml.analyse_parsed_msas(msas, op, output_dir)
   if (op.dry_run):
     print("End of the dry run. Exiting")
-    sys.exit(1)
+    return 0
   timed_print(start, "end of anlysing parsing results") 
   if (op.use_modeltest):
     if (checkpoint_index < 2):
@@ -92,10 +92,15 @@ def main_raxml_runner(op):
       bootstraps.run(output_dir, raxml_library, op.scheduler, os.path.join(output_dir, "supports_run"), op.cores, op)
       timed_print(start, "end of supports mpi-scheduler run")
       checkpoint.write_checkpoint(output_dir, 6)
+  return 0
 
+save_cout = sys.stdout
 print_header()
 start = time.time()
-main_raxml_runner(arguments.parse_arguments())
+ret =  main_raxml_runner(arguments.parse_arguments())
 end = time.time()
 timed_print(start, "END OF THE RUN OF " + os.path.basename(__file__))
+sys.stdout = save_cout
+if (ret != 0):
+  print("Something went wrong, please check the logs") 
 
