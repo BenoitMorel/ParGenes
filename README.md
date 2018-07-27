@@ -33,7 +33,7 @@ See the wiki (https://github.com/BenoitMorel/ParGenes/wiki)
 
 Documentation can be found in the [github wiki](https://github.com/BenoitMorel/ParGenes/wiki) (work in progress).
 
-Also please check the online help with `python3 multi-raxml/multi-raxml.py --help`
+Also please check the online help with `python3 pargenes/pargenes.py --help`
 
 If still in doubt, please feel free to post to the [RAxML google group](https://groups.google.com/forum/#!forum/raxml).
 

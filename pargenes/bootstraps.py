@@ -1,10 +1,10 @@
 import os
-import mr_commons
+import commons
 import shutil
 import time
 import queue
 import concurrent.futures
-import mr_scheduler
+import scheduler
 
 def run(output_dir, library, scheduler, run_path, cores, op):
   """ Use the MPI scheduler to run raxml --support on all the MSAs. 
@@ -12,9 +12,9 @@ def run(output_dir, library, scheduler, run_path, cores, op):
   ml_trees_dir = os.path.join(output_dir, "mlsearch_run", "results")
   concatenated_dir = os.path.join(output_dir, "concatenated_bootstraps")
   commands_file = os.path.join(run_path, "supports_commands.txt")
-  mr_commons.makedirs(run_path)
+  commons.makedirs(run_path)
   support_results = os.path.join(run_path, "results")
-  mr_commons.makedirs(support_results)
+  commons.makedirs(support_results)
   print("Writing supports commands in " + commands_file)
   with open(commands_file, "w") as writer:
     for fasta in os.listdir(ml_trees_dir):
@@ -29,7 +29,7 @@ def run(output_dir, library, scheduler, run_path, cores, op):
       writer.write(" --threads 1")
       writer.write(" --prefix " + os.path.join(support_results, fasta + ".support"))
       writer.write("\n") 
-  mr_scheduler.run_mpi_scheduler(library, scheduler, commands_file, run_path, cores, op)  
+  scheduler.run_mpi_scheduler(library, scheduler, commands_file, run_path, cores, op)  
 
 
 def concatenate_bootstrap_msa(bootstraps_dir, concatenated_dir, msa_name):
@@ -55,7 +55,7 @@ def concatenate_bootstrap_msa(bootstraps_dir, concatenated_dir, msa_name):
 def concatenate_bootstraps(output_dir, cores):
   """ Concurrently run concatenate_bootstrap_msa on all the MSA (on one single node)"""
   concatenated_dir = os.path.join(output_dir, "concatenated_bootstraps")
-  mr_commons.makedirs(concatenated_dir)
+  commons.makedirs(concatenated_dir)
   bootstraps_dir = os.path.join(output_dir, "mlsearch_run", "bootstraps")
   with concurrent.futures.ThreadPoolExecutor(max_workers = min(16, int(cores))) as e:
     for msa_name in os.listdir(bootstraps_dir):

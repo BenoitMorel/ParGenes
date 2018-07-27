@@ -1,5 +1,5 @@
 
-multiraxml=../multi-raxml/multi-raxml.py
+multiraxml=../pargenes/pargenes.py
 output=results/small_multiple_starting_trees
 msa_directory=data/small/fasta_files/
 raxml_global_options=data/small/raxml_global_options.txt

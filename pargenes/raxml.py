@@ -1,7 +1,7 @@
 import os
-import mr_commons
+import commons
 import shutil
-import mr_scheduler
+import scheduler
 import concurrent.futures
 
 
@@ -85,18 +85,18 @@ def  predict_number_cores(msas, op):
   print("Recommended number of cores: " + str(max(1, cores // 4)))
   print("DISCLAIMER!!! Please note this number is a rough estimate only, and can differ on your system.")
 
-def run_parsing_step(msas, library, scheduler, parse_run_output_dir, cores, op):
+def run_parsing_step(msas, library, scheduler_mode, parse_run_output_dir, cores, op):
   """ Run raxml-ng --parse on each MSA to check it is valid and
   to get its MSA dimensiosn """
   parse_commands_file = os.path.join(parse_run_output_dir, "parse_command.txt")
   parse_run_results = os.path.join(parse_run_output_dir, "results")
-  mr_commons.makedirs(parse_run_results)
+  commons.makedirs(parse_run_results)
   fasta_chuncks = []
   fasta_chuncks.append([])
   with open(parse_commands_file, "w") as writer:
     for name, msa in msas.items():
       fasta_output_dir = os.path.join(parse_run_results, name)
-      mr_commons.makedirs(fasta_output_dir)
+      commons.makedirs(fasta_output_dir)
       writer.write("parse_" + name + " 1 1 ")
       writer.write(" --parse ")
       writer.write(" --log DEBUG ")
@@ -104,7 +104,7 @@ def run_parsing_step(msas, library, scheduler, parse_run_output_dir, cores, op):
       writer.write(" --prefix " + os.path.join(fasta_output_dir, name))
       writer.write(" --threads 1 ")
       writer.write("\n")
-  mr_scheduler.run_mpi_scheduler(library, scheduler, parse_commands_file, parse_run_output_dir, cores, op)  
+  scheduler.run_mpi_scheduler(library, scheduler_mode, parse_commands_file, parse_run_output_dir, cores, op)  
  
 def analyse_parsed_msas(msas, op, output_dir):
   """ Analyse results from run_parsing_step and store them into msas """
@@ -131,16 +131,16 @@ def analyse_parsed_msas(msas, op, output_dir):
       for msa in invalid_msas:
         f.write(msa.name + "\n")
 
-def run(msas, random_trees, parsimony_trees, bootstraps, library, scheduler, run_path, cores, op):
-  """ Use the MPI scheduler to run raxml-ng on all the dataset. 
+def run(msas, random_trees, parsimony_trees, bootstraps, library, scheduler_mode, run_path, cores, op):
+  """ Use the MPI scheduler_mode to run raxml-ng on all the dataset. 
   Also schedules the bootstraps runs"""
   commands_file = os.path.join(run_path, "mlsearch_command.txt")
   mlsearch_run_results = os.path.join(run_path, "results")
   mlsearch_run_bootstraps = os.path.join(run_path, "bootstraps")
-  mr_commons.makedirs(mlsearch_run_results)
+  commons.makedirs(mlsearch_run_results)
   starting_trees = random_trees + parsimony_trees
   if (bootstraps != 0):
-    mr_commons.makedirs(mlsearch_run_bootstraps)
+    commons.makedirs(mlsearch_run_bootstraps)
   with open(commands_file, "w") as writer:
     for name, msa in msas.items():
       if (not msa.valid):
@@ -152,11 +152,11 @@ def run(msas, random_trees, parsimony_trees, bootstraps, library, scheduler, run
       if (not msa.flag_disable_sorting):
         msa_size = msa.taxa * msa.per_taxon_clv_size
       mlsearch_fasta_output_dir = os.path.join(mlsearch_run_results, name)
-      mr_commons.makedirs(mlsearch_fasta_output_dir)
+      commons.makedirs(mlsearch_fasta_output_dir)
       for starting_tree in range(0, starting_trees):
         if (starting_trees > 1):
           prefix = os.path.join(mlsearch_fasta_output_dir, "multiple_runs", str(starting_tree))
-          mr_commons.makedirs(prefix)
+          commons.makedirs(prefix)
           prefix = os.path.join(prefix, name)
         else:
           prefix = os.path.join(mlsearch_fasta_output_dir, name)
@@ -170,7 +170,7 @@ def run(msas, random_trees, parsimony_trees, bootstraps, library, scheduler, run
         writer.write(" --seed " + str(starting_tree + 1) + " ")
         writer.write("\n")
       bs_output_dir = os.path.join(mlsearch_run_bootstraps, name)
-      mr_commons.makedirs(bs_output_dir)
+      commons.makedirs(bs_output_dir)
       chunk_size = 10
       for current_bs in range(0, (bootstraps - 1) // chunk_size + 1):
         bsbase = name + "_bs" + str(current_bs)
@@ -184,7 +184,7 @@ def run(msas, random_trees, parsimony_trees, bootstraps, library, scheduler, run
         writer.write(" --seed " + str(current_bs + 1))
         writer.write(" --bs-trees " + str(bs_number))
         writer.write("\n")
-  mr_scheduler.run_mpi_scheduler(library, scheduler, commands_file, run_path, cores, op)  
+  scheduler.run_mpi_scheduler(library, scheduler_mode, commands_file, run_path, cores, op)  
 
 
 def extract_ll_from_raxml_logs(raxml_log_file):

@@ -1,7 +1,7 @@
 import sys
 import subprocess
 import os
-import mr_commons
+import commons
 
 def get_mpi_scheduler_exec():
   """ Get the path to the mpi scheduler executable """
@@ -29,7 +29,7 @@ def run_mpi_scheduler(library, scheduler, commands_filename, output_dir, ranks, 
   command.append(commands_filename)
   command.append(output_dir)
   
-  logs_file = mr_commons.get_log_file(output_dir, "logs")
+  logs_file = commons.get_log_file(output_dir, "logs")
   out = open(logs_file, "w")
   print("Calling mpi-scheduler: " + " ".join(command))
   print("Logs will be redirected to " + logs_file)

@@ -1,15 +1,14 @@
 import os
-import mr_commons
-import mr_scheduler
+import commons
+import scheduler
 
 def run(msas, output_dir, library, run_path, op): 
   """ Use the MPI scheduler to run modeltest on all the MSAs"""
-  scheduler = op.scheduler
   cores = op.cores
   run_path = os.path.join(output_dir, "modeltest_run")
   commands_file = os.path.join(run_path, "modeltest_command.txt")
   modeltest_results = os.path.join(run_path, "results")
-  mr_commons.makedirs(modeltest_results)
+  commons.makedirs(modeltest_results)
   if (op.modeltest_cores < 4):
     print("[Error] The number of cores per modeltest job should at least be 4")
     sys.exit(1)
@@ -18,7 +17,7 @@ def run(msas, output_dir, library, run_path, op):
       if (not msa.valid):
         continue
       modeltest_fasta_output_dir = os.path.join(modeltest_results, name)
-      mr_commons.makedirs(modeltest_fasta_output_dir)
+      commons.makedirs(modeltest_fasta_output_dir)
       writer.write("modeltest_" + name + " ") 
       writer.write(str(op.modeltest_cores) + " " + str(msa.taxa * msa.per_taxon_clv_size))
       writer.write(" -i ")
@@ -27,7 +26,7 @@ def run(msas, output_dir, library, run_path, op):
       writer.write(" -o " +  os.path.join(modeltest_results, name, name))
       writer.write(" " + msa.modeltest_arguments + " ")
       writer.write("\n")
-  mr_scheduler.run_mpi_scheduler(library, scheduler, commands_file, run_path, cores, op)  
+  scheduler.run_mpi_scheduler(library, op.scheduler, commands_file, run_path, cores, op)  
 
 def parse_modeltest_results(modeltest_criteria, msas, output_dir):
   """ Parse the results from the MPI scheduler run to get the best-fit model
