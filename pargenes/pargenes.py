@@ -17,9 +17,9 @@ import checkpoint
 import shutil
 
 def print_header():
-  print("##################")
-  print("#    PARGENES    #")
-  print("##################")
+  print("########################")
+  print("#    PARGENES v1.0.0   #")
+  print("########################")
   print("ParGenes was called as follow:")
   print(" ".join(sys.argv))
   print("")
