@@ -21,12 +21,7 @@ if (WITH_MPI)
   set(MPI_SCHEDULER_LIBRARIES ${MPI_LIBRARIES} ${MPI_SCHEDULER_LIBRARIES})
 endif()
 
-
-
-
 add_executable(mpi-scheduler ${MPI_SCHEDULER_SOURCES}) 
-
-
 
 target_link_libraries(mpi-scheduler ${MPI_SCHEDULER_LIBRARIES})
 
@@ -41,3 +36,14 @@ if (WITH_MPI)
       LINK_FLAGS "${MPI_LINK_FLAGS}")
   endif()
 endif()
+
+if (WITH_OPENMP)
+    set_target_properties(mpi-scheduler PROPERTIES
+      COMPILE_FLAGS "${OpenMP_CXX_FLAGS}")
+
+    set_target_properties(mpi-scheduler PROPERTIES
+      LINK_FLAGS "${OpenMP_EXE_LINKER_FLAGS}")
+endif()
+
+
+
