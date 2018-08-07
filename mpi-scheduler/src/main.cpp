@@ -1,17 +1,20 @@
 
-#include <mpi.h>
 #include <iostream>
 #include <string>
 //#include <thread> 
 #include <chrono> 
 #include <cstdlib>
 #include <fstream>
-#include "split_implem/SplitImplem.hpp"
-#include "onecore_implem/OneCoreImplem.hpp"
+
 #include "Checkpoint.hpp"
 #include "Command.hpp"
 #include "Common.hpp"
 
+#ifdef WITH_MPI
+#include "split_implem/SplitImplem.hpp"
+#include "onecore_implem/OneCoreImplem.hpp"
+#include <mpi.h>
+#endif
 
 using namespace std;
 
@@ -22,12 +25,14 @@ int _main(int argc, char** argv);
 
 void main_scheduler(int argc, char **argv)
 {
-  Common::check(MPI_Init(&argc, &argv));
   SchedulerArgumentsParser arg(argc, argv);
   string implem = argv[1]; 
   int rank = 0;
-  MPI_Comm_rank(MPI_COMM_WORLD, &rank);
   int ranksNumber = 0;
+  
+#ifdef WITH_MPI
+  Common::check(MPI_Init(&argc, &argv));
+  MPI_Comm_rank(MPI_COMM_WORLD, &rank);
   MPI_Comm_size(MPI_COMM_WORLD, &ranksNumber);
   if (rank != ranksNumber - 1) {
     if (implem == "--split-scheduler") {
@@ -39,9 +44,11 @@ void main_scheduler(int argc, char **argv)
     }
     return;
   }
+#endif
   Time begin = Common::getTime();
   CommandsContainer commands(arg.commandsFilename);
   RanksAllocator *allocatorPtr = 0;
+#ifdef WITH_MPI
   if (implem == "--split-scheduler") {
     allocatorPtr = new SplitRanksAllocator(ranksNumber, 
         arg.outputDir);
@@ -49,6 +56,7 @@ void main_scheduler(int argc, char **argv)
     allocatorPtr = new OneCoreRanksAllocator(ranksNumber, 
         arg.outputDir);
   }
+#endif
   shared_ptr<RanksAllocator> allocator(allocatorPtr);
   for (auto command: commands.getCommands()) {
     allocator->preprocessCommand(command);
@@ -63,7 +71,9 @@ void main_scheduler(int argc, char **argv)
     statistics.exportSVG(Common::getIncrementalLogFile(arg.outputDir, "statistics", "svg"));
   }
   allocator->terminate();
+#ifdef WITH_MPI
   Common::check(MPI_Finalize());
+#endif
   cout << "End of Multiraxml run" << endl;
   exit(0);
 }

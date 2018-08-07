@@ -12,10 +12,12 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <vector>
-#include <mpi.h>
 #include <signal.h>  
 #include <iostream>
 
+#ifdef WITH_MPI
+#include <mpi.h>
+#endif
 using namespace std;
 
 namespace MPIScheduler {
@@ -62,13 +64,14 @@ public:
       (end-begin).count();
   }
 
-
+#ifdef WITH_MPI
   static void check(int mpiError) {
     if (mpiError != MPI_SUCCESS) {
       cout << "MPI ERROR !!!!" << endl;
       throw MPISchedulerException("MPI error !");
     }
   }
+#endif
 
   static int getPid() {
     return getpid();
