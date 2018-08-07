@@ -46,7 +46,6 @@ private:
   int _cores;
   queue<int> _availableCores;
   string _outputDir;
-  //map<string, InstancePtr> _runningInstances;
   map<int, InstancePtr> _rankToInstances;
 
 };
@@ -59,11 +58,6 @@ public:
 
   virtual ~OneCoreInstance() {}
   virtual bool execute(InstancePtr self);
-  virtual void writeSVGStatistics(SVGDrawer &drawer, const Time &initialTime); 
-  void setStartingElapsedMS(int starting) {_startingElapsedMS = starting;}
-private:
-  int _startingElapsedMS;
-  string _outputDir;
 };
 
 } // namespace MPIScheduler

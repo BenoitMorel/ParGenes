@@ -379,16 +379,14 @@ SplitInstance::SplitInstance(const string &outputDir,
   int startingRank, 
   int ranksNumber,
   CommandPtr command):
-  Instance(command, startingRank, ranksNumber),
-  _outputDir(outputDir),
-  _startingElapsedMS(0)
+  Instance(command, startingRank, ranksNumber, outputDir)
 {
 }
 
 
 bool SplitInstance::execute(InstancePtr self)
 {
-  _beginTime = Common::getTime();
+  setBeginTime(Common::getTime());
   if (_ranksNumber == 0) {
     throw MPISchedulerException("Error in SplitInstance::execute: invalid number of ranks ", to_string(_ranksNumber));
   }
@@ -398,13 +396,5 @@ bool SplitInstance::execute(InstancePtr self)
   return true;
 }
   
-void SplitInstance::writeSVGStatistics(SVGDrawer &drawer, const Time &initialTime) 
-{
-  drawer.writeSquare(getStartingRank(),
-    _startingElapsedMS,
-    getRanksNumber(),
-    getElapsedMs());
-}
-
 } // namespace MPIScheduler
 

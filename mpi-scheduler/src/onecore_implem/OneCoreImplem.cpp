@@ -99,8 +99,7 @@ int OneCoreSlave::doWork(const CommandPtr command,
 OneCoreInstance::OneCoreInstance(const string &outputDir, 
       int rank, 
       CommandPtr command):
-  Instance(command, rank, 1),
-  _startingElapsedMS(0)
+  Instance(command, rank, 1, outputDir)
 {
 }
 
@@ -114,14 +113,6 @@ bool OneCoreInstance::execute(InstancePtr self)
   return true;
 }
 
-void OneCoreInstance::writeSVGStatistics(SVGDrawer &drawer, const Time &initialTime)
-{
-  drawer.writeSquare(getStartingRank(),
-    _startingElapsedMS,
-    getRanksNumber(),
-    getElapsedMs());
-
-}
 
 OneCoreRanksAllocator::OneCoreRanksAllocator(int availableRanks,
     const string &outputDir):

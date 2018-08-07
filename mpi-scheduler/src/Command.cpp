@@ -23,7 +23,10 @@ Command::Command(const string &id,
 
 Instance::Instance(CommandPtr command,
     int startingRank,
-    int ranksNumber):
+    int ranksNumber,
+    const string &outputDir):
+  _startingElapsedMS(0),
+  _outputDir(outputDir),
   _command(command),
   _startingRank(startingRank),
   _ranksNumber(ranksNumber),
@@ -33,6 +36,14 @@ Instance::Instance(CommandPtr command,
 {
 }
 
+void Instance::writeSVGStatistics(SVGDrawer &drawer, const Time &initialTime)
+{
+  drawer.writeSquare(getStartingRank(),
+    _startingElapsedMS,
+    getRanksNumber(),
+    getElapsedMs());
+
+}
 void Instance::onFinished()
 {
   _endTime = Common::getTime();

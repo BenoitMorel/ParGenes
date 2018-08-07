@@ -97,11 +97,6 @@ public:
 
   virtual ~SplitInstance() {}
   virtual bool execute(InstancePtr self);
-  virtual void writeSVGStatistics(SVGDrawer &drawer, const Time &initialTime); 
-  void setStartingElapsedMS(int starting) {_startingElapsedMS = starting;}
-private:
-  int _startingElapsedMS;
-  string _outputDir;
 };
 
 } // namespace MPIScheduler
