@@ -100,6 +100,7 @@ public:
       shared_ptr<RanksAllocator> allocator,
       const string &outputDir);
   void run();
+  void runOpenMP();
   const InstancesHistoric &getHistoric() const {return _historic;} 
 private:
   

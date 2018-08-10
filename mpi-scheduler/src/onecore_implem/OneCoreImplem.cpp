@@ -1,5 +1,4 @@
 #include "OneCoreImplem.hpp"
-#include "../SVGDrawer.hpp"
 #include <cstdlib>
 #include <stdio.h>
 #include <sys/wait.h>
@@ -62,21 +61,6 @@ void OneCoreSlave::treatJobSlave()
 }
 
 
-int systemCall(const string &command, const string &outputFile)
-{
-  int result = 0;
-  FILE *ptr, *file;
-  file = fopen(outputFile.c_str(), "w");
-  if ((ptr = popen(command.c_str(), "r")) != NULL) {
-    char buf[BUFSIZ];
-    while (fgets(buf, BUFSIZ, ptr) != NULL) {
-      fprintf(file, "%s", buf);
-    }
-    result = pclose(ptr);
-  }
-  fclose(file);
-  return result;
-}
 
 int OneCoreSlave::doWork(const CommandPtr command, 
     const string &outputDir) 
@@ -91,7 +75,7 @@ int OneCoreSlave::doWork(const CommandPtr command,
   for (auto &arg: args) {
     systemCommand = systemCommand + " " + arg;
   }
-  int result = systemCall(systemCommand, logsFile);
+  int result = Common::systemCall(systemCommand, logsFile);
   remove(runningFile.c_str());
   return result;
 }

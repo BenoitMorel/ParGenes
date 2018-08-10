@@ -83,6 +83,8 @@ public:
     return string(hostname);
   }
 
+  static int systemCall(const string &command, const string &outputFile);
+
 };
 
 

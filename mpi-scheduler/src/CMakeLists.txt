@@ -17,6 +17,7 @@ if (WITH_MPI)
   set(MPI_SCHEDULER_SOURCES ${MPI_SCHEDULER_SOURCES}
     split_implem/SplitImplem.cpp
     onecore_implem/OneCoreImplem.cpp
+    openmp_implem/OpenMPImpl.cpp
   )
   set(MPI_SCHEDULER_LIBRARIES ${MPI_LIBRARIES} ${MPI_SCHEDULER_LIBRARIES})
 endif()
@@ -41,8 +42,9 @@ if (WITH_OPENMP)
     set_target_properties(mpi-scheduler PROPERTIES
       COMPILE_FLAGS "${OpenMP_CXX_FLAGS}")
 
+    message(STATUS "WITH OPENMP ${OpenMP_EXE_LINKER_FLAGS}")
     set_target_properties(mpi-scheduler PROPERTIES
-      LINK_FLAGS "${OpenMP_EXE_LINKER_FLAGS}")
+      LINK_FLAGS "-fopenmp")
 endif()
 
 

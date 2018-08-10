@@ -165,6 +165,23 @@ void CommandsRunner::run()
     }
   }
 }
+  
+void CommandsRunner::runOpenMP()
+{
+  // pragma for
+  for (int i = 0; i < _commandsContainer.getCommands().size(); ++i) {
+    auto command = _commandsContainer.getCommands()[i];
+    auto instance = _allocator->allocateRanks(1, command); 
+    if (!instance->execute(instance)) {
+      cout << "Failed to start command " << command->getId() << endl;
+      continue;
+    }
+    // critical
+    _historic.push_back(instance);
+    onFinishedInstance(instance);
+  }
+
+}
 
 
 bool CommandsRunner::compareCommands(CommandPtr c1, CommandPtr c2)
@@ -180,7 +197,6 @@ bool CommandsRunner::executePendingCommand()
 {
   auto command = getPendingCommand();
   InstancePtr instance = _allocator->allocateRanks(command->getRanksNumber(), command);
-  Timer t;
   if (!instance->execute(instance)) {
     cout << "Failed to start " << command->getId() << ". Will retry later " << endl;
     _allocator->freeRanks(instance);

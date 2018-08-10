@@ -16,6 +16,7 @@ include(FindOpenMP)
 if(OPENMP_FOUND)
   set(WITH_OPENMP TRUE)
   add_definitions(-DWITH_OPENMP)
+  message(STATUS "WITH OPENMP ${OpenMP_EXE_LINKER_FLAGS}")
 endif()
 
 add_subdirectory(${PROJECT_SOURCE_DIR}/src)
