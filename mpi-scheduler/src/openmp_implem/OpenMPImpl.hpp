@@ -7,10 +7,7 @@ namespace MPIScheduler {
 
 class OpenMPRanksAllocator: public RanksAllocator {
 public:
-  OpenMPRanksAllocator(const string &outputDir, const string &execPath): 
-    _outputDir(outputDir),
-    _execPath(execPath)
-  {}
+  OpenMPRanksAllocator(const string &outputDir, const string &execPath); 
   virtual ~OpenMPRanksAllocator() {}
   virtual bool ranksAvailable() {return true;}
   virtual bool allRanksAvailable() {return true;}

@@ -12,19 +12,23 @@ def run_mpi_scheduler(library, scheduler, commands_filename, output_dir, ranks, 
   """ Run the mpi scheduler program """
   sys.stdout.flush()
   command = []
-  command.append("mpiexec")
-  command.append("-n")
-  command.append(str(ranks))
+  if (scheduler != "openmp"):
+    command.append("mpiexec")
+    command.append("-n")
+    command.append(str(ranks))
+    if (op.valgrind):
+      command.append("--mca")
+      command.append("btl")
+      command.append("tcp,self")
   if (op.valgrind):
-    command.append("--mca")
-    command.append("btl")
-    command.append("tcp,self")
     command.append("valgrind")
   command.append(get_mpi_scheduler_exec())
   if (scheduler == "onecore"):
     command.append("--onecore-scheduler")
-  else:
+  elif (scheduler == "split"):
     command.append("--split-scheduler")
+  else:
+    command.append("--openmp-scheduler")
   command.append(library)
   command.append(commands_filename)
   command.append(output_dir)

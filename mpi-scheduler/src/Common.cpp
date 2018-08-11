@@ -33,6 +33,10 @@ int Common::systemCall(const string &command, const string &outputFile)
   int result = 0;
   FILE *ptr, *file;
   file = fopen(outputFile.c_str(), "w");
+  if (!file) {
+    cerr << "[MPIScheduler error] Cannot open output file " << outputFile << endl;
+    return 0;
+  }
   if ((ptr = popen(command.c_str(), "r")) != NULL) {
     char buf[BUFSIZ];
     while (fgets(buf, BUFSIZ, ptr) != NULL) {

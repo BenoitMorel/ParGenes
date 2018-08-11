@@ -1,10 +1,12 @@
 
+additional=" -j 4"
+
 build_mpi_scheduler() {
   cd mpi-scheduler
   mkdir -p build
   cd build
   cmake ..
-  make
+  make ${additional}
   cd ../..
 }
 
@@ -13,7 +15,7 @@ build_raxml() {
   mkdir -p builddebug
   cd builddebug
   cmake ..
-  make
+  make ${additional}
   cd ../../
 }
 
@@ -22,7 +24,7 @@ build_modeltest() {
   mkdir -p builddebug
   cd builddebug
   cmake ..
-  make
+  make ${additional}
   cd ../../
 }
 

@@ -28,6 +28,13 @@ int doWork(const CommandPtr command,
   return result;
 }
 
+OpenMPRanksAllocator::OpenMPRanksAllocator(const string &outputDir, const string &execPath): 
+    _outputDir(outputDir),
+    _execPath(execPath)
+{
+  Common::makedir(Common::joinPaths(outputDir, "per_job_logs"));
+  Common::makedir(Common::joinPaths(outputDir, "running_jobs"));
+}
 
 InstancePtr OpenMPRanksAllocator::allocateRanks(int requestedRanks, 
       CommandPtr command)

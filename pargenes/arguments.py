@@ -49,7 +49,7 @@ def parse_arguments():
       help="Alignments datatype")
   parser.add_argument("--scheduler",
       dest="scheduler",
-      choices=["split", "onecore"],
+      choices=["split", "onecore", "openmp"],
       default="split",
       help="Sceduling strategy. onecore might be interesting for debugging crashing jobs")
   parser.add_argument("--core-assignment",

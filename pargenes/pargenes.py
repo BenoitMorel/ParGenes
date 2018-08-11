@@ -37,7 +37,6 @@ def main_raxml_runner(op):
   start = time.time()
   output_dir = op.output_dir
   checkpoint_index = checkpoint.read_checkpoint(output_dir)
-  print("Checkpoint: " + str(checkpoint_index))
   if (os.path.exists(output_dir) and not op.do_continue):
     print("[Error] The output directory " + output_dir + " already exists. Please use another output directory or run with --continue.")
     sys.exit(1)
@@ -46,12 +45,13 @@ def main_raxml_runner(op):
   print("Redirecting logs to " + logs)
   sys.stdout = open(logs, "w")
   print_header()
+  print("Checkpoint: " + str(checkpoint_index))
   msas = commons.init_msas(op)
   timed_print(start, "end of MSAs initializations")
   scriptdir = os.path.dirname(os.path.realpath(__file__))
   modeltest_run_path = os.path.join(output_dir, "modeltest_run")
   raxml_run_path = os.path.join(output_dir, "mlsearch_run")
-  if (op.scheduler == "onecore"):
+  if (op.scheduler != "split"):
     raxml_library = os.path.join(scriptdir, "..", "raxml-ng", "bin", "raxml-ng")
     modeltest_library = os.path.join(scriptdir, "..", "modeltest", "bin", "modeltest-ng")
   else:
