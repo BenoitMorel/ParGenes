@@ -101,7 +101,13 @@ def main_raxml_runner(op):
 save_cout = sys.stdout
 print_header()
 start = time.time()
-ret =  main_raxml_runner(arguments.parse_arguments())
+ret = 0
+try:
+  ret =  main_raxml_runner(arguments.parse_arguments())
+except Exception as inst:
+  sys.stdout = save_cout
+  print("[Error] " + str(type(inst)) + " " + str(inst)) 
+  sys.exit(1)
 end = time.time()
 timed_print(start, "END OF THE RUN OF " + os.path.basename(__file__))
 sys.stdout = save_cout
