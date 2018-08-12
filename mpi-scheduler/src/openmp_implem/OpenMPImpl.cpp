@@ -13,17 +13,22 @@ int doWork(const CommandPtr command,
     const string &execPath,
     const string &outputDir) 
 {
+  int result = 0;
   string logsFile = Common::joinPaths(outputDir, "per_job_logs", command->getId() + "_out.txt");
   string runningFile = Common::joinPaths(outputDir, "running_jobs", command->getId());
-  ofstream os(runningFile);
-  os << logsFile << endl;
-  os.close();
+#pragma omp critical
+  {
+    ofstream os(runningFile);
+    os << logsFile << endl;
+    os.close();
+  }
   const vector<string> &args  = command->getArgs();
   string systemCommand = execPath;
   for (auto &arg: args) {
     systemCommand = systemCommand + " " + arg;
   }
-  int result = Common::systemCall(systemCommand, logsFile);
+  result = systemCall(systemCommand, logsFile, true);
+#pragma omp critical
   remove(runningFile.c_str());
   return result;
 }
@@ -54,9 +59,11 @@ OpenMPInstance::OpenMPInstance(const string &outputDir,
 
 bool OpenMPInstance::execute(InstancePtr self)
 {
-  int res = doWork(_command, _execPath, _outputDir);
+  int res = 0;
+  res = doWork(_command, _execPath, _outputDir);
   if (!res) {
     cerr << "Warning, command " << _command->getId() << " failed with code " << res << endl;
+    return false;
   }
   return true;
 }

@@ -28,8 +28,13 @@ string Common::getIncrementalLogFile(const string &path,
   return file;
 }
 
-int Common::systemCall(const string &command, const string &outputFile)
+int systemCall(const string &command, const string &outputFile,
+    bool threadSafe)
 {
+  if (threadSafe) {
+    int res = system(command.c_str());
+    return res;
+  }
   int result = 0;
   FILE *ptr, *file;
   file = fopen(outputFile.c_str(), "w");

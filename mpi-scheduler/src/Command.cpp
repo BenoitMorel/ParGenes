@@ -168,17 +168,24 @@ void CommandsRunner::run()
   
 void CommandsRunner::runOpenMP()
 {
-  // pragma for
+#pragma omp parallel for
   for (int i = 0; i < _commandsContainer.getCommands().size(); ++i) {
-    auto command = _commandsContainer.getCommands()[i];
-    auto instance = _allocator->allocateRanks(1, command); 
+    CommandPtr command = 0;
+    InstancePtr instance = 0;
+#pragma omp critical
+    {
+      command = _commandsContainer.getCommands()[i];
+      instance = _allocator->allocateRanks(1, command); 
+    }
     if (!instance->execute(instance)) {
       cout << "Failed to start command " << command->getId() << endl;
-      continue;
+    } else {
+#pragma omg critical
+      {
+        _historic.push_back(instance);
+        onFinishedInstance(instance);
+      }
     }
-    // critical
-    _historic.push_back(instance);
-    onFinishedInstance(instance);
   }
 
 }

@@ -75,7 +75,7 @@ int OneCoreSlave::doWork(const CommandPtr command,
   for (auto &arg: args) {
     systemCommand = systemCommand + " " + arg;
   }
-  int result = Common::systemCall(systemCommand, logsFile);
+  int result = systemCall(systemCommand, logsFile);
   remove(runningFile.c_str());
   return result;
 }

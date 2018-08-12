@@ -83,9 +83,10 @@ public:
     return string(hostname);
   }
 
-  static int systemCall(const string &command, const string &outputFile);
 
 };
+
+int systemCall(const string &command, const string &outputFile, bool threadSafe = false);
 
 
 class Timer {
