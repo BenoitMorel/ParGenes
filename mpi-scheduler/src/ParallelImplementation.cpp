@@ -35,7 +35,7 @@ bool ParallelImplementation::isValid() const {
     return false;
   }
 #endif
-#ifdef WITH_OPENMP
+#ifndef WITH_OPENMP
   if (isOpenMP()) { 
     cerr << "Error: trying to use an OpenMP implementation that was not compiled" << endl;
     return false;
