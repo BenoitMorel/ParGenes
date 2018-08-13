@@ -12,6 +12,11 @@ def run_mpi_scheduler(library, scheduler, commands_filename, output_dir, ranks, 
   """ Run the mpi scheduler program """
   sys.stdout.flush()
   command = []
+  my_env = os.environ.copy()
+  if (scheduler == "openmp"):
+    my_env["OMP_NUM_THREADS"] = str(ranks) + "," + str(ranks) + "," + str(ranks)
+    my_env["OMP_DYNAMIC"] = "false"
+    #command.append("OMP_NUM_TRHEADS=" + str(ranks))
   if (scheduler != "openmp"):
     command.append("mpiexec")
     command.append("-n")
@@ -37,7 +42,7 @@ def run_mpi_scheduler(library, scheduler, commands_filename, output_dir, ranks, 
   out = open(logs_file, "w")
   print("Calling mpi-scheduler: " + " ".join(command))
   print("Logs will be redirected to " + logs_file)
-  p = subprocess.Popen(command, stdout=out, stderr=out)
+  p = subprocess.Popen(command, stdout=out, stderr=out, env=my_env)
   p.wait()
   errorcode = p.returncode
   if (errorcode != 0):

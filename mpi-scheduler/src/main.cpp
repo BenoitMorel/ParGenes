@@ -33,8 +33,20 @@ bool isMPIImplem(const string &implem) {
   return (implem == "--split-scheduler" || implem == "--onecore-scheduler");
 }
 
-bool checkImplemCompatible(const string &implem) {
+bool isOpenMPImplem(const string &implem) {
+  return (implem == "--openmp-scheduler");
+}
 
+bool checkImplemCompatible(const string &implem) {
+#ifndef WITH_MPI
+  if (isMPIImplem(implem)) 
+    return false;
+#endif
+#ifndef WITH_OPENMP
+  if (isOpenMPImplem(implem)) 
+    return false;
+#endif
+  return true;
 }
 
 RanksAllocator *getRanksAllocator(const string &implem,
@@ -49,9 +61,11 @@ RanksAllocator *getRanksAllocator(const string &implem,
         arg.outputDir);
   }
 #endif
+#ifdef WITH_OPENMP
   if (implem == "--openmp-scheduler") {
     return new OpenMPRanksAllocator(arg.outputDir, arg.library);
   }
+#endif
   assert(0);
   return 0;
 }
@@ -100,6 +114,9 @@ void main_scheduler(int argc, char **argv)
       run_slave_main(implem, argc, argv);
       return;
     }
+  } else if (isOpenMPImplem(implem)) {
+    ranksNumber = getOpenMPThreads();
+    cout << "RANKS NUMBER " << ranksNumber << endl;
   }
 
   Time begin = Common::getTime();

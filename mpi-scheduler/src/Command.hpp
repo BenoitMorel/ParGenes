@@ -65,7 +65,6 @@ public:
   void setElapsedMs(int elapsed) {_elapsed = elapsed;}
   virtual int getElapsedMs() const {return _elapsed;}
   void setStartingElapsedMS(int starting) {_startingElapsedMS = starting;}
-  void setBeginTime(const Time &beginTime) {_beginTime = beginTime;}
 protected:
   const string &getOutputDir() {return _outputDir;}
   
@@ -74,7 +73,6 @@ protected:
   CommandPtr _command;
   int _startingRank;
   int _ranksNumber;
-  Time _beginTime;
   Time _endTime;
   int _elapsed;
 };

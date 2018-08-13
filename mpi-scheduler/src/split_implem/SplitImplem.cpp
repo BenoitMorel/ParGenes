@@ -386,7 +386,6 @@ SplitInstance::SplitInstance(const string &outputDir,
 
 bool SplitInstance::execute(InstancePtr self)
 {
-  setBeginTime(Common::getTime());
   if (_ranksNumber == 0) {
     throw MPISchedulerException("Error in SplitInstance::execute: invalid number of ranks ", to_string(_ranksNumber));
   }

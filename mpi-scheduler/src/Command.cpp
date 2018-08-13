@@ -30,7 +30,6 @@ Instance::Instance(CommandPtr command,
   _command(command),
   _startingRank(startingRank),
   _ranksNumber(ranksNumber),
-  _beginTime(Common::getTime()),
   _endTime(Common::getTime()),
   _elapsed(0)
 {
@@ -269,6 +268,7 @@ void RunStatistics::exportSVG(const string &svgfile)
   Timer t;
   cout << "Saving svg output in " << svgfile << endl;
   int totalWidth = _availableRanks + 1;
+  cout << "total width " << totalWidth << endl;
   int totalHeight = Common::getElapsedMs(_begin, _end);
   string caption = "t = " + to_string(totalHeight / 1000) + "s";
   caption += ", lb = " + to_string(_lbRatio);

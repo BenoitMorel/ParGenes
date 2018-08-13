@@ -90,7 +90,6 @@ OneCoreInstance::OneCoreInstance(const string &outputDir,
 
 bool OneCoreInstance::execute(InstancePtr self)
 {
-  _beginTime = Common::getTime();
   int signal = SIGNAL_JOB;
   MPI_Send(&signal, 1, MPI_INT, self->getStartingRank(), TAG_MASTER_SIGNAL, MPI_COMM_WORLD); 
   MPI_Send((char *)self->getId().c_str(), self->getId().size() + 1, MPI_CHAR, self->getStartingRank(), TAG_START_JOB, MPI_COMM_WORLD);

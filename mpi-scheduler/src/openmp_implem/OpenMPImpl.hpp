@@ -5,6 +5,8 @@
 
 namespace MPIScheduler {
 
+int getOpenMPThreads();
+
 class OpenMPRanksAllocator: public RanksAllocator {
 public:
   OpenMPRanksAllocator(const string &outputDir, const string &execPath); 
@@ -18,6 +20,7 @@ public:
 private:
   string _outputDir;
   string _execPath;
+  Timer _globalTimer;
 };
 
 
