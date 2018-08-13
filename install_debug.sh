@@ -23,7 +23,7 @@ build_modeltest() {
   cd modeltest
   mkdir -p builddebug
   cd builddebug
-  cmake ..
+  cmake .. -DUSE_LIBPLL_CMAKE=ON
   make ${additional}
   cd ../../
 }
