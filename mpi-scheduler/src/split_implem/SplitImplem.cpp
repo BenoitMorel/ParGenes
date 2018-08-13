@@ -91,6 +91,7 @@ int SplitSlave::loadLibrary(const string &libraryPath)
   _handle = dlopen(libraryPath.c_str(), RTLD_LAZY);
   if (!_handle) {
     cerr << "Cannot open shared library " << libraryPath << endl;
+    cerr << "Error: " << dlerror() << endl;
     return 1;
   }
   _raxmlMain = (mainFct) dlsym(_handle, "dll_main");
