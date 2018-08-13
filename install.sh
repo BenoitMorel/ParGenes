@@ -8,7 +8,6 @@ build_mpi_scheduler() {
   cd build
   cmake .. || exit 1
   make -j 4 || exit 1
-  cd ..
   cd ../..
 }
 
