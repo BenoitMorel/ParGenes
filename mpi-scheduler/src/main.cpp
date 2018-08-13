@@ -1,13 +1,8 @@
 
 #include <iostream>
 #include <string>
-#include <chrono> 
-#include <cstdlib>
-#include <fstream>
-#include <assert.h>
 
 #include "ParallelImplementation.hpp"
-#include "Checkpoint.hpp"
 #include "Command.hpp"
 #include "Common.hpp"
 
