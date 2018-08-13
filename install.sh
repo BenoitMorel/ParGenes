@@ -6,45 +6,66 @@ build_mpi_scheduler() {
   cd mpi-scheduler
   mkdir -p build
   cd build
-  cmake ..
-  make
+  cmake .. || exit 1
+  make -j 4 || exit 1
+  cd ..
   cd ../..
 }
 
-build_raxml() {
-  echo "*********************************"
-  echo "** Installing raxml-ng...      **"
-  echo "*********************************"
+build_raxml_lib() {
+  echo "************************************"
+  echo "** Installing raxml-ng library ...**"
+  echo "************************************"
   cd raxml-ng
   mkdir -p build
   cd build
-  cmake -DUSE_MPI=ON -DBUILD_AS_LIBRARY=ON ..
-  make
+  cmake -DUSE_MPI=ON -DBUILD_AS_LIBRARY=ON .. || exit 1
+  make -j 4 || exit 1
   cd ../../
 }
 
-build_modeltest() {
-  echo "*********************************"
-  echo "** Installing model-test-ng... **"
-  echo "*********************************"
+build_raxml_exec() {
+  echo "***************************************"
+  echo "** Installing raxml-ng executable ...**"
+  echo "***************************************"
+  cd raxml-ng
+  mkdir -p build
+  cd build
+  cmake -DUSE_MPI=OFF -DBUILD_AS_LIBRARY=OFF .. || exit 1
+  cmake .. || exit 1
+  make -j 4 || exit 1
+  cd ../../
+}
+
+build_modeltest_lib() {
+  echo "******************************************"
+  echo "** Installing model-test-ng library ... **"
+  echo "******************************************"
   cd modeltest
   mkdir -p build
   cd build
-  cmake -DUSE_MPI=ON -DBUILD_AS_LIBRARY=ON ..
-  make
+  cmake -DUSE_MPI=ON -DBUILD_AS_LIBRARY=ON .. || exit 1
+  make -j 4 || exit 1
   cd ../../
 }
 
-build_mpi_scheduler
-build_raxml
-build_modeltest
+build_modeltest_exec() {
+  echo "******************************************"
+  echo "** Installing model-test-ng executable ... **"
+  echo "******************************************"
+  cd modeltest
+  mkdir -p build
+  cd build
+  cmake -DUSE_MPI=OFF -DBUILD_AS_LIBRARY=OFF -DUSE_LIBPLL_CMAKE=ON .. || exit 1
+  make -j 4 || exit 1
+  cd ../../
+}
 
-mpi_scheduler="`pwd`mpi-scheduler/build/mpi-scheduler"
-raxml="`pwd`/raxml-ng/bin/raxml-ng-mpi.so"
-modeltest="`pwd`/modeltest/bin/modeltest-ng"
 
+#build_mpi_scheduler
+#build_raxml_lib
+#build_raxml_exec
+build_modeltest_lib
+build_modeltest_exec
 
-echo "- mpi_scheduler executable built in ${mpi_scheduler}"
-echo "- raxml library built in ${raxml}"
-echo "- modeltest built in ${modeltest}"
 

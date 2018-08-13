@@ -24,4 +24,5 @@ before_script:
 
 script: 
   - ./install.sh
+  - ./install.sh
   
