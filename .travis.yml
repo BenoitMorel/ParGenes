@@ -15,7 +15,7 @@ addons:
       - mpich2 
       - mpich2-doc
       - libmpich-dev
-        #- libcr-dev 
+      - python3
 
 
 before_script:
@@ -24,5 +24,4 @@ before_script:
 
 script: 
   - ./install.sh
-  - ./install.sh
-  
+  - python3 tests/run_tests.py 
