@@ -62,9 +62,9 @@ build_modeltest_exec() {
 }
 
 
-#build_mpi_scheduler
-#build_raxml_lib
-#build_raxml_exec
+build_mpi_scheduler
+build_raxml_lib
+build_raxml_exec
 build_modeltest_lib
 build_modeltest_exec
 
