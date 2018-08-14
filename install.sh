@@ -18,7 +18,7 @@ build_raxml_lib() {
   cd raxml-ng
   mkdir -p build
   cd build
-  cmake -DUSE_MPI=ON -DBUILD_AS_LIBRARY=ON .. || exit 1
+  cmake -DUSE_TERRAPHAST=OFF -DUSE_MPI=ON -DBUILD_AS_LIBRARY=ON .. || exit 1
   make -j 4 || exit 1
   cd ../../
 }
@@ -30,7 +30,7 @@ build_raxml_exec() {
   cd raxml-ng
   mkdir -p build
   cd build
-  cmake -DUSE_MPI=OFF -DBUILD_AS_LIBRARY=OFF .. || exit 1
+  cmake -DUSE_TERRAPHAST=OFF -DUSE_MPI=OFF -DBUILD_AS_LIBRARY=OFF .. || exit 1
   cmake .. || exit 1
   make -j 4 || exit 1
   cd ../../
