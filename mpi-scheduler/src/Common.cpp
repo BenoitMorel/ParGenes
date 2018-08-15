@@ -33,7 +33,7 @@ int systemCall(const string &command, const string &outputFile,
 {
 
   if (threadSafe) {
-    return system(command.c_str());
+    return system((command + " > " + outputFile).c_str());
   } else {
     int result = 0;
     FILE *ptr, *file;
