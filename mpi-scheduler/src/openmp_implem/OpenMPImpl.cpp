@@ -21,19 +21,15 @@ int doWork(const CommandPtr command,
   Timer timer;
   string logsFile = Common::joinPaths(outputDir, "per_job_logs", command->getId() + "_out.txt");
   string runningFile = Common::joinPaths(outputDir, "running_jobs", command->getId());
-#pragma omp critical 
-  {
-    ofstream os(runningFile);
-    os << logsFile << endl;
-    os.close();
-  }
+  ofstream os(runningFile);
+  os << logsFile << endl;
+  os.close();
   const vector<string> &args  = command->getArgs();
   string systemCommand = execPath;
   for (auto &arg: args) {
     systemCommand = systemCommand + " " + arg;
   }
   result = systemCall(systemCommand, logsFile, true);
-#pragma omp critical 
   remove(runningFile.c_str());
   instance->setElapsedMs(timer.getElapsedMs());
   return result;
