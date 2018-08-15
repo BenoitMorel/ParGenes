@@ -18,7 +18,7 @@ import shutil
 
 def print_header():
   print("########################")
-  print("#    PARGENES v1.0.0   #")
+  print("#    PARGENES v1.0.1   #")
   print("########################")
   print("ParGenes was called as follow:")
   print(" ".join(sys.argv))
