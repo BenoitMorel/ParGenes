@@ -33,9 +33,31 @@ int systemCall(const string &command, const string &outputFile,
 {
 
   if (threadSafe) {
-    string finalCommand = command + " &> " + outputFile;
-    int res = system(finalCommand.c_str());
-    return res;
+    int result = 0;
+    FILE *ptr, *file;
+#ifdef WITH_OPENMP
+#pragma omp critical
+#endif
+    file = fopen(outputFile.c_str(), "w");
+    if (!file) {
+      cerr << "[MPIScheduler error] Cannot open output file " << outputFile << endl;
+      return 0;
+    }
+    if ((ptr = popen(command.c_str(), "r")) != NULL) {
+      char buf[BUFSIZ];
+      while (fgets(buf, BUFSIZ, ptr) != NULL) {
+#ifdef WITH_OPENMP
+#pragma omp critical
+#endif
+        fprintf(file, "%s", buf);
+      }
+      result = pclose(ptr);
+    }
+#ifdef WITH_OPENMP
+#pragma omp critical
+#endif
+    fclose(file);
+    return result;
   } else {
     int result = 0;
     FILE *ptr, *file;

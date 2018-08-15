@@ -51,7 +51,7 @@ def parse_arguments():
       dest="scheduler",
       choices=["split", "onecore", "openmp"],
       default="split",
-      help="Sceduling strategy. onecore might be interesting for debugging crashing jobs")
+      help="Sceduling strategy. Prefer split for multiple nodes platforms, and openmp else (for instance when running on your personal computer.")
   parser.add_argument("--core-assignment",
       dest="core_assignment",
       choices=["high", "medium", "low"],
