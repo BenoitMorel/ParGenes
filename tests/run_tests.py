@@ -13,7 +13,7 @@ example_msas = os.path.join(example_data_path, "fasta_files")
 example_raxml_options = os.path.join(example_data_path, "raxml_global_options.txt")
 tests_output_dir = os.path.join(tests_path, "tests_outputs")
 example_modeltest_parameters = os.path.join(example_data_path, "only_1_models.txt")
-schedulers = ["split", "openmp", "onecore"]
+schedulers = ["openmp", "split", "onecore"]
 
 def run_command(command, run_name):
   start_time = time.time()
