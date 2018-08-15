@@ -179,7 +179,7 @@ void CommandsRunner::runOpenMP()
     if (!instance->execute(instance)) {
       cout << "Failed to start command " << command->getId() << endl;
     } else {
-#pragma omg critical
+#pragma omp critical
       {
         _historic.push_back(instance);
         onFinishedInstance(instance);
