@@ -2,6 +2,8 @@
 
 A massively parallel tool for model selection and tree inference on thousands of genes
 
+## Features
+
 ParGenes is for you if:
 * you have several MSAs (typically gene alignments).
 * you want to run maximum likelihood tree inference (RAxML) independently on each of them. For instance, to get one gene tree per gene alignment.
@@ -17,10 +19,9 @@ In addition, ParGenes:
 
 ## Requirement
 
-* Git
+* gcc 5.0 or > (we did not try with clang yet)
 * CMake 3.6 or >
-* gcc 5.0 or >
-* Either MPI or OpenMP
+* Either MPI or OpenMP. MPI for multiple nodes parallelization.
 * Python 3
 
 ## Installation
@@ -41,7 +42,7 @@ See the wiki (https://github.com/BenoitMorel/ParGenes/wiki)
 
 ## Documentation and Support
 
-Documentation: in the [github wiki](https://github.com/BenoitMorel/ParGenes/wiki) (work in progress).
+Documentation: in the [github wiki](https://github.com/BenoitMorel/ParGenes/wiki).
 
 Also please check the online help with `python3 pargenes/pargenes.py --help`
 
