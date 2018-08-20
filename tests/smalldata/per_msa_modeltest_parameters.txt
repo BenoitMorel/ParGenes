@@ -1,0 +1,4 @@
+msa1.fasta -r 1
+msa2.fasta -r 2
+msa3.fasta -r 3
+msa4.fasta -r 4

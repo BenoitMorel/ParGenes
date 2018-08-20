@@ -1,0 +1,4 @@
+msa1.fasta --seed 1
+msa2.fasta --seed 2
+msa3.fasta --seed 3
+msa4.fasta --seed 4

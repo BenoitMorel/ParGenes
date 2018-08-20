@@ -8,7 +8,7 @@ import shlex
 tests_path = os.path.dirname(os.path.realpath(__file__)) 
 root = os.path.dirname(tests_path)
 pargenes_path = os.path.join(root, "pargenes", "pargenes.py")
-example_data_path = os.path.join(root, "examples", "data", "small")
+example_data_path = os.path.join(tests_path, "smalldata")
 example_msas = os.path.join(example_data_path, "fasta_files")
 example_raxml_options = os.path.join(example_data_path, "raxml_global_options.txt")
 tests_output_dir = os.path.join(tests_path, "tests_outputs")
@@ -70,7 +70,7 @@ def check_bootstraps(schedulers):
   command += "-r " + example_raxml_options + " "
   command += "-c 4 "
   command += "--scheduler " + scheduler
-  command += " -b 5"
+  command += " -b 3"
   run_command(command, "bootstraps" + schedulers )
 
 
