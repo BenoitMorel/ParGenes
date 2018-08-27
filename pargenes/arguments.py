@@ -34,6 +34,11 @@ def parse_arguments():
       dest="cores",
       type=int,
       help="The number of computational cores available for computation")
+  parser.add_argument("--seed", 
+      dest="seed",
+      type=int,
+      help="Random seed, for reproductibility of RAxML-NG runs. Set to 0 by default",
+      default=0)
   parser.add_argument("--continue",
       dest="do_continue",
       action="store_true",

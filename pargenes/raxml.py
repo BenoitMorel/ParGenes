@@ -168,7 +168,7 @@ def run(msas, random_trees, parsimony_trees, bootstraps, library, scheduler_mode
         writer.write(" --threads 1 ")
         if (starting_tree >= random_trees):
           writer.write(" --tree pars ")
-        writer.write(" --seed " + str(starting_tree + 1) + " ")
+        writer.write(" --seed " + str(starting_tree + op.seed + 1) + " ")
         writer.write("\n")
       bs_output_dir = os.path.join(mlsearch_run_bootstraps, name)
       commons.makedirs(bs_output_dir)
@@ -182,7 +182,7 @@ def run(msas, random_trees, parsimony_trees, bootstraps, library, scheduler_mode
         writer.write(" --msa " + msa_path + " " + msa.raxml_arguments)
         writer.write(" --prefix " + os.path.join(bs_output_dir, bsbase))
         writer.write(" --threads 1 ")
-        writer.write(" --seed " + str(current_bs + 1))
+        writer.write(" --seed " + str(current_bs + op.seed + 1))
         writer.write(" --bs-trees " + str(bs_number))
         writer.write("\n")
   scheduler.run_mpi_scheduler(library, scheduler_mode, commands_file, run_path, cores, op)  
