@@ -66,7 +66,7 @@ bool OpenMPInstance::execute(InstancePtr self)
   int res = 0;
   res = doWork(_command, self, _execPath, _outputDir);
   if (res) {
-    cerr << "Warning, command " << _command->getId() << " failed with code " << res << endl;
+    onFailure(res);
     return false;
   }
   return true;

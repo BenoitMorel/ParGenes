@@ -170,8 +170,7 @@ vector<InstancePtr> OneCoreRanksAllocator::checkFinishedInstances()
     instance->setStartingElapsedMS(endJobMsg[1]);
     instance->setElapsedMs(endJobMsg[2]);
     if (endJobMsg[0]) {
-      cerr << "Warning, command " << instance->getId() 
-           << " failed with return code " << endJobMsg[0] << endl;
+      instance->onFailure(endJobMsg[0]);
     }
     finished.push_back(instance);
     //_rankToInstances.erase(source);

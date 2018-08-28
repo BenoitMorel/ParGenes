@@ -48,6 +48,15 @@ void Instance::onFinished()
   _endTime = Common::getTime();
 }
 
+void Instance::onFailure(int errorCode)
+{
+    cerr << "Warning, command " << _command->getId() << " failed ";
+    if (errorCode) {
+      cerr << " with code " << errorCode;
+    }
+    cerr << endl;
+}
+
 static inline void rtrim(std::string &s) {
   s.erase(std::find_if(s.rbegin(), s.rend(), [](int ch) {
         return !std::isspace(ch);

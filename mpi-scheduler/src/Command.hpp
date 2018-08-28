@@ -60,6 +60,7 @@ public:
   virtual void writeSVGStatistics(SVGDrawer &drawer, const Time &initialTime); 
   const string &getId() const {return _command->getId();}
   virtual void onFinished();
+  virtual void onFailure(int errorCode = 0);
   int getStartingRank() const {return _startingRank;} 
   int getRanksNumber() const {return _ranksNumber;} 
   void setElapsedMs(int elapsed) {_elapsed = elapsed;}
