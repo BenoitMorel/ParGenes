@@ -28,6 +28,7 @@ def check_parse(run_dir):
     results = os.path.join(run_dir, "parse_run", "results", msa)
     rba = os.path.join(results, msa + ".raxml.rba")
     log = os.path.join(results, msa + ".raxml.log")
+    assert os.path.isdir(results)
     assert os.path.isfile(rba)
     assert os.path.isfile(log)
 
@@ -36,7 +37,14 @@ def check_modeltest(run_dir):
 
 def check_ml_search(run_dir):
   mlsearch_dir = os.path.join(run_dir, "mlsearch_run")
-  
+  assert len(os.listdir(os.path.join(mlsearch_dir, "running_jobs"))) == 0  
+  for msa in valid_msas:
+    results = os.path.join(mlsearch_dir, "results", msa)
+    assert os.path.isdir(results)
+    prefix = os.path.join(results, msa + ".raxml.")
+    assert os.path.isfile(prefix + "bestTree")
+    assert os.path.isfile(prefix + "bestModel")
+    assert os.path.isfile(prefix + "log")
 
 def check_all(run_dir, parse, modeltest, mlsearch):
   if (parse):
