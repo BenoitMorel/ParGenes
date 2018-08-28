@@ -35,7 +35,6 @@ int OneCoreSlave::main_core_slave(int argc, char **argv)
     if (SIGNAL_JOB == signal) {
       treatJobSlave();         
     } else if (SIGNAL_TERMINATE == signal) {
-      cout << "received terminate" << endl; 
       MPI_Finalize();
       break;
     }
@@ -122,7 +121,6 @@ bool OneCoreRanksAllocator::allRanksAvailable()
 void OneCoreRanksAllocator::terminate()
 {
   while (_availableCores.size()) {
-    cout << "send terminate to " << _availableCores.front() << endl;
     int signal = SIGNAL_TERMINATE;
     MPI_Send(&signal, 1, MPI_INT, _availableCores.front(), TAG_MASTER_SIGNAL, MPI_COMM_WORLD);
     _availableCores.pop();
