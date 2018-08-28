@@ -15,6 +15,38 @@ tests_output_dir = os.path.join(tests_path, "tests_outputs")
 example_modeltest_parameters = os.path.join(example_data_path, "only_1_models.txt")
 schedulers = ["openmp", "split", "onecore"]
 valid_msas = ["msa1_fasta", "msa2_fasta", "msa3_fasta", "msa4_fasta"]
+invalid_msas = ["msa5_fasta"]
+  
+
+def check_parse(run_dir):
+  invalid_msas_file = os.path.join(run_dir, "invalid_msas.txt")
+  assert os.path.isfile(invalid_msas_file)
+  lines = open(invalid_msas_file).readlines()
+  assert len(lines) == 1
+  assert lines[0][:-1] == invalid_msas[0]
+  for msa in valid_msas:
+    results = os.path.join(run_dir, "parse_run", "results", msa)
+    rba = os.path.join(results, msa + ".raxml.rba")
+    log = os.path.join(results, msa + ".raxml.log")
+    assert os.path.isfile(rba)
+    assert os.path.isfile(log)
+
+def check_modeltest(run_dir):
+  pass
+
+def check_ml_search(run_dir):
+  mlsearch_dir = os.path.join(run_dir, "mlsearch_run")
+  
+
+def check_all(run_dir, parse, modeltest, mlsearch):
+  if (parse):
+    check_parse(run_dir)
+  if (modeltest):
+    check_modeltest(run_dir)
+  if (mlsearch):
+    check_ml_search(run_dir)
+  
+
 
 def run_command(command, run_name):
   start_time = time.time()
@@ -24,11 +56,11 @@ def run_command(command, run_name):
     subprocess.check_call(shlex.split(command), stdout = out)
   print("Success! (" + str(int((time.time() - start_time))) + "s)")
 
-def check_help():
+def test_help():
   command = "python3 " + pargenes_path + " -h"
   run_command(command, "help")
 
-def check_ml_search(schedulers):
+def test_ml_search(schedulers):
   output = os.path.join(tests_output_dir, "test_ml_search", schedulers)
   try:
     shutil.rmtree(output)
@@ -41,9 +73,9 @@ def check_ml_search(schedulers):
   command += "-c 4 "
   command += "--scheduler " + scheduler
   run_command(command, "ml_search_" + schedulers )
+  check_all(output, True, False, True)
 
-
-def check_model_test(schedulers):
+def test_model_test(schedulers):
   output = os.path.join(tests_output_dir, "test_modeltest", schedulers)
   try:
     shutil.rmtree(output)
@@ -58,8 +90,9 @@ def check_model_test(schedulers):
   command += " -m"
   command += " --modeltest-global-parameters " + example_modeltest_parameters
   run_command(command, "modeltest_" + scheduler)
+  check_all(output, True, True, True)
 
-def check_bootstraps(schedulers):
+def test_bootstraps(schedulers):
   output = os.path.join(tests_output_dir, "test_bootstraps", schedulers)
   try:
     shutil.rmtree(output)
@@ -73,6 +106,7 @@ def check_bootstraps(schedulers):
   command += "--scheduler " + scheduler
   command += " -b 3"
   run_command(command, "bootstraps" + schedulers )
+  check_all(output, True, False, True)
 
 
 try:
@@ -80,9 +114,9 @@ try:
 except:
   pass
 
-check_help()
+test_help()
 
 for scheduler in schedulers:
-  check_ml_search(scheduler)
-  check_model_test(scheduler)
-  check_bootstraps(scheduler)
+  test_ml_search(scheduler)
+  test_model_test(scheduler)
+  test_bootstraps(scheduler)
