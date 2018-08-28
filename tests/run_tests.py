@@ -15,6 +15,7 @@ tests_output_dir = os.path.join(tests_path, "tests_outputs")
 example_modeltest_parameters = os.path.join(example_data_path, "only_1_models.txt")
 schedulers = ["openmp", "split", "onecore"]
 valid_msas = ["msa1_fasta", "msa2_fasta", "msa3_fasta", "msa4_fasta"]
+best_models = ["JC", "F81+G4", "JC", "JC"]
 invalid_msas = ["msa5_fasta"]
   
 
@@ -33,7 +34,12 @@ def check_parse(run_dir):
     assert os.path.isfile(log)
 
 def check_modeltest(run_dir):
-  pass
+  modeltest_dir = os.path.join(run_dir, "modeltest_run")
+  assert len(os.listdir(os.path.join(modeltest_dir, "running_jobs"))) == 0  
+  for msa in valid_msas:
+    results = os.path.join(modeltest_dir, "results", msa)
+    assert os.path.isdir(results)
+    assert os.path.isfile(os.path.join(results, msa + ".log"))
 
 def check_ml_search(run_dir):
   mlsearch_dir = os.path.join(run_dir, "mlsearch_run")
