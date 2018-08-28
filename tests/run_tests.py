@@ -15,7 +15,7 @@ tests_output_dir = os.path.join(tests_path, "tests_outputs")
 example_modeltest_parameters = os.path.join(example_data_path, "only_1_models.txt")
 schedulers = ["openmp", "split", "onecore"]
 valid_msas = ["msa1_fasta", "msa2_fasta", "msa3_fasta", "msa4_fasta"]
-best_models = ["JC", "F81+G4", "JC", "JC"]
+best_models = ["JC", "F81+FU", "JC", "JC"]
 invalid_msas = ["msa5_fasta"]
   
 
@@ -35,19 +35,27 @@ def check_parse(run_dir):
 
 def check_modeltest(run_dir):
   modeltest_dir = os.path.join(run_dir, "modeltest_run")
-  assert len(os.listdir(os.path.join(modeltest_dir, "running_jobs"))) == 0  
-  for msa in valid_msas:
+  assert len(os.listdir(os.path.join(modeltest_dir, "running_jobs"))) == 0 
+  mlsearch_dir = os.path.join(run_dir, "mlsearch_run")
+  assert len(os.listdir(os.path.join(mlsearch_dir, "running_jobs"))) == 0  
+  for msa, best_model in list(zip(valid_msas, best_models)):
     results = os.path.join(modeltest_dir, "results", msa)
     assert os.path.isdir(results)
     assert os.path.isfile(os.path.join(results, msa + ".log"))
+    results = os.path.join(mlsearch_dir, "results", msa)
+    bestModel = os.path.join(results, msa + ".raxml.bestModel")
+    assert os.path.isfile(bestModel)
+    model = open(bestModel).readlines()[0].split(",")[0].split("{")[0]
+    assert model == best_model
+
 
 def check_ml_search(run_dir):
   mlsearch_dir = os.path.join(run_dir, "mlsearch_run")
   assert len(os.listdir(os.path.join(mlsearch_dir, "running_jobs"))) == 0  
   for msa in valid_msas:
     results = os.path.join(mlsearch_dir, "results", msa)
-    assert os.path.isdir(results)
     prefix = os.path.join(results, msa + ".raxml.")
+    assert os.path.isdir(results)
     assert os.path.isfile(prefix + "bestTree")
     assert os.path.isfile(prefix + "bestModel")
     assert os.path.isfile(prefix + "log")
@@ -60,8 +68,6 @@ def check_all(run_dir, parse, modeltest, mlsearch):
   if (mlsearch):
     check_ml_search(run_dir)
   
-
-
 def run_command(command, run_name):
   start_time = time.time()
   logs = os.path.join(tests_output_dir, run_name + ".txt")
