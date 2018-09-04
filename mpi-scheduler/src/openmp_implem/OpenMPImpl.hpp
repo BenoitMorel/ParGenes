@@ -33,6 +33,7 @@ public:
 
   virtual ~OpenMPInstance() {}
   virtual bool execute(InstancePtr self);
+  virtual void onFailure(int errorCode = 0);
 private:
   string _execPath;
 };

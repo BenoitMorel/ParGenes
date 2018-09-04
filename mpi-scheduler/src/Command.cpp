@@ -5,6 +5,7 @@
 #include "SVGDrawer.hpp"
 #include <iostream>
 #include <sstream>
+#include <fstream>
 #include <iterator>
 #include <algorithm>
 
@@ -50,11 +51,14 @@ void Instance::onFinished()
 
 void Instance::onFailure(int errorCode)
 {
-    cerr << "Warning, command " << _command->getId() << " failed ";
-    if (errorCode) {
-      cerr << " with code " << errorCode;
-    }
-    cerr << endl;
+  string outputFile = Common::joinPaths(_outputDir, "failed_commands.txt");
+  ofstream os(outputFile, fstream::out | fstream::app);
+  os << _command->getId();
+  cerr << "Warning, command " << _command->getId() << " failed ";
+  if (errorCode) {
+    cerr << " with code " << errorCode;
+  }
+  cerr << endl;
 }
 
 static inline void rtrim(std::string &s) {

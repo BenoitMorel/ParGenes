@@ -71,5 +71,14 @@ bool OpenMPInstance::execute(InstancePtr self)
   }
   return true;
 }
+  
+void OpenMPInstance::onFailure(int errorCode)
+{
+#pragma omp critical
+  {
+    Instance::onFailure(errorCode);
+  }
+
+}
 
 }
