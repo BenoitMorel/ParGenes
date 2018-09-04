@@ -31,6 +31,12 @@ def timed_print(initial_time, msg):
   print("### [" + str(timedelta(seconds = int(elapsed))) + "] " + msg)
 
 
+def print_stats(op):
+  failed_commands = os.path.join(op.output_dir, "failed_commands.txt")
+  if (os.path.isfile(failed_commands)):
+    failed_number = len(open(failed_commands).readlines())
+    print("[Warning] Total number of jobs that failed: " + str(failed_number))
+    print("[Warning] For a detailed list, see " + failed_commands)
 
 def main_raxml_runner(op): 
   """ Run pargenes from the parsed arguments op """
@@ -96,6 +102,7 @@ def main_raxml_runner(op):
       bootstraps.run(output_dir, raxml_library, op.scheduler, os.path.join(output_dir, "supports_run"), op.cores, op)
       timed_print(start, "end of supports mpi-scheduler run")
       checkpoint.write_checkpoint(output_dir, 6)
+  print_stats(op)
   return 0
 
 save_cout = sys.stdout

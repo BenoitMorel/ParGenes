@@ -49,4 +49,13 @@ def run_mpi_scheduler(library, scheduler, commands_filename, output_dir, ranks, 
     print("mpi-scheduler execution failed with error code " + str(errorcode))
     print("Will now exit...")
     raise RuntimeError("mpi-scheduler  execution failed with error code " + str(errorcode))
+  failed_commands = os.path.join(output_dir, "failed_commands.txt")
+  if (os.path.isfile(failed_commands)):
+    accumulated_failed_commands = os.path.join(op.output_dir, "failed_commands.txt")
+    lines = open(failed_commands).readlines()
+    writer = open(accumulated_failed_commands, "a")
+    for line in lines:
+        writer.write(line)
+    print("[Warning] " + str(len(lines)) + " commands failed")
+
 

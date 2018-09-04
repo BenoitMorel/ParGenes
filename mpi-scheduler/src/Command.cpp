@@ -52,7 +52,10 @@ void Instance::onFinished()
 void Instance::onFailure(int errorCode)
 {
   string outputFile = Common::joinPaths(_outputDir, "failed_commands.txt");
+  bool exists = ifstream(outputFile.c_str()).good();
   ofstream os(outputFile, fstream::out | fstream::app);
+  if (exists)
+    os << endl;
   os << _command->getId();
   cerr << "Warning, command " << _command->getId() << " failed ";
   if (errorCode) {
