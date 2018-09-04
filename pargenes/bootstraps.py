@@ -5,6 +5,7 @@ import time
 import queue
 import concurrent.futures
 import scheduler
+import logger
 
 def run(output_dir, library, scheduler_mode, run_path, cores, op):
   """ Use the MPI scheduler to run raxml --support on all the MSAs. 
@@ -15,7 +16,7 @@ def run(output_dir, library, scheduler_mode, run_path, cores, op):
   commons.makedirs(run_path)
   support_results = os.path.join(run_path, "results")
   commons.makedirs(support_results)
-  print("Writing supports commands in " + commands_file)
+  logger.info("Writing supports commands in " + commands_file)
   with open(commands_file, "w") as writer:
     for fasta in os.listdir(ml_trees_dir):
       ml_tree = os.path.join(ml_trees_dir, fasta, fasta + ".raxml.bestTree")
@@ -46,8 +47,7 @@ def concatenate_bootstrap_msa(bootstraps_dir, concatenated_dir, msa_name):
             no_bs = False
             shutil.copyfileobj(reader, writer)
           except OSError as e:
-            print("ERROR!")
-            print("OS error when copying " + os.path.join(fasta_bs_dir, bs_file) + " to " + concatenated_file)
+            logger.error("OS error when copying " + os.path.join(fasta_bs_dir, bs_file) + " to " + concatenated_file)
             raise e
   if (no_bs or os.stat(concatenated_file).st_size == 0):
     os.remove(concatenated_file)

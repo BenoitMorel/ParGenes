@@ -4,7 +4,7 @@ import shutil
 import scheduler
 import concurrent.futures
 import pickle
-
+import logger
 
 
 def parse_msa_info(log_file, msa, core_assignment):
@@ -36,7 +36,7 @@ def parse_msa_info(log_file, msa, core_assignment):
       if "Minimum     number of threads / MPI processes" in line:
         msa.cores = int(line.split(": ")[1])
     else:
-      print("ERROR: unknown core_assignment " + core_assignment)
+      logger.error("Unknown core_assignment " + core_assignment)
   if (msa.per_taxon_clv_size * msa.taxa * msa.cores == 0):
     msa.valid = False
 
@@ -55,14 +55,13 @@ def improve_cores_assignment(msas, op):
   taxa_numbers.sort()
   average_taxa /= len(msas)
   average_sites /= len(msas)
-  print("Average number of taxa: " + str(average_taxa))
-  print("Max number of taxa: " + str(max_taxa))
-  print("Average number of sites: " + str(average_sites))
-  print("Max number of sites: " + str(max_sites))
+  logger.info("  Average number of taxa: " + str(int(average_taxa)))
+  logger.info("  Max number of taxa: " + str(max_taxa))
+  logger.info("  Average number of sites: " + str(int(average_sites)))
+  logger.info("  Max number of sites: " + str(max_sites))
   if (op.percentage_jobs_double_cores > 0.0):
     ratio = 1.0 - op.percentage_jobs_double_cores
     limit_taxa = taxa_numbers[int(float(len(msas)) * ratio)]
-    print("Limit taxa: " + str(limit_taxa))
     for name, msa in msas.items():
       if (msa.taxa < limit_taxa):
         if (msa.cores > 1):
@@ -78,13 +77,9 @@ def  predict_number_cores(msas, op):
       continue
     total_cost += msa.taxa * msa.per_taxon_clv_size
     worst_percpu_cost = max(worst_percpu_cost, (msa.taxa * msa.per_taxon_clv_size) // msa.cores)
-  #print("Total cost for one ML search: " + str(total_cost))
-  #print("Worst per cpu cost for one ML search: " + str(worst_percpu_cost))
-  #print("Number of ML searches per MSA: " + str(runs_number))
   cores = total_cost // worst_percpu_cost
   cores *= runs_number
-  print("Recommended number of cores: " + str(max(1, cores // 4)))
-  print("DISCLAIMER!!! Please note that this number is a rough estimate only.")
+  logger.info("  Recommended number of cores: " + str(max(1, cores // 4)))
 
 def run_parsing_step(msas, library, scheduler_mode, parse_run_output_dir, cores, op):
   """ Run raxml-ng --parse on each MSA to check it is valid and
@@ -127,7 +122,7 @@ def analyse_parsed_msas(msas, op):
   predict_number_cores(msas, op)
   if (len(invalid_msas) > 0):
     invalid_msas_file = os.path.join(output_dir, "invalid_msas.txt")
-    print("[Warning] Found " + str(len(invalid_msas)) + " invalid MSAs (see " + invalid_msas_file + ")") 
+    logger.warning("Found " + str(len(invalid_msas)) + " invalid MSAs (see " + invalid_msas_file + ")") 
     with open(invalid_msas_file, "w") as f:
       for msa in invalid_msas:
         f.write(msa.name + "\n")

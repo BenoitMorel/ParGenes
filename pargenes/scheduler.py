@@ -2,6 +2,7 @@ import sys
 import subprocess
 import os
 import commons
+import logger
 
 def get_mpi_scheduler_exec():
   """ Get the path to the mpi scheduler executable """
@@ -40,14 +41,14 @@ def run_mpi_scheduler(library, scheduler, commands_filename, output_dir, ranks, 
   
   logs_file = commons.get_log_file(output_dir, "logs")
   out = open(logs_file, "w")
-  print("Calling mpi-scheduler: " + " ".join(command))
-  print("Logs will be redirected to " + logs_file)
+  logger.info("Calling mpi-scheduler: " + " ".join(command))
+  logger.info("Logs will be redirected to " + logs_file)
   p = subprocess.Popen(command, stdout=out, stderr=out, env=my_env)
   p.wait()
   errorcode = p.returncode
   if (errorcode != 0):
-    print("mpi-scheduler execution failed with error code " + str(errorcode))
-    print("Will now exit...")
+    logger.error("mpi-scheduler execution failed with error code " + str(errorcode))
+    logger.error("Will now exit...")
     raise RuntimeError("mpi-scheduler  execution failed with error code " + str(errorcode))
   failed_commands = os.path.join(output_dir, "failed_commands.txt")
   if (os.path.isfile(failed_commands)):
@@ -56,6 +57,6 @@ def run_mpi_scheduler(library, scheduler, commands_filename, output_dir, ranks, 
     writer = open(accumulated_failed_commands, "a")
     for line in lines:
         writer.write(line)
-    print("[Warning] " + str(len(lines)) + " commands failed")
+    logger.warning(str(len(lines)) + " commands failed")
 
 

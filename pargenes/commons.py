@@ -1,4 +1,5 @@
 import os
+import logger
 
 def makedirs(path):
   """ Create a directory if it does not exists yet """
@@ -54,7 +55,7 @@ def add_per_msa_raxml_options(msas, options_file):
       split = line[:-1].split(" ")
       msa = get_msa_name(split[0])
       if (not msa in msas):
-        print("[Warning] Found msa " + msa + " in options file " + options_file + " but not in the msas directory")
+        logger.warning("Found msa " + msa + " in options file " + options_file + " but not in the msas directory")
         continue
       msas[msa].raxml_arguments += " " + " ".join(split[1:])
 
@@ -69,7 +70,7 @@ def add_per_msa_modeltest_options(msas, options_file):
       split = line[:-1].split(" ")
       msa = get_msa_name(split[0])
       if (not msa in msas):
-        print("[Warning] Found msa " + msa + " in options file " + options_file + " but not in the msas directory")
+        logger.warning("Found msa " + msa + " in options file " + options_file + " but not in the msas directory")
         continue
       msas[msa].modeltest_arguments += " " + " ".join(split[1:])
 
@@ -110,7 +111,7 @@ def init_msas(op):
       msas[name].modeltest_arguments += " -d aa"
   if (msa_filter != None): # check that all files in the filter are present in the directory
     for msa in msa_filter.values():
-      print("[Warning] File " + msa + " was found in the filter file, but not in the MSAs directory")
+      logger.warning("File " + msa + " was found in the filter file, but not in the MSAs directory")
   add_per_msa_raxml_options(msas, op.per_msa_raxml_parameters)
   add_per_msa_modeltest_options(msas, op.per_msa_modeltest_parameters)
   return msas

@@ -1,9 +1,10 @@
 import argparse
 import sys
 import os
+import logger
 
 def exit_msg(msg):
-  print(msg)
+  logger.error(msg)
   sys.exit(1)
 
 def check_argument_file(f, name):
