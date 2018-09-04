@@ -3,7 +3,7 @@ import commons
 import shutil
 import scheduler
 import concurrent.futures
-
+import pickle
 
 
 
@@ -107,13 +107,13 @@ def run_parsing_step(msas, library, scheduler_mode, parse_run_output_dir, cores,
       writer.write("\n")
   scheduler.run_mpi_scheduler(library, scheduler_mode, parse_commands_file, parse_run_output_dir, cores, op)  
  
-def analyse_parsed_msas(msas, op, output_dir):
+def analyse_parsed_msas(msas, op):
   """ Analyse results from run_parsing_step and store them into msas """
+  output_dir = op.output_dir
   core_assignment = op.core_assignment
   parse_run_output_dir = os.path.join(output_dir, "parse_run")
   parse_run_results = os.path.join(parse_run_output_dir, "results")
   invalid_msas = []
-  print("analyse_parsed_msas")
   count = 0
   for name, msa in msas.items():
     count += 1
@@ -131,6 +131,16 @@ def analyse_parsed_msas(msas, op, output_dir):
     with open(invalid_msas_file, "w") as f:
       for msa in invalid_msas:
         f.write(msa.name + "\n")
+  save_msas(msas, op)
+
+def save_msas(msas, op):
+  with open(os.path.join(op.output_dir, "parse_run", "msas_checkpoint.bin"), "ab") as f:
+    pickle.dump(msas, f, pickle.HIGHEST_PROTOCOL)      
+
+def load_msas(op):
+  with open(os.path.join(op.output_dir, "parse_run", "msas_checkpoint.bin"), "rb") as f:
+    return pickle.load(f)
+  
 
 def run(msas, random_trees, parsimony_trees, bootstraps, library, scheduler_mode, run_path, cores, op):
   """ Use the MPI scheduler_mode to run raxml-ng on all the dataset. 

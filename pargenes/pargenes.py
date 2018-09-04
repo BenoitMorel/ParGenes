@@ -52,7 +52,7 @@ def main_raxml_runner(op):
   sys.stdout = open(logs, "w")
   print_header()
   print("Checkpoint: " + str(checkpoint_index))
-  msas = commons.init_msas(op)
+  msas = None
   timed_print(start, "end of MSAs initializations")
   scriptdir = os.path.dirname(os.path.realpath(__file__))
   modeltest_run_path = os.path.join(output_dir, "modeltest_run")
@@ -64,10 +64,13 @@ def main_raxml_runner(op):
     raxml_library = os.path.join(scriptdir, "..", "raxml-ng", "bin", "raxml-ng-mpi.so")
     modeltest_library = os.path.join(scriptdir, "..", "modeltest", "build", "src", "modeltest-ng-mpi.so")
   if (checkpoint_index < 1):
+    msas = commons.init_msas(op)
     raxml.run_parsing_step(msas, raxml_library, op.scheduler, os.path.join(output_dir, "parse_run"), op.cores, op)
+    raxml.analyse_parsed_msas(msas, op)
     checkpoint.write_checkpoint(output_dir, 1)
     timed_print(start, "end of parsing mpi-scheduler run")
-  raxml.analyse_parsed_msas(msas, op, output_dir)
+  else:
+    msas = raxml.load_msas(op)
   if (op.dry_run):
     print("End of the dry run. Exiting")
     return 0
