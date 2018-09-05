@@ -93,12 +93,22 @@ def run_parsing_step(msas, library, scheduler_mode, parse_run_output_dir, cores,
     for name, msa in msas.items():
       fasta_output_dir = os.path.join(parse_run_results, name)
       commons.makedirs(fasta_output_dir)
+      if (op.use_modeltest):
+        if (not msa.has_model()):
+          # set a fake model to make raxml parsing happy
+          # if will be replaced after modeltest run
+          if (op.datatype == "aa"):
+            msa.set_model("WAG")
+          else:
+            msa.set_model("GTR")
       writer.write("parse_" + name + " 1 1 ")
       writer.write(" --parse ")
       writer.write(" --log DEBUG ")
       writer.write( " --msa " + msa.path + " " + msa.raxml_arguments)
       writer.write(" --prefix " + os.path.join(fasta_output_dir, name))
       writer.write(" --threads 1 ")
+        
+
       writer.write("\n")
   scheduler.run_mpi_scheduler(library, scheduler_mode, parse_commands_file, parse_run_output_dir, cores, op)  
  

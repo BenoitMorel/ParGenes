@@ -104,7 +104,6 @@ def test_model_test(schedulers):
   command = "python3 " + pargenes_path + " "
   command += "-a " + example_msas + " "
   command += "-o " + output + " "
-  command += "-r " + example_raxml_options + " "
   command += "-c 4 "
   command += "--scheduler " + scheduler
   command += " -m"
