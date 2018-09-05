@@ -10,6 +10,8 @@
 #include <algorithm>
 
 namespace MPIScheduler {
+  
+bool Instance::_jobFailureFatal = false;
 
 Command::Command(const string &id, 
     unsigned int ranks,
@@ -62,6 +64,10 @@ void Instance::onFailure(int errorCode)
     cerr << " with code " << errorCode;
   }
   cerr << endl;
+  if (_jobFailureFatal) {
+    cerr << "Job failures are fatal, aborting" << endl;
+    exit(242);
+  }
 }
 
 static inline void rtrim(std::string &s) {
@@ -139,14 +145,17 @@ CommandPtr CommandsContainer::getCommand(string id) const
 
 CommandsRunner::CommandsRunner(const CommandsContainer &commandsContainer,
       shared_ptr<RanksAllocator> allocator,
-      const string &outputDir):
+      const string &outputDir,
+      bool jobFailureFatal):
   _commandsContainer(commandsContainer),
   _outputDir(outputDir),
   _allocator(allocator),
   _checkpoint(outputDir),
   _finishedInstancesNumber(0),
-  _verbose(true)
+  _verbose(true),
+  _jobFailureFatal(jobFailureFatal)
 {
+  Instance::_jobFailureFatal = _jobFailureFatal;
   cout << "The master process runs on node " << Common::getHost() 
        << " and on pid " << Common::getPid() << endl;
   for (auto command: commandsContainer.getCommands()) {

@@ -68,6 +68,11 @@ def parse_arguments():
       action="store_true",
       default=False,
       help="Run the scheduler with valgrind")
+  parser.add_argument("--job-failure-fatal",
+      dest="job_failure_fatal",
+      action="store_true",
+      default=False,
+      help="Stop ParGenes when a job fails")
   # raxml arguments
   parser.add_argument("--per-msa-raxml-parameters", 
       dest="per_msa_raxml_parameters", 
