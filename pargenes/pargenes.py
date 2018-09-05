@@ -78,7 +78,7 @@ def main_raxml_runner(op):
       # then recompute the binary MSA files to put the correct model, and reevaluate the MSA sizes with the new models
       shutil.move(os.path.join(output_dir, "parse_run"), os.path.join(output_dir, "old_parse_run"))
       raxml.run_parsing_step(msas, raxml_library, op.scheduler, os.path.join(output_dir, "parse_run"), op.cores, op)
-      raxml.analyse_parsed_msas(msas, op, output_dir)
+      raxml.analyse_parsed_msas(msas, op)
       logger.timed_log(start, "end of the second parsing step") 
       checkpoint.write_checkpoint(output_dir, 2)
   if (checkpoint_index < 3):
