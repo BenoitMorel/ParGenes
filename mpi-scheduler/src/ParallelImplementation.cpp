@@ -17,7 +17,7 @@
 
 namespace MPIScheduler {
 
-ParallelImplementation::ParallelImplementation(const string implem): _rank(0), _ranksNumber(0) {
+ParallelImplementation::ParallelImplementation(const string &implem): _rank(0), _ranksNumber(0) {
   if (implem == "--split-scheduler")
     _impl = split;
   else if (implem == "--onecore-scheduler") 
@@ -95,7 +95,7 @@ void ParallelImplementation::startSlaves(int argc, char **argv) {
     if (_impl == split) {
       SplitSlave slave;
       slave.main_split_slave(argc, argv);
-    } else if (_impl = onecore) {
+    } else if (_impl == onecore) {
       OneCoreSlave slave;
       slave.main_core_slave(argc, argv);
     }

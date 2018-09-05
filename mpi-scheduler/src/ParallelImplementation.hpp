@@ -19,7 +19,7 @@ class ParallelImplementation {
     invalid
   };
 public:
-  ParallelImplementation(const string implem);
+  ParallelImplementation(const string &implem);
   bool isValid() const;
   int getRank() const;
   int getRanksNumber() const;
