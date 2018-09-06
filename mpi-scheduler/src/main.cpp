@@ -31,7 +31,7 @@ int main_scheduler(int argc, char **argv)
   }
   
   // Run 
-  CommandsRunner runner(commands, allocator, arg.outputDir);
+  CommandsRunner runner(commands, allocator, arg.outputDir, arg.jobFailureFatal);
   if (implem.isOpenMP()) {
     runner.runOpenMP();
   } else {

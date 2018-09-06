@@ -32,14 +32,28 @@ class MSA:
 
   def set_model(self, model):
     self.model = model
-
-  def set_model(self, model):
-    self.model = model
     args = self.raxml_arguments.split(" ")
+    model_set = False
     for index, obj in enumerate(args):
       if (obj == "--model"):
         args[index + 1] = self.model
+        model_set = True
+    if (not model_set):
+      args.append("--model")
+      args.append(model)
     self.raxml_arguments = " ".join(args)
+
+  def get_model(self):
+    if (self.model == ""):
+      args = self.raxml_arguments.split(" ")
+      for index, arg in enumerate(args):
+        if (arg == "--model"):
+          self.model = args[index + 1]
+          break
+    return self.model
+
+  def has_model(self):
+    return self.get_model() != ""
 
 def get_msa_name(msa_file):
   return msa_file.replace(".", "_")

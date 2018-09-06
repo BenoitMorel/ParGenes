@@ -38,7 +38,10 @@ def run_mpi_scheduler(library, scheduler, commands_filename, output_dir, ranks, 
   command.append(library)
   command.append(commands_filename)
   command.append(output_dir)
-  
+  if (op.job_failure_fatal):
+    command.append("1")
+  else:
+    command.append("0")
   logs_file = commons.get_log_file(output_dir, "logs")
   out = open(logs_file, "w")
   logger.info("Calling mpi-scheduler: " + " ".join(command))
@@ -46,7 +49,13 @@ def run_mpi_scheduler(library, scheduler, commands_filename, output_dir, ranks, 
   p = subprocess.Popen(command, stdout=out, stderr=out, env=my_env)
   p.wait()
   errorcode = p.returncode
-  if (errorcode != 0):
+  if (errorcode == 242):
+    if (op.job_failure_fatal):
+      logger.error("At least one job failed")
+      logger.error("Job failures are fatal. To continue when a job fails, do not set --job-failure-fatal")
+      logger.error("Aborting")
+      sys.exit(242)
+  if (errorcode != 0): 
     logger.error("mpi-scheduler execution failed with error code " + str(errorcode))
     logger.error("Will now exit...")
     raise RuntimeError("mpi-scheduler  execution failed with error code " + str(errorcode))

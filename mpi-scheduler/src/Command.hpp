@@ -66,6 +66,8 @@ public:
   void setElapsedMs(int elapsed) {_elapsed = elapsed;}
   virtual int getElapsedMs() const {return _elapsed;}
   void setStartingElapsedMS(int starting) {_startingElapsedMS = starting;}
+
+  static bool _jobFailureFatal;
 protected:
   const string &getOutputDir() {return _outputDir;}
   
@@ -97,7 +99,8 @@ class CommandsRunner {
 public:
   CommandsRunner(const CommandsContainer &commandsContainer,
       shared_ptr<RanksAllocator> allocator,
-      const string &outputDir);
+      const string &outputDir,
+      bool jobFailureFatal);
   void run();
   void runOpenMP();
   const InstancesHistoric &getHistoric() const {return _historic;} 
@@ -121,6 +124,7 @@ private:
   InstancesHistoric _historic;
   int _finishedInstancesNumber;
   bool _verbose;
+  bool _jobFailureFatal;
 };
 
 class RunStatistics {

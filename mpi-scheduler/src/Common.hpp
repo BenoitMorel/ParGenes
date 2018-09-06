@@ -112,7 +112,7 @@ public:
   SchedulerArgumentsParser(int argc, char** argv):
     commandsFilename()
   {
-    if (argc != 5) {
+    if (argc != 6) {
       print_help();
       throw MPISchedulerException("Error: invalid syntax");
     }
@@ -121,18 +121,20 @@ public:
     library = string(argv[i++]);
     commandsFilename = string(argv[i++]);
     outputDir = string(argv[i++]);
+    jobFailureFatal = atoi(argv[i++]);
   }
   
   void print_help() 
   {
     cout << "Syntax:" << endl;
-    cout << "multiraxml --split-scheduler library command_file output_dir" << endl;
+    cout << "mpi-scheduler implem library command_file output_dir job_failure_fatal" << endl;
   }
 
   string implem;
   string library;
   string commandsFilename;
   string outputDir;
+  int jobFailureFatal;
 };
 
 } // namespace MPIScheduler
