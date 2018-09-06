@@ -29,6 +29,17 @@ def run(msas, output_dir, library, run_path, op):
       writer.write("\n")
   scheduler.run_mpi_scheduler(library, op.scheduler, commands_file, run_path, cores, op)  
 
+def get_model_from_log(log_file, modeltest_criteria):
+  with open(log_file) as reader:
+    read_next_model = False
+    for line in reader.readlines():
+      if (line.startswith("Best model according to " + modeltest_criteria)):
+          read_next_model = True
+      if (read_next_model and line.startswith("Model")):
+        model = line.split(" ")[-1][:-1]
+        return model
+  return None
+
 def parse_modeltest_results(modeltest_criteria, msas, output_dir):
   """ Parse the results from the MPI scheduler run to get the best-fit model
   for each MSA """
@@ -39,18 +50,11 @@ def parse_modeltest_results(modeltest_criteria, msas, output_dir):
     if (not msa.valid):
       continue
     modeltest_outfile = os.path.join(modeltest_results, name, name + ".out")  
-    with open(modeltest_outfile) as reader:
-      read_next_model = False
-      for line in reader.readlines():
-        if (line.startswith("Best model according to " + modeltest_criteria)):
-            read_next_model = True
-        if (read_next_model and line.startswith("Model")):
-          model = line.split(" ")[-1][:-1]
-          msa.set_model(model)
-          if (not model in models):
-            models[model] = 0
-          models[model] += 1
-          break
+    model = get_model_from_log(modeltest_outfile, modeltest_criteria)
+    msa.set_model(model)
+    if (not model in models):
+       models[model] = 0
+       models[model] += 1
   # write a summary of the models
   with open(os.path.join(run_path, "summary.txt"), "w") as writer:
     for model, count in sorted(models.items(), key=lambda x: x[1], reverse=True):
