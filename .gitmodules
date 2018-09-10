@@ -1,6 +1,6 @@
 [submodule "modeltest"]
   path = modeltest
-	url = git://github.com/BenoitMorel/modeltest.git
+	url = https://github.com/BenoitMorel/modeltest.git
 [submodule "raxml-ng"]
   path = raxml-ng
   branch = dev
