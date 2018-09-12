@@ -3,9 +3,9 @@ import commons
 import shutil
 import time
 import queue
-import concurrent.futures
 import scheduler
 import logger
+import multiprocessing 
 
 def run(output_dir, library, scheduler_mode, run_path, cores, op):
   """ Use the MPI scheduler to run raxml --support on all the MSAs. 
@@ -57,9 +57,10 @@ def concatenate_bootstraps(output_dir, cores):
   concatenated_dir = os.path.join(output_dir, "concatenated_bootstraps")
   commons.makedirs(concatenated_dir)
   bootstraps_dir = os.path.join(output_dir, "mlsearch_run", "bootstraps")
-  with concurrent.futures.ThreadPoolExecutor(max_workers = min(16, int(cores))) as e:
-    for msa_name in os.listdir(bootstraps_dir):
-      e.submit(concatenate_bootstrap_msa, bootstraps_dir, concatenated_dir, msa_name) 
-
+  pool = multiprocessing.Pool(processes=min(multiprocessing.cpu_count(), int(cores)))
+  for msa_name in os.listdir(bootstraps_dir):
+    pool.apply_async(concatenate_bootstrap_msa, (bootstraps_dir, concatenated_dir, msa_name,))
+  pool.close()
+  pool.join()
 
 

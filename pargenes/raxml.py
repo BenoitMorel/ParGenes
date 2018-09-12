@@ -2,7 +2,7 @@ import os
 import commons
 import shutil
 import scheduler
-import concurrent.futures
+import multiprocessing
 import pickle
 import logger
 
@@ -236,9 +236,10 @@ def select_best_ml_tree_msa(msa, results_path, op):
 def select_best_ml_tree(msas, op):
   """ Run select_best_ml_tree_msa in parallel (one one single node) on all the MSAs """
   results_path = os.path.join(op.output_dir, "mlsearch_run", "results")
-  with concurrent.futures.ThreadPoolExecutor(max_workers = min(16, int(op.cores))) as e:
-    for name, msa in msas.items():
-      if (not msa.valid):
-        continue
-      e.submit(select_best_ml_tree_msa, msa, results_path, op) 
-
+  pool = multiprocessing.Pool(processes=min(multiprocessing.cpu_count(), int(op.cores)))
+  for name, msa in msas.items():
+    if (not msa.valid):
+      continue
+    pool.apply_async(select_best_ml_tree_msa, (msa, results_path, op,))
+  pool.close()
+  pool.join()
