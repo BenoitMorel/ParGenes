@@ -13,12 +13,12 @@ import shutil
 import logger
 
 
-def print_header():
+def print_header(args):
   logger.info("########################")
   logger.info("#    PARGENES v1.0.1   #")
   logger.info("########################")
   logger.info("ParGenes was called as follow:")
-  logger.info(" ".join(sys.argv))
+  logger.info(" ".join(args))
   logger.info("")
 
 
@@ -31,7 +31,7 @@ def print_stats(op):
     logger.info("[Warning] Total number of jobs that failed: " + str(failed_number))
     logger.info("[Warning] For a detailed list, see " + failed_commands)
 
-def main_raxml_runner(op): 
+def main_raxml_runner(args, op): 
   """ Run pargenes from the parsed arguments op """
   start = time.time()
   output_dir = op.output_dir
@@ -41,7 +41,7 @@ def main_raxml_runner(op):
     sys.exit(1)
   commons.makedirs(output_dir)
   logger.init_logger(op)
-  print_header()
+  print_header(args)
   msas = None
   logger.timed_log(start, "end of MSAs initializations")
   scriptdir = os.path.dirname(os.path.realpath(__file__))
@@ -98,16 +98,22 @@ def main_raxml_runner(op):
   print_stats(op)
   return 0
 
-print_header()
-start = time.time()
-ret = 0
-try:
-  ret =  main_raxml_runner(arguments.parse_arguments())
-except Exception as inst:
-  logger.info("[Error] " + str(type(inst)) + " " + str(inst)) 
-  sys.exit(1)
-end = time.time()
-logger.timed_log(start, "END OF THE RUN OF " + os.path.basename(__file__))
-if (ret != 0):
-  logger.info("Something went wrong, please check the logs") 
+def run_pargenes(args):
+  print_header(args)
+  start = time.time()
+  ret = 0
+  try:
+    ret =  main_raxml_runner(args, arguments.parse_arguments(args))
+  except Exception as inst:
+    logger.info("[Error] " + str(type(inst)) + " " + str(inst)) 
+    sys.exit(1)
+  end = time.time()
+  logger.timed_log(start, "END OF THE RUN OF " + os.path.basename(__file__))
+  if (ret != 0):
+    logger.info("Something went wrong, please check the logs") 
+
+
+if __name__ == '__main__':
+  run_pargenes(sys.argv)
+
 

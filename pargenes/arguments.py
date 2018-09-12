@@ -16,8 +16,8 @@ def check_argument_dir(f, name):
     exit_msg("Error: invalid " + name + " directory: " + f)
 
 # parse the command line and return the arguments
-def parse_arguments():
-  parser = argparse.ArgumentParser()
+def parse_arguments(args):
+  parser = argparse.ArgumentParser(args)
   # general arguments
   
   parser.add_argument("--dry-run",
