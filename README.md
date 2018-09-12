@@ -22,7 +22,6 @@ In addition, ParGenes:
 * gcc 5.0 or > (we did not try with clang yet)
 * CMake 3.6 or >
 * Either MPI or OpenMP. MPI for multiple nodes parallelization.
-* Python 3
 
 ## Installation
 
