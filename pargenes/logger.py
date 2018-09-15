@@ -5,6 +5,7 @@ import time
 from datetime import timedelta
 
 pargenes_logger = logging.getLogger('pargenes')
+logging.basicConfig()
 
 def init_logger(op):
   global pargenes_logger
