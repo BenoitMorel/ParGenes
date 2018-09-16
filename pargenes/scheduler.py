@@ -3,6 +3,7 @@ import subprocess
 import os
 import commons
 import logger
+import errorcodes
 
 def get_mpi_scheduler_exec():
   """ Get the path to the mpi scheduler executable """
@@ -66,6 +67,10 @@ def run_mpi_scheduler(library, scheduler, commands_filename, output_dir, ranks, 
     writer = open(accumulated_failed_commands, "a")
     for line in lines:
         writer.write(line)
-    logger.warning(str(len(lines)) + " commands failed")
-
-
+    
+    commands_number = len(open(commands_filename).readlines())
+    failed_commands_number = len(lines)
+    logger.warning(str(failed_commands) + "/" + str(commands_number) + " commands failed")
+    if (failed_commands_number == commands_number):
+      logger.error("All scheduled commands failed, aborting ParGenes...")
+      sys.exit(errorcodes.ERROR_ALL_COMMAND_FAILED)
