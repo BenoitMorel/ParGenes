@@ -1,6 +1,6 @@
 import os
 import logger
-
+import sys
 def makedirs(path):
   """ Create a directory if it does not exists yet """
   try:
@@ -19,7 +19,7 @@ class MSA:
   patterns = 0
   cores = 0
   model = ""
-  raxml_arguments = ""
+  raxml_args = []
   modeltest_arguments = ""
   flag_disable_sorting = False 
 
@@ -27,33 +27,35 @@ class MSA:
     self.name = name
     self.path = path
     self.valid = True
-    self.raxml_arguments = raxml_arguments
+    self.add_raxml_arguments_str(raxml_arguments)
     self.modeltest_arguments = modeltest_arguments
 
   def set_model(self, model):
     self.model = model
-    args = self.raxml_arguments.split(" ")
-    model_set = False
-    for index, obj in enumerate(args):
-      if (obj == "--model"):
-        args[index + 1] = self.model
-        model_set = True
-    if (not model_set):
-      args.append("--model")
-      args.append(model)
-    self.raxml_arguments = " ".join(args)
 
   def get_model(self):
-    if (self.model == ""):
-      args = self.raxml_arguments.split(" ")
-      for index, arg in enumerate(args):
-        if (arg == "--model"):
-          self.model = args[index + 1]
-          break
     return self.model
 
   def has_model(self):
     return self.get_model() != ""
+
+  def add_raxml_arguments_str(self, arguments_str):
+    self.add_raxml_arguments(arguments_str.split(" "))
+  
+  def add_raxml_arguments(self, arguments_list):
+    last_was_model = False
+    for arg in arguments_list:    
+      if (last_was_model):
+        self.set_model(arg)
+        last_was_model = False
+      elif (arg == "--model"):
+        last_was_model = True
+      else:
+        self.raxml_args.append(arg)
+
+  def get_raxml_arguments_str(self):
+    return " ".join(self.raxml_args) + " --model " + self.get_model()
+    
 
 def get_msa_name(msa_file):
   return msa_file.replace(".", "_")
@@ -71,7 +73,7 @@ def add_per_msa_raxml_options(msas, options_file):
       if (not msa in msas):
         logger.warning("Found msa " + msa + " in options file " + options_file + " but not in the msas directory")
         continue
-      msas[msa].raxml_arguments += " " + " ".join(split[1:])
+      msas[msa].add_raxml_arguments(split[1:])
 
 def add_per_msa_modeltest_options(msas, options_file):
   """ Read the per-msa modeltest options file, and append the options to
@@ -99,13 +101,25 @@ def get_filter_content(msa_filter):
       msas_to_process[msa] = msa
   return msas_to_process
 
+def exit_missing_model(msa):
+  logger.error("You forgot to specify the substitution model for at least one msa (" + msa.name + ")")
+  logger.error("To add it, you can either:")
+  logger.error("- add \"--model model\" in the raxml options (see --per-msa-raxml-parameters or --raxml-global-parameters in ParGenes arguments)")
+  logger.error("- let ModelTest find the best-fit model with -m")
+  logger.error("ParGenes will now abort")
+  sys.exit(30)
+
 def init_msas(op):
   """ Init the list of MSAs from the user input arguments """
   msas = {}
   raxml_options = ""
   modeltest_options = ""
   if (op.raxml_global_parameters != None):
-    raxml_options = open(op.raxml_global_parameters, "r").readlines()[0][:-1]
+    raxml_options = open(op.raxml_global_parameters, "r").readlines()
+    if (len(raxml_options) != 0):
+      raxml_options = raxml_options[0][:-1]
+    else:
+      raxml_options = ""
   if (op.raxml_global_parameters_string != None):
     raxml_options += " " + op.raxml_global_parameters_string
   if (op.modeltest_global_parameters != None):
@@ -128,6 +142,10 @@ def init_msas(op):
       logger.warning("File " + msa + " was found in the filter file, but not in the MSAs directory")
   add_per_msa_raxml_options(msas, op.per_msa_raxml_parameters)
   add_per_msa_modeltest_options(msas, op.per_msa_modeltest_parameters)
+  if (not op.use_modeltest):
+    for msa in msas.values():
+      if (not msa.has_model()):
+        exit_missing_model(msa)
   return msas
 
 def get_log_file(path, name, extension = "txt"):
