@@ -5,6 +5,11 @@ import commons
 import logger
 import errorcodes
 
+def print_help_in_error(output_dir):
+      logger.error("Please check the logs in " + os.path.join(output_dir, "logs.txt"))
+      logger.error("You might need to check individual runs in " + output_dir)
+      logger.error("In particular, logs in the subfolders \"per_job_logs\" and results in the folder \"results\"")
+
 def get_mpi_scheduler_exec():
   """ Get the path to the mpi scheduler executable """
   repo_root = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
@@ -54,6 +59,7 @@ def run_mpi_scheduler(library, scheduler, commands_filename, output_dir, ranks, 
     if (op.job_failure_fatal):
       logger.error("At least one job failed")
       logger.error("Job failures are fatal. To continue when a job fails, do not set --job-failure-fatal")
+      print_help_in_error(output_dir)
       logger.error("Aborting")
       sys.exit(242)
   if (errorcode != 0): 
@@ -70,7 +76,9 @@ def run_mpi_scheduler(library, scheduler, commands_filename, output_dir, ranks, 
     
     commands_number = len(open(commands_filename).readlines())
     failed_commands_number = len(lines)
-    logger.warning(str(failed_commands) + "/" + str(commands_number) + " commands failed")
+    logger.warning(str(failed_commands_number) + "/" + str(commands_number) + " commands failed")
     if (failed_commands_number == commands_number):
-      logger.error("All scheduled commands failed, aborting ParGenes...")
+      logger.error("All scheduled commands failed...")
+      print_help_in_error(output_dir)
+      logger.error("Aborting ParGenes...")
       sys.exit(errorcodes.ERROR_ALL_COMMAND_FAILED)
