@@ -5,3 +5,6 @@
   path = raxml-ng
   branch = dev
 	url = https://github.com/amkozlov/raxml-ng.git
+[submodule "MPIScheduler"]
+	path = MPIScheduler
+	url = https://github.com/BenoitMorel/MPIScheduler.git

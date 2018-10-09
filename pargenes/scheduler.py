@@ -13,7 +13,7 @@ def print_help_in_error(output_dir):
 def get_mpi_scheduler_exec():
   """ Get the path to the mpi scheduler executable """
   repo_root = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
-  return os.path.join(repo_root, "mpi-scheduler", "build", "mpi-scheduler")
+  return os.path.join(repo_root, "MPIScheduler", "build", "mpi-scheduler")
 
 def run_mpi_scheduler(library, scheduler, commands_filename, output_dir, ranks, op):
   """ Run the mpi scheduler program """

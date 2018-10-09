@@ -3,7 +3,7 @@ build_mpi_scheduler() {
   echo "*********************************"
   echo "** Installing mpi_scheduler... **"
   echo "*********************************"
-  cd mpi-scheduler
+  cd MPIScheduler
   mkdir -p build
   cd build
   cmake .. || exit 1

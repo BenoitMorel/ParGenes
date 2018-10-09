@@ -10,7 +10,7 @@ check_file_exists()
 
 check_file_exists "raxml-ng/bin/raxml-ng-mpi.so"
 check_file_exists "modeltest/build/src/modeltest-ng-mpi.so"
-check_file_exists "mpi-scheduler/build/mpi-scheduler"
+check_file_exists "MPIScheduler/build/mpi-scheduler"
 
 echo "End of checks... No error detected!"
 
