@@ -1,0 +1,3 @@
+msa2.fasta --model data/small/partition_files/msa2.part
+msa3.fasta --model data/small/partition_files/msa3.part
+msa4.fasta --model data/small/partition_files/msa4.part

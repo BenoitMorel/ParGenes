@@ -1,4 +1,4 @@
-msa1.fasta
 msa2.fasta
 msa3.fasta
+msa4.fasta
 i_do_not_exist.fasta
