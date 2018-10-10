@@ -7,7 +7,7 @@ build_mpi_scheduler() {
   mkdir -p build
   cd build
   cmake .. || exit 1
-  make -j 4 || exit 1
+  make -j 40 || exit 1
   cd ../..
 }
 
@@ -19,7 +19,7 @@ build_raxml_lib() {
   mkdir -p build
   cd build
   cmake -DUSE_TERRAPHAST=OFF -DUSE_MPI=ON -DBUILD_AS_LIBRARY=ON .. || exit 1
-  make -j 4 || exit 1
+  make -j 40 || exit 1
   cd ../../
 }
 
@@ -32,7 +32,7 @@ build_raxml_exec() {
   cd build
   cmake -DUSE_TERRAPHAST=OFF -DUSE_MPI=OFF -DBUILD_AS_LIBRARY=OFF .. || exit 1
   cmake .. || exit 1
-  make -j 4 || exit 1
+  make -j 40 || exit 1
   cd ../../
 }
 
@@ -44,7 +44,7 @@ build_modeltest_lib() {
   mkdir -p build
   cd build
   cmake -DUSE_MPI=ON -DBUILD_AS_LIBRARY=ON .. || exit 1
-  make -j 4 || exit 1
+  make -j 40 || exit 1
   cd ../../
 }
 
@@ -56,7 +56,7 @@ build_modeltest_exec() {
   mkdir -p build
   cd build
   cmake -DUSE_MPI=OFF -DBUILD_AS_LIBRARY=OFF -DUSE_LIBPLL_CMAKE=ON .. || exit 1
-  make -j 4 || exit 1
+  make -j 40 || exit 1
   cd ../../
 }
 
