@@ -102,7 +102,7 @@ def test_model_test(schedulers):
     shutil.rmtree(output)
   except:
     pass
-  command = "python3 " + pargenes_path + " "
+  command = "python " + pargenes_path + " "
   command += "-a " + example_msas + " "
   command += "-o " + output + " "
   command += "-c 4 "
@@ -118,7 +118,7 @@ def test_bootstraps(schedulers):
     shutil.rmtree(output)
   except:
     pass
-  command = "python3 " + pargenes_path + " "
+  command = "python " + pargenes_path + " "
   command += "-a " + example_msas + " "
   command += "-o " + output + " "
   command += "-r " + example_raxml_options + " "
