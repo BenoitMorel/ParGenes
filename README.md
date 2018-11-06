@@ -37,7 +37,7 @@ To build the sources:
 ```
 ## Running
 
-See the wiki (https://github.com/BenoitMorel/ParGenes/wiki)
+See the wiki (https://github.com/BenoitMorel/ParGenes/wiki/Running-ParGenes)
 
 ## Documentation and Support
 
