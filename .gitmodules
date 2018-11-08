@@ -7,4 +7,7 @@
 	url = https://github.com/amkozlov/raxml-ng.git
 [submodule "MPIScheduler"]
 	path = MPIScheduler
-	url = https://github.com/BenoitMorel/MPIScheduler.git
+  url = https://github.com/BenoitMorel/MPIScheduler.git
+[submodule "ASTRAL"]
+	path = ASTRAL
+	url = https://github.com/smirarab/ASTRAL.git
