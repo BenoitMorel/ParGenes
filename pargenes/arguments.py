@@ -34,7 +34,7 @@ def parse_arguments(args):
   parser.add_argument("-c", "--cores", 
       dest="cores",
       type=int,
-      help="The number of computational cores available for computation")
+      help="The number of computational cores available for computation. Should at least 2.")
   parser.add_argument("--seed", 
       dest="seed",
       type=int,
@@ -140,6 +140,7 @@ def parse_arguments(args):
   check_argument_file(op.raxml_global_parameters, "raxml_global_parameters")
   check_argument_file(op.per_msa_modeltest_parameters, "per_msa_modeltest_parameters")
   check_argument_file(op.modeltest_global_parameters, "modeltest_global_parameters")
-
+  if (op.cores < 2):
+    exit_msg("Please set the number of cores (--cores or -c) to at least 2")
   return op
 
