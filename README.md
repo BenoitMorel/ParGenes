@@ -28,7 +28,7 @@ In addition, ParGenes:
 Please use git,  and clone with --recursive!!!
 
 ```
-git clone --recursive git@github.com:BenoitMorel/ParGenes.git
+git clone --recursive https://github.com/BenoitMorel/ParGenes.git
 ```
 
 To build the sources:
@@ -37,7 +37,7 @@ To build the sources:
 ```
 ## Running
 
-See the wiki (https://github.com/BenoitMorel/ParGenes/wiki)
+See the wiki (https://github.com/BenoitMorel/ParGenes/wiki/Running-ParGenes)
 
 ## Documentation and Support
 
