@@ -125,6 +125,15 @@ def parse_arguments(args):
       type=int,
       default=16,
       help="Number of cores to assign to each modeltest core (at least 4)")
+  # astral arguments
+  parser.add_argument("--use-astral",
+      dest="use_astral",
+      action="store_true",
+      default=False,
+      help="Infer a species tree with astral")
+  parser.add_argument("--astral-global-parameters", 
+      dest="astral_global_parameters", 
+      help="A file containing additional parameters to pass to astral")
   # experiments
   parser.add_argument("--experiment-disable-jobs-sorting",
       dest="disable_job_sorting",
