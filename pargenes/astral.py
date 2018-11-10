@@ -5,10 +5,18 @@ import subprocess
 def get_gene_trees_file(pargenes_dir):
   return os.path.join(pargenes_dir, "astral_run", "gene_trees.newick")
 
-def extract_gene_trees_ml(pargenes_dir, gene_trees_filename):
-  #results = os.path.join(pargenes_dir, "supports_run", "results")
-  print("not supported yet")
-  exit(1)
+def extract_gene_trees_support(pargenes_dir, gene_trees_filename):
+  results = os.path.join(pargenes_dir, "supports_run", "results")
+  count = 0
+  with open(gene_trees_filename, "w") as writer:
+    for f in os.listdir(results):
+      if (f.ends_with(".raxml.support")):
+        with open(f) as reader:
+          writer.write(reader.read())
+        count += 1
+      except:
+        continue
+  print("ParGenes/Astral: " + str(count) + " gene trees (with support values) were found in ParGenes output directory")
   
 def extract_gene_trees_ml(pargenes_dir, gene_trees_filename):
   results = os.path.join(pargenes_dir, "mlsearch_run", "results")
@@ -16,14 +24,13 @@ def extract_gene_trees_ml(pargenes_dir, gene_trees_filename):
   with open(gene_trees_filename, "w") as writer:
     for msa in os.listdir(results):
       tree_file = os.path.join(results, msa, msa + ".raxml.bestTree")
-      print(tree_file)
       try:
         with open(tree_file) as reader:
           writer.write(reader.read())
         count += 1
       except:
         continue
-  print("Astral: " + str(count) + " trees were found in ParGenes output directory")
+  print("ParGenes/Astral: " + str(count) + " trees were found in ParGenes output directory")
   
   
 def extract_gene_trees(pargenes_dir, gene_trees_filename):
