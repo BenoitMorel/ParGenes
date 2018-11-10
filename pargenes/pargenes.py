@@ -11,7 +11,7 @@ import scheduler
 import checkpoint
 import shutil
 import logger
-
+import astral
 
 def print_header(args):
   logger.info("########################")
@@ -40,7 +40,7 @@ def main_raxml_runner(args, op):
     logger.info("[Error] The output directory " + output_dir + " already exists. Please use another output directory or run with --continue.")
     sys.exit(1)
   commons.makedirs(output_dir)
-  logger.init_logger(op)
+  logger.init_logger(op.output_dir)
   print_header(args)
   msas = None
   logger.timed_log(start, "end of MSAs initializations")
@@ -95,6 +95,11 @@ def main_raxml_runner(args, op):
       bootstraps.run(output_dir, raxml_library, op.scheduler, os.path.join(output_dir, "supports_run"), op.cores, op)
       logger.timed_log(start, "end of supports mpi-scheduler run")
       checkpoint.write_checkpoint(output_dir, 6)
+  if (op.use_astral):
+    if (checkpoint_index < 7):
+      astral_jar = os.path.join(scriptdir, "..", "ASTRAL", "Astral", "astral.jar")
+      astral.run_astral_pargenes(astral_jar,  op)
+      checkpoint.write_checkpoint(output_dir, 7)
   print_stats(op)
   return 0
 

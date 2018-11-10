@@ -60,11 +60,21 @@ build_modeltest_exec() {
   cd ../../
 }
 
+build_astral() {
+  echo "******************************************"
+  echo "** Installing ASTRAL...                 **"
+  echo "******************************************"
+  cd ASTRAL
+  unzip -o *.zip
+  cd Astral
+  mv astral.5.6.3.jar astral.jar
+  cd ../../
+}
 
 build_mpi_scheduler
 build_raxml_lib
 build_raxml_exec
 build_modeltest_lib
 build_modeltest_exec
-
+build_astral
 

@@ -7,10 +7,9 @@ from datetime import timedelta
 pargenes_logger = logging.getLogger("pargenes")
 pargenes_logger.addHandler(logging.StreamHandler(sys.stdout))
 
-def init_logger(op):
+def init_logger(output_dir):
   global pargenes_logger
-  print("init logger")
-  logs = commons.get_log_file(op.output_dir, "pargenes_logs")
+  logs = commons.get_log_file(output_dir, "pargenes_logs")
   pargenes_logger.addHandler(logging.FileHandler(logs))
 
 def info(msg):
