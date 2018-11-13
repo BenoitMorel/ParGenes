@@ -10,23 +10,24 @@ def makedirs(path):
 
 class MSA:
   """ group all the information related to one MSA """
-  name = ""
-  path = ""
-  binary_path = ""
-  valid = True
-  taxa = 0
-  per_taxon_clv_size = 0
-  patterns = 0
-  cores = 0
-  model = ""
-  raxml_args = []
-  modeltest_arguments = ""
-  flag_disable_sorting = False 
 
   def __init__(self, name, path, raxml_arguments, modeltest_arguments):
+    self.name = ""
+    self.path = ""
+    self.binary_path = ""
+    self.valid = True
+    self.taxa = 0
+    self.per_taxon_clv_size = 0
+    self.patterns = 0
+    self.cores = 0
+    self.model = ""
+    self.raxml_args = []
+    self.modeltest_arguments = ""
+    self.flag_disable_sorting = False 
     self.name = name
     self.path = path
     self.valid = True
+
     self.add_raxml_arguments_str(raxml_arguments)
     self.modeltest_arguments = modeltest_arguments
 
@@ -52,7 +53,7 @@ class MSA:
         last_was_model = True
       else:
         self.raxml_args.append(arg)
-
+  
   def get_raxml_arguments_str(self):
     return " ".join(self.raxml_args) + " --model " + self.get_model()
     
@@ -73,6 +74,7 @@ def add_per_msa_raxml_options(msas, options_file):
       if (not msa in msas):
         logger.warning("Found msa " + msa + " in options file " + options_file + " but not in the msas directory")
         continue
+      print("from add_per_msa PLOOP")
       msas[msa].add_raxml_arguments(split[1:])
 
 def add_per_msa_modeltest_options(msas, options_file):
