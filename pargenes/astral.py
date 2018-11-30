@@ -5,6 +5,9 @@ import arguments
 import logger
 import time
 
+def treat_newick(newick):
+  return newick.replace("@", "at")
+
 def get_gene_trees_file(pargenes_dir):
   return os.path.join(pargenes_dir, "astral_run", "gene_trees.newick")
 
@@ -15,7 +18,7 @@ def extract_gene_trees_support(pargenes_dir, gene_trees_filename):
     for f in os.listdir(results):
       if (f.ends_with(".raxml.support")):
         with open(f) as reader:
-          writer.write(reader.read())
+          writer.write(treat_newick(reader.read()))
         count += 1
   logger.info("ParGenes/Astral: " + str(count) + " gene trees (with support values) were found in ParGenes output directory")
   
@@ -27,7 +30,7 @@ def extract_gene_trees_ml(pargenes_dir, gene_trees_filename):
       tree_file = os.path.join(results, msa, msa + ".raxml.bestTree")
       try:
         with open(tree_file) as reader:
-          writer.write(reader.read())
+          writer.write(treat_newick(reader.read()))
         count += 1
       except:
         continue

@@ -22,10 +22,22 @@ def extract_file(file_path, title, writer):
   try:
     while(True):
       f = open(file_path[:-4] + "_" + str(iteration) + ".txt")
-      print("[Report] Checkpoint " + str(iteration))
+      writer.write("[Report] Checkpoint " + str(iteration) + "\n")
       writer.write(f.read() + "\n")
+      iteration = iteration + 1
   except:
     pass
+
+def extract_directory_content(dir_path, title, writer):
+  write_header(writer, title)
+  try:
+    writer.write("Content of directory " + dir_path + ":\n")
+    for doc in os.listdir(dir_path):
+      writer.write(doc + "\n")
+    writer.write("\n")
+  except:
+    writer.write("Failed to get content of directory " + dir_path + "\n")
+
 
 
 def report(pargenes_dir, output):
@@ -52,6 +64,11 @@ def report(pargenes_dir, output):
       command_logs = os.path.join(step_dir, "parse" + "_command.txt")
     extract_file(command_logs, step + " commands", writer)
     extract_file(failures_logs, step + " failed commands", writer)
+
+  for step in steps:
+    step_dir = os.path.join(pargenes_dir, step + "_run")
+    running_dir = os.path.join(step_dir, "running_jobs")
+    extract_directory_content(running_dir, step + " running jobs", writer)
 
 if (len(sys.argv) != 3):
   print("Syntax: python report.py pargenes_directory report_file")
