@@ -1,6 +1,8 @@
 import os
 import logger
 import sys
+import report
+
 def makedirs(path):
   """ Create a directory if it does not exists yet """
   try:
@@ -103,13 +105,13 @@ def get_filter_content(msa_filter):
       msas_to_process[msa] = msa
   return msas_to_process
 
-def exit_missing_model(msa):
+def exit_missing_model(msa, output_dir):
   logger.error("You forgot to specify the substitution model for at least one msa (" + msa.name + ")")
   logger.error("To add it, you can either:")
   logger.error("- add \"--model model\" in the raxml options (see --per-msa-raxml-parameters or --raxml-global-parameters in ParGenes arguments)")
   logger.error("- let ModelTest find the best-fit model with -m")
   logger.error("ParGenes will now abort")
-  sys.exit(30)
+  report.report_and_exit(op.output_dir, 30)
 
 def init_msas(op):
   """ Init the list of MSAs from the user input arguments """
@@ -147,7 +149,7 @@ def init_msas(op):
   if (not op.use_modeltest):
     for msa in msas.values():
       if (not msa.has_model()):
-        exit_missing_model(msa)
+        exit_missing_model(msa, op.output_dir)
   return msas
 
 def get_log_file(path, name, extension = "txt"):

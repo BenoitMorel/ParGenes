@@ -1,5 +1,6 @@
 import sys
 import os
+import logger
 
 def write_header(writer, title):
     title = "** " + "[REPORT] " + title + " **"
@@ -70,14 +71,23 @@ def report(pargenes_dir, output):
     running_dir = os.path.join(step_dir, "running_jobs")
     extract_directory_content(running_dir, step + " running jobs", writer)
 
-if (len(sys.argv) != 3):
-  print("Syntax: python report.py pargenes_directory report_file")
-  print("  pargenes directory is the path to your pargenes run (corresponds to -o when you called pargenes)")
-  print("  report_file is the path to the report file that will be generated (for instance report.txt)")
-  print("When reporting an issue, please send us the report_file")
-  sys.exit(1)
+def report_and_exit(output_dir, exit_code):
+  report_file = os.path.abspath(os.path.join(output_dir, "report.txt"))
+  logger.info("Writing report file in " + report_file)
+  logger.info("When reporting the issue, please always send us this file.")
+  report(output_dir, report_file)
+  sys.exit(exit_code)
 
-pargenes_dir = sys.argv[1]
-output = sys.argv[2]
+if __name__ == '__main__':
 
-report(pargenes_dir, output)
+  if (len(sys.argv) != 3):
+    print("Syntax: python report.py pargenes_directory report_file")
+    print("  pargenes directory is the path to your pargenes run (corresponds to -o when you called pargenes)")
+    print("  report_file is the path to the report file that will be generated (for instance report.txt)")
+    print("When reporting an issue, please send us the report_file")
+    sys.exit(1)
+
+  pargenes_dir = sys.argv[1]
+  output = sys.argv[2]
+
+  report(pargenes_dir, output)

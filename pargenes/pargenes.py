@@ -12,6 +12,7 @@ import checkpoint
 import shutil
 import logger
 import astral
+import report
 
 def print_header(args):
   logger.info("########################")
@@ -108,10 +109,15 @@ def run_pargenes(args):
   start = time.time()
   ret = 0
   try:
-    ret =  main_raxml_runner(args, arguments.parse_arguments(args))
+    op = arguments.parse_arguments(args)
   except Exception as inst:
     logger.info("[Error] " + str(type(inst)) + " " + str(inst)) 
     sys.exit(1)
+  try:
+    ret =  main_raxml_runner(args, op)
+  except Exception as inst:
+    logger.info("[Error] " + str(type(inst)) + " " + str(inst)) 
+    report.report_and_exit(op.output_dir, 1)
   end = time.time()
   logger.timed_log(start, "END OF THE RUN OF " + os.path.basename(__file__))
   if (ret != 0):

@@ -4,6 +4,7 @@ import subprocess
 import arguments
 import logger
 import time
+import report
 
 def treat_newick(newick):
   return newick.replace("@", "at")
@@ -90,7 +91,7 @@ def run_astral(pargenes_dir, astral_jar, parameters_file):
   p.wait()
   if (0 != p.returncode):
     logger.error("Astral execution failed")
-    exit(1)
+    report.report_and_exit(op.output_dir, 1)
 
 
 def run_astral_pargenes(astral_jar, op):

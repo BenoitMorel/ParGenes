@@ -2,6 +2,7 @@ import os
 import commons
 import scheduler
 import logger
+import report
 
 def run(msas, output_dir, library, run_path, op): 
   """ Use the MPI scheduler to run modeltest on all the MSAs"""
@@ -12,7 +13,7 @@ def run(msas, output_dir, library, run_path, op):
   commons.makedirs(modeltest_results)
   if (op.modeltest_cores < 4):
     logger.error("The number of cores per modeltest job should at least be 4")
-    sys.exit(1)
+    report.report_and_exit(op.output_dir, 1)
   with open(commands_file, "w") as writer:
     for name, msa in msas.items():
       if (not msa.valid):

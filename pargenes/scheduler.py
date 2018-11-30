@@ -61,7 +61,7 @@ def run_mpi_scheduler(library, scheduler, commands_filename, output_dir, ranks, 
       logger.error("Job failures are fatal. To continue when a job fails, do not set --job-failure-fatal")
       print_help_in_error(output_dir)
       logger.error("Aborting")
-      sys.exit(242)
+      report.report_and_exit(op.output_dir, 242)
   if (errorcode != 0): 
     logger.error("mpi-scheduler execution failed with error code " + str(errorcode))
     logger.error("Will now exit...")
@@ -81,4 +81,4 @@ def run_mpi_scheduler(library, scheduler, commands_filename, output_dir, ranks, 
       logger.error("All scheduled commands failed...")
       print_help_in_error(output_dir)
       logger.error("Aborting ParGenes...")
-      sys.exit(errorcodes.ERROR_ALL_COMMAND_FAILED)
+      report.report_and_exit(op.output_dir, errorcodes.ERROR_ALL_COMMAND_FAILED)
