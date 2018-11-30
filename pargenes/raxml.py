@@ -218,18 +218,33 @@ def select_best_ml_tree_msa(msa, results_path, op):
   name = msa.name
   msa_results_path = os.path.join(results_path, name)
   msa_multiple_results_path = os.path.join(msa_results_path, "multiple_runs")
+  all_ml_trees = os.path.join(msa_results_path, "sorted_ml_trees.newick")
+  all_ml_trees_ll = os.path.join(msa_results_path, "sorted_ml_trees_ll.newick")
   best_ll = -float('inf')
   best_starting_tree = 0
+  ll_and_trees = []
   for starting_tree in range(0, op.random_starting_trees + op.parsimony_starting_trees):
     raxml_logs = os.path.join(msa_multiple_results_path, str(starting_tree), name + ".raxml.log")
     ll = extract_ll_from_raxml_logs(raxml_logs)
+    ll_and_trees.append((ll, starting_tree))
     if (ll > best_ll):
       best_ll = ll
       best_starting_tree = starting_tree
+  #logger.info(ll_and_tree)
   directory_to_copy = os.path.join(msa_multiple_results_path, str(best_starting_tree))
   files_to_copy = os.listdir(directory_to_copy)
   for f in files_to_copy:
     shutil.copy(os.path.join(directory_to_copy, f), msa_results_path)
+  
+  with open(all_ml_trees, "w") as writer:
+    for tree in sorted(ll_and_trees, key=lambda x: x[0], reverse=True):
+      tree_file = os.path.join(msa_multiple_results_path, str(tree[1]), name + ".raxml.bestTree")
+      writer.write(open(tree_file).read())
+  with open(all_ml_trees_ll, "w") as writer:
+    for tree in sorted(ll_and_trees, key=lambda x: x[0], reverse=True):
+      tree_file = os.path.join(msa_multiple_results_path, str(tree[1]), name + ".raxml.bestTree")
+      writer.write(str(tree[0]) + " ")
+      writer.write(open(tree_file).read())
 
 
 

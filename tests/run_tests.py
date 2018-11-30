@@ -92,7 +92,8 @@ def test_ml_search(schedulers):
   command += "-o " + output + " "
   command += "-r " + example_raxml_options + " "
   command += "-c 4 "
-  command += "--scheduler " + scheduler
+  command += "--scheduler " + scheduler + " "
+  command += "-s 3 -p 3 "
   run_command(command, "ml_search_" + schedulers )
   check_all(output, True, False, True)
 
