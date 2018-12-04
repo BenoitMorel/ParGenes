@@ -50,13 +50,20 @@ def parse_modeltest_results(modeltest_criteria, msas, output_dir):
   for name, msa in msas.items():
     if (not msa.valid):
       continue
-    modeltest_outfile = os.path.join(modeltest_results, name, name + ".out")  
-    model = get_model_from_log(modeltest_outfile, modeltest_criteria)
-    msa.set_model(model)
-    if (not model in models):
-       models[model] = 0
-       models[model] += 1
-  # write a summary of the models
+    try:
+      modeltest_outfile = os.path.join(modeltest_results, name, name + ".out")  
+      model = get_model_from_log(modeltest_outfile, modeltest_criteria)
+      if (model == None):
+        msa.valid = False
+        continue
+      msa.set_model(model)
+      if (not model in models):
+         models[model] = 0
+         models[model] += 1
+    except:
+      msa.valid = False
+      continue
+    # write a summary of the models
   with open(os.path.join(run_path, "summary.txt"), "w") as writer:
     for model, count in sorted(models.items(), key=lambda x: x[1], reverse=True):
       writer.write(model + " " + str(count) + "\n")
