@@ -1,6 +1,7 @@
 import sys
 import os
 import logger
+import subprocess
 
 def write_header(writer, title):
     title = "** " + "[REPORT] " + title + " **"
@@ -39,6 +40,21 @@ def extract_directory_content(dir_path, title, writer):
   except:
     writer.write("Failed to get content of directory " + dir_path + "\n")
 
+def call_and_log(command, path, writer):
+  write_header(writer, " ".join(command) + ":")
+  writer.flush()
+  subprocess.check_call(command, cwd = path, stdout = writer)
+  writer.flush()
+  writer.write("\n")
+
+def extract_git(writer):
+  try:
+    gitpath = os.path.dirname(os.path.realpath(__file__))
+    call_and_log(["git", "log", "HEAD^..HEAD"], gitpath, writer)
+    call_and_log(["git", "status"], gitpath, writer)
+    call_and_log(["git", "diff"], gitpath, writer)
+  except:
+    writer.write("failed to get ParGenes git commit\n")
 
 
 def report(pargenes_dir, output):
@@ -70,6 +86,9 @@ def report(pargenes_dir, output):
     step_dir = os.path.join(pargenes_dir, step + "_run")
     running_dir = os.path.join(step_dir, "running_jobs")
     extract_directory_content(running_dir, step + " running jobs", writer)
+  
+  extract_git(writer)
+  writer.close()
 
 def report_and_exit(output_dir, exit_code):
   report_file = os.path.abspath(os.path.join(output_dir, "report.txt"))
