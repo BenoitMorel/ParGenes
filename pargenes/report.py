@@ -53,7 +53,10 @@ def extract_running_logs(running_dir, logs_dir, writer):
 def call_and_log(command, path, writer):
   write_header(writer, " ".join(command) + ":")
   writer.flush()
-  subprocess.check_call(command, cwd = path, stdout = writer)
+  if (len(path) > 0):
+    subprocess.check_call(command, cwd = path, stdout = writer)
+  else:
+    subprocess.check_call(command, stdout = writer)
   writer.flush()
   writer.write("\n")
 
@@ -66,6 +69,17 @@ def extract_git(writer):
   except:
     writer.write("failed to get ParGenes git commit\n")
 
+def extract_mpi(writer):
+  try: 
+    call_and_log(["mpiexec", "--version"], "", writer)
+  except:
+    writer.write("Could not get mpi version")
+
+def extract_arch(writer):
+  try: 
+    call_and_log(["lscpu"], "", writer)
+  except:
+    writer.write("Could not get architecture information")
 
 def report(pargenes_dir, output):
   writer = open(output, "w")
@@ -104,6 +118,8 @@ def report(pargenes_dir, output):
     extract_running_logs(running_dir, logs_dir, writer)
   
   extract_git(writer)
+  extract_mpi(writer)
+  extract_arch(writer)
   writer.close()
 
 def report_and_exit(output_dir, exit_code):
