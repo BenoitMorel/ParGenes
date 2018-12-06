@@ -39,6 +39,16 @@ def extract_directory_content(dir_path, title, writer):
     writer.write("\n")
   except:
     writer.write("Failed to get content of directory " + dir_path + "\n")
+    
+    
+def extract_running_logs(running_dir, logs_dir, writer):
+  try:
+    for job in os.listdir(running_dir):
+      write_header(writer, "running job " + job)
+      log_file = os.path.join(logs_dir, job + "_out.txt")
+      extract_file(log_file, "running log " + job, writer)
+  except:
+    writer.write("Could not extract running logs from " + running_dir)
 
 def call_and_log(command, path, writer):
   write_header(writer, " ".join(command) + ":")
@@ -86,6 +96,12 @@ def report(pargenes_dir, output):
     step_dir = os.path.join(pargenes_dir, step + "_run")
     running_dir = os.path.join(step_dir, "running_jobs")
     extract_directory_content(running_dir, step + " running jobs", writer)
+  
+  for step in steps:
+    step_dir = os.path.join(pargenes_dir, step + "_run")
+    running_dir = os.path.join(step_dir, "running_jobs")
+    logs_dir = os.path.join(step_dir, "per_job_logs")
+    extract_running_logs(running_dir, logs_dir, writer)
   
   extract_git(writer)
   writer.close()
