@@ -79,7 +79,7 @@ def  predict_number_cores(msas, op):
     worst_percpu_cost = max(worst_percpu_cost, (msa.taxa * msa.per_taxon_clv_size) // msa.cores)
   cores = total_cost // worst_percpu_cost
   cores *= runs_number
-  logger.info("  Recommended number of cores: " + str(max(1, cores // 4)))
+  logger.info("  Recommended MAXIMUM number of cores: " + str(max(1, cores // 4)))
 
 def run_parsing_step(msas, library, scheduler_mode, parse_run_output_dir, cores, op):
   """ Run raxml-ng --parse on each MSA to check it is valid and
