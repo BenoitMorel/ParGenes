@@ -24,5 +24,4 @@ before_script:
 
 script: 
   - ./install.sh
-  - cd mpi-scheduler && ./test_compilation.sh && cd ..
   - python tests/run_tests.py 
