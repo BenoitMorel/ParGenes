@@ -140,7 +140,11 @@ def parse_arguments(args):
       action="store_true",
       default=False,
       help="For experimenting only! Removes the sorting step in the scheduler")
-  
+  parser.add_argument("--retry",
+    dest="retry",
+    type=int,
+    default=0,
+    help="Number of time the scheduler should try to restart after an error")
 
   op = parser.parse_args()
   check_argument_dir(op.alignments_dir, "alignment")

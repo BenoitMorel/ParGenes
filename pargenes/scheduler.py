@@ -15,6 +15,15 @@ def get_mpi_scheduler_exec():
   repo_root = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
   return os.path.join(repo_root, "MPIScheduler", "build", "mpi-scheduler")
 
+def run(command, output_dir, my_env):
+  logs_file = commons.get_log_file(output_dir, "logs")
+  out = open(logs_file, "w")
+  logger.info("Calling mpi-scheduler: " + " ".join(command))
+  logger.info("Logs will be redirected to " + logs_file)
+  p = subprocess.Popen(command, stdout=out, stderr=out, env=my_env)
+  p.wait()
+  return p.returncode
+
 def run_mpi_scheduler(library, scheduler, commands_filename, output_dir, ranks, op):
   """ Run the mpi scheduler program """
   sys.stdout.flush()
@@ -48,13 +57,7 @@ def run_mpi_scheduler(library, scheduler, commands_filename, output_dir, ranks, 
     command.append("1")
   else:
     command.append("0")
-  logs_file = commons.get_log_file(output_dir, "logs")
-  out = open(logs_file, "w")
-  logger.info("Calling mpi-scheduler: " + " ".join(command))
-  logger.info("Logs will be redirected to " + logs_file)
-  p = subprocess.Popen(command, stdout=out, stderr=out, env=my_env)
-  p.wait()
-  errorcode = p.returncode
+  errorcode = run(command, output_dir, my_env)
   if (errorcode == 242):
     if (op.job_failure_fatal):
       logger.error("At least one job failed")
@@ -63,6 +66,13 @@ def run_mpi_scheduler(library, scheduler, commands_filename, output_dir, ranks, 
       logger.error("Aborting")
       report.report_and_exit(op.output_dir, 242)
   if (errorcode != 0): 
+    curr_retry = 0
+    while (curr_retry < op.retry):
+      logger.error("mpi-scheduler execution failed with error code " + str(errorcode))
+      curr_retry += 1
+      logger.error("Retry " + str(curr_retry) + "/" + str(op.retry) + "...")
+      errorcode = run(command, output_dir, my_env)
+
     logger.error("mpi-scheduler execution failed with error code " + str(errorcode))
     logger.error("Will now exit...")
     raise RuntimeError("mpi-scheduler  execution failed with error code " + str(errorcode))
