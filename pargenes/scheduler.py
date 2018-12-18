@@ -67,12 +67,13 @@ def run_mpi_scheduler(library, scheduler, commands_filename, output_dir, ranks, 
       report.report_and_exit(op.output_dir, 242)
   if (errorcode != 0): 
     curr_retry = 0
-    while (curr_retry < op.retry):
+    while (curr_retry < op.retry and errorcode != 0):
       logger.error("mpi-scheduler execution failed with error code " + str(errorcode))
       curr_retry += 1
       logger.error("Retry " + str(curr_retry) + "/" + str(op.retry) + "...")
       errorcode = run(command, output_dir, my_env)
 
+  if (errorcode != 0):
     logger.error("mpi-scheduler execution failed with error code " + str(errorcode))
     logger.error("Will now exit...")
     raise RuntimeError("mpi-scheduler  execution failed with error code " + str(errorcode))
