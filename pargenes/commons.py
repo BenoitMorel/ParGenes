@@ -24,7 +24,6 @@ class MSA:
     self.name = name
     self.path = path
     self.valid = True
-    print("init")
     self.add_raxml_arguments_str(raxml_arguments)
     self.modeltest_arguments = modeltest_arguments
 
@@ -38,11 +37,9 @@ class MSA:
     return self.get_model() != ""
 
   def add_raxml_arguments_str(self, arguments_str):
-    print("add raxml arg sr" + arguments_str)
     self.add_raxml_arguments(arguments_str.split(" "))
   
   def add_raxml_arguments(self, arguments_list):
-    print("add raxml arg " + str(arguments_list))
     last_was_model = False
     for arg in arguments_list:    
       if (last_was_model):
@@ -54,7 +51,6 @@ class MSA:
         self.raxml_args.append(arg)
 
   def get_raxml_arguments_str(self):
-    print(" ".join(self.raxml_args) + " --model " + self.get_model())
     return " ".join(self.raxml_args) + " --model " + self.get_model()
     
 
