@@ -6,5 +6,5 @@ raxml_global_options=data/small/raxml_global_options.txt
 cores=2
 
 rm -rf ${output}
-python3 ${multiraxml} -a ${msa_directory} -o ${output} -r ${raxml_global_options} -c ${cores} --valgrind
+python ${multiraxml} -a ${msa_directory} -o ${output} -r ${raxml_global_options} -c ${cores}  --valgrind --scheduler onecore
 
