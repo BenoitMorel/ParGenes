@@ -109,7 +109,6 @@ def main_raxml_runner(args, op):
   return 0
 
 def run_pargenes(args):
-  print_header(args)
   start = time.time()
   ret = 0
   try:
