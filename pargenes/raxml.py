@@ -182,7 +182,10 @@ def run(msas, random_trees, parsimony_trees, bootstraps, library, scheduler_mode
         writer.write(" --prefix " + prefix)
         writer.write(" --threads 1 ")
         if (starting_tree >= random_trees):
-          writer.write(" --tree pars ")
+          writer.write(" --tree pars{1} ")
+        else:
+          writer.write(" --tree rand{1} ")
+
         writer.write(" --seed " + str(starting_tree + op.seed + 1) + " ")
         writer.write("\n")
       bs_output_dir = os.path.join(mlsearch_run_bootstraps, name)
