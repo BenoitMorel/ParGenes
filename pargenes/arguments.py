@@ -55,7 +55,7 @@ def parse_arguments(args):
       help="Alignments datatype")
   parser.add_argument("--scheduler",
       dest="scheduler",
-      choices=["split", "onecore", "openmp"],
+      choices=["split", "onecore", "openmp", "fork"],
       default="split",
       help="Sceduling strategy. Prefer split for multiple nodes platforms, and openmp else (for instance when running on your personal computer.")
   parser.add_argument("--core-assignment",

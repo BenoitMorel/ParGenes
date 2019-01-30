@@ -106,11 +106,12 @@ def run_parsing_step(msas, library, scheduler_mode, parse_run_output_dir, cores,
       writer.write(" --log DEBUG ")
       writer.write( " --msa " + msa.path + " " + msa.get_raxml_arguments_str())
       writer.write(" --prefix " + os.path.join(fasta_output_dir, name))
-      writer.write(" --threads 1 ")
+      if (scheduler_mode != "fork"):
+        writer.write(" --threads 1 ")
         
 
       writer.write("\n")
-  scheduler.run_mpi_scheduler(library, scheduler_mode, parse_commands_file, parse_run_output_dir, cores, op)  
+  scheduler.run_scheduler(library, scheduler_mode, "--threads", parse_commands_file, parse_run_output_dir, cores, op)  
  
 def analyse_parsed_msas(msas, op):
   """ Analyse results from run_parsing_step and store them into msas """
@@ -180,7 +181,8 @@ def run(msas, random_trees, parsimony_trees, bootstraps, library, scheduler_mode
         writer.write(str(msa.cores) + " " + str(msa_size))
         writer.write(" --msa " + msa_path + " " + msa.get_raxml_arguments_str())
         writer.write(" --prefix " + prefix)
-        writer.write(" --threads 1 ")
+        if (scheduler_mode != "fork"):
+          writer.write(" --threads 1 ")
         if (starting_tree >= random_trees):
           writer.write(" --tree pars{1} ")
         else:
@@ -199,11 +201,12 @@ def run(msas, random_trees, parsimony_trees, bootstraps, library, scheduler_mode
         writer.write(" --bootstrap")
         writer.write(" --msa " + msa_path + " " + msa.get_raxml_arguments_str())
         writer.write(" --prefix " + os.path.join(bs_output_dir, bsbase))
-        writer.write(" --threads 1 ")
+        if (scheduler_mode != "fork"):
+          writer.write(" --threads 1 ")
         writer.write(" --seed " + str(current_bs + op.seed + 1))
         writer.write(" --bs-trees " + str(bs_number))
         writer.write("\n")
-  scheduler.run_mpi_scheduler(library, scheduler_mode, commands_file, run_path, cores, op)  
+  scheduler.run_scheduler(library, scheduler_mode, "--threads", commands_file, run_path, cores, op)  
 
 
 def extract_ll_from_raxml_logs(raxml_log_file):

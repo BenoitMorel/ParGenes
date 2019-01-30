@@ -26,10 +26,11 @@ def run(output_dir, library, scheduler_mode, run_path, cores, op):
       writer.write(" --support")
       writer.write(" --tree " + ml_tree)
       writer.write(" --bs-trees " + bs_trees)
-      writer.write(" --threads 1")
+      if (scheduler_mode != "fork"):
+        writer.write(" --threads 1")
       writer.write(" --prefix " + os.path.join(support_results, fasta + ".support"))
       writer.write("\n") 
-  scheduler.run_mpi_scheduler(library, scheduler_mode, commands_file, run_path, cores, op)  
+  scheduler.run_scheduler(library, scheduler_mode, "--threads", commands_file, run_path, cores, op)  
 
 
 def concatenate_bootstrap_msa(bootstraps_dir, concatenated_dir, msa_name):

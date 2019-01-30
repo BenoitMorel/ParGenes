@@ -24,7 +24,7 @@ def run(command, output_dir, my_env):
   p.wait()
   return p.returncode
 
-def run_mpi_scheduler(library, scheduler, commands_filename, output_dir, ranks, op):
+def run_scheduler(library, scheduler, threads_arg, commands_filename, output_dir, ranks, op):
   """ Run the mpi scheduler program """
   sys.stdout.flush()
   command = []
@@ -33,7 +33,7 @@ def run_mpi_scheduler(library, scheduler, commands_filename, output_dir, ranks, 
     my_env["OMP_NUM_THREADS"] = str(ranks) + "," + str(ranks) + "," + str(ranks)
     my_env["OMP_DYNAMIC"] = "false"
     #command.append("OMP_NUM_TRHEADS=" + str(ranks))
-  if (scheduler != "openmp"):
+  if (scheduler != "openmp" and scheduler != "fork"):
     command.append("mpiexec")
     command.append("-n")
     command.append(str(ranks))
@@ -48,6 +48,8 @@ def run_mpi_scheduler(library, scheduler, commands_filename, output_dir, ranks, 
     command.append("--onecore-scheduler")
   elif (scheduler == "split"):
     command.append("--split-scheduler")
+  elif (scheduler == "fork"):
+    command.append("--fork-scheduler")
   else:
     command.append("--openmp-scheduler")
   command.append(library)
@@ -57,6 +59,9 @@ def run_mpi_scheduler(library, scheduler, commands_filename, output_dir, ranks, 
     command.append("1")
   else:
     command.append("0")
+  if (scheduler == "fork"):
+    if (len(threads_arg) != 0):
+      command.append(threads_arg)
   errorcode = run(command, output_dir, my_env)
   if (errorcode == 242):
     if (op.job_failure_fatal):

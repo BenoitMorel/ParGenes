@@ -28,7 +28,7 @@ def run(msas, output_dir, library, run_path, op):
       writer.write(" -o " +  os.path.join(modeltest_results, name, name))
       writer.write(" " + msa.modeltest_arguments + " ")
       writer.write("\n")
-  scheduler.run_mpi_scheduler(library, op.scheduler, commands_file, run_path, cores, op)  
+  scheduler.run_scheduler(library, op.scheduler, "-p", commands_file, run_path, cores, op)  
 
 def get_model_from_log(log_file, modeltest_criteria):
   with open(log_file) as reader:
