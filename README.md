@@ -35,6 +35,16 @@ To build the sources:
 ```
 ./install.sh
 ```
+
+## Updating the repository
+
+Instead of using:
+``` git pull ```
+please use:
+```./gitpull.sh```
+
+Rational: we use git submodule, and `git pull` might not be enough to update all the changes. The `gitpull.sh` will update all the changes properly.
+
 ## Running
 
 See the wiki (https://github.com/BenoitMorel/ParGenes/wiki/Running-ParGenes)
