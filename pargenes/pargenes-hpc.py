@@ -3,7 +3,6 @@ import sys
 
 args = sys.argv
 args.append("--scheduler")
-args.append("fork")
+args.append("split")
 pargenescore.run_pargenes(args)
-
 

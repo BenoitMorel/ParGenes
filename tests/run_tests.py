@@ -7,17 +7,21 @@ import shlex
 
 tests_path = os.path.dirname(os.path.realpath(__file__)) 
 root = os.path.dirname(tests_path)
-pargenes_path = os.path.join(root, "pargenes", "pargenes.py")
+pargenes_scripts = []
+pargenes_scripts.append(os.path.join(root, "pargenes", "pargenes.py"))
+pargenes_scripts.append(os.path.join(root, "pargenes", "pargenes-hpc.py"))
+pargenes_scripts.append(os.path.join(root, "pargenes", "pargenes-hpc-debug.py"))
 example_data_path = os.path.join(tests_path, "smalldata")
 example_msas = os.path.join(example_data_path, "fasta_files")
 example_raxml_options = os.path.join(example_data_path, "raxml_global_options.txt")
 tests_output_dir = os.path.join(tests_path, "tests_outputs")
 example_modeltest_parameters = os.path.join(example_data_path, "only_1_models.txt")
-schedulers = ["fork", "split", "onecore"]
 valid_msas = ["msa1_fasta", "msa2_fasta", "msa3_fasta", "msa4_fasta"]
 best_models = ["JC", "F81+FU", "JC", "JC"]
 invalid_msas = ["msa5_fasta"]
-  
+
+def get_basename(plop):
+  return os.path.basename(plop).split(".")[0]
 
 def check_parse(run_dir):
   invalid_msas_file = os.path.join(run_dir, "invalid_msas.txt")
@@ -78,55 +82,55 @@ def run_command(command, run_name):
   print("Success! (" + str(int((time.time() - start_time))) + "s)")
 
 def test_help():
-  command = "python " + pargenes_path + " -h"
+  command = "python " + pargenes_scripts[0] + " -h"
   run_command(command, "help")
 
-def test_ml_search(schedulers):
-  output = os.path.join(tests_output_dir, "test_ml_search", schedulers)
+def test_ml_search(pargenes_script):
+  basename = get_basename(pargenes_script)
+  output = os.path.join(tests_output_dir, "test_ml_search", basename)
   try:
     shutil.rmtree(output)
   except:
     pass
-  command = "python " + pargenes_path + " "
+  command = "python " + pargenes_script + " "
   command += "-a " + example_msas + " "
   command += "-o " + output + " "
   command += "-r " + example_raxml_options + " "
   command += "-c 4 "
-  command += "--scheduler " + scheduler + " "
   command += "-s 3 -p 3 "
-  run_command(command, "ml_search_" + schedulers )
+  run_command(command, "ml_search_" + basename )
   check_all(output, True, False, True)
 
-def test_model_test(schedulers):
-  output = os.path.join(tests_output_dir, "test_modeltest", schedulers)
+def test_model_test(pargenes_script):
+  basename = get_basename(pargenes_script)
+  output = os.path.join(tests_output_dir, "test_modeltest", basename)
   try:
     shutil.rmtree(output)
   except:
     pass
-  command = "python " + pargenes_path + " "
+  command = "python " + pargenes_script + " "
   command += "-a " + example_msas + " "
   command += "-o " + output + " "
   command += "-c 4 "
-  command += "--scheduler " + scheduler
   command += " -m"
   command += " --modeltest-global-parameters " + example_modeltest_parameters
-  run_command(command, "modeltest_" + scheduler)
+  run_command(command, "modeltest_" + basename)
   check_all(output, True, True, True)
 
-def test_bootstraps(schedulers):
-  output = os.path.join(tests_output_dir, "test_bootstraps", schedulers)
+def test_bootstraps(pargenes_script):
+  basename = get_basename(pargenes_script)
+  output = os.path.join(tests_output_dir, "test_bootstraps", basename)
   try:
     shutil.rmtree(output)
   except:
     pass
-  command = "python " + pargenes_path + " "
+  command = "python " + pargenes_script + " "
   command += "-a " + example_msas + " "
   command += "-o " + output + " "
   command += "-r " + example_raxml_options + " "
   command += "-c 4 "
-  command += "--scheduler " + scheduler
   command += " -b 3"
-  run_command(command, "bootstraps" + schedulers )
+  run_command(command, "bootstraps" + basename)
   check_all(output, True, False, True)
 
 
@@ -137,7 +141,7 @@ except:
 
 test_help()
 
-for scheduler in schedulers:
-  test_ml_search(scheduler)
-  test_model_test(scheduler)
-  test_bootstraps(scheduler)
+for pargenes_script in pargenes_scripts:
+  test_ml_search(pargenes_script)
+  test_model_test(pargenes_script)
+  test_bootstraps(pargenes_script)
