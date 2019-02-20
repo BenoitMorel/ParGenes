@@ -156,6 +156,11 @@ def run(msas, random_trees, parsimony_trees, bootstraps, library, scheduler_mode
   mlsearch_run_bootstraps = os.path.join(run_path, "bootstraps")
   commons.makedirs(mlsearch_run_results)
   starting_trees = random_trees + parsimony_trees
+  chunk_size = 10
+  msa_number = len(msas)
+  if (msa_number < 50):
+    chunk_size = 1
+
   if (bootstraps != 0):
     commons.makedirs(mlsearch_run_bootstraps)
   with open(commands_file, "w") as writer:
@@ -192,7 +197,6 @@ def run(msas, random_trees, parsimony_trees, bootstraps, library, scheduler_mode
         writer.write("\n")
       bs_output_dir = os.path.join(mlsearch_run_bootstraps, name)
       commons.makedirs(bs_output_dir)
-      chunk_size = 10
       for current_bs in range(0, (bootstraps - 1) // chunk_size + 1):
         bsbase = name + "_bs" + str(current_bs)
         bs_number = min(chunk_size, bootstraps - current_bs * chunk_size)
