@@ -71,6 +71,7 @@ build_astral() {
   cd ../../
 }
 
+./uninstall.sh
 build_mpi_scheduler
 build_raxml_lib
 build_raxml_exec
