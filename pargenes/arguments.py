@@ -7,6 +7,10 @@ def exit_msg(msg):
   logger.error(msg)
   sys.exit(1)
 
+def check_mandatory_field(f, name):
+  if (f == None or len(f) == 0):
+    exit_msg("Error: please provide the " + name)
+
 def check_argument_file(f, name):
   if (None != f and not os.path.isfile(f)):
     exit_msg("Error: invalid " + name + " file: " + f)
@@ -19,7 +23,7 @@ def check_argument_dir(f, name):
 def parse_arguments(args):
   parser = argparse.ArgumentParser(args)
   # general arguments
-  
+   
   parser.add_argument("--dry-run",
       dest="dry_run",
       action="store_true",
@@ -145,14 +149,19 @@ def parse_arguments(args):
     type=int,
     default=0,
     help="Number of time the scheduler should try to restart after an error")
-
+  print("before parse:")
   op = parser.parse_args()
+  print("after parse:")
   check_argument_dir(op.alignments_dir, "alignment")
   check_argument_file(op.msa_filter, "msa filter")
   check_argument_file(op.per_msa_raxml_parameters, "per_msa_raxml_parameters")
   check_argument_file(op.raxml_global_parameters, "raxml_global_parameters")
   check_argument_file(op.per_msa_modeltest_parameters, "per_msa_modeltest_parameters")
   check_argument_file(op.modeltest_global_parameters, "modeltest_global_parameters")
+  check_mandatory_field(op.alignments_dir, "alignment directory (\"-a\"")
+  check_mandatory_field(op.output_dir, "output directory (\"-o\")")
+  if (not len(os.listdir(op.alignments_dir))):
+    exit_msg("Please provide a non empty alignments directory.")
   if (op.cores < 2):
     exit_msg("Please set the number of cores (--cores or -c) to at least 2")
   return op

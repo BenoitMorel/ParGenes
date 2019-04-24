@@ -123,6 +123,8 @@ def report(pargenes_dir, output):
   writer.close()
 
 def report_and_exit(output_dir, exit_code):
+  if (output_dir == None or not len(output_dir)):
+    sys.exit(exit_code)
   report_file = os.path.abspath(os.path.join(output_dir, "report.txt"))
   logger.info("Writing report file in " + report_file)
   logger.info("When reporting the issue, please always send us this file.")
