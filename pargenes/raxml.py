@@ -185,7 +185,7 @@ def run(msas, random_trees, parsimony_trees, bootstraps, library, scheduler_mode
         writer.write("mlsearch_" + name + "_" + str(starting_tree) + " ")
         writer.write(str(msa.cores) + " " + str(msa_size))
         writer.write(" --msa " + msa_path + " " + msa.get_raxml_arguments_str())
-        writer.write(" --prefix " + prefix)
+        writer.write(" --prefix " + os.path.abspath(prefix))
         if (scheduler_mode != "fork"):
           writer.write(" --threads 1 ")
         if (starting_tree >= random_trees):
@@ -204,7 +204,7 @@ def run(msas, random_trees, parsimony_trees, bootstraps, library, scheduler_mode
         writer.write(str(max(1, msa.cores // 2)) + " " + str(msa_size * chunk_size))
         writer.write(" --bootstrap")
         writer.write(" --msa " + msa_path + " " + msa.get_raxml_arguments_str())
-        writer.write(" --prefix " + os.path.join(bs_output_dir, bsbase))
+        writer.write(" --prefix " + os.path.abspath(os.path.join(bs_output_dir, bsbase)))
         if (scheduler_mode != "fork"):
           writer.write(" --threads 1 ")
         writer.write(" --seed " + str(current_bs + op.seed + 1))
