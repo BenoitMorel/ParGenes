@@ -71,6 +71,20 @@ build_astral() {
   cd ../../
 }
 
+print_no_recursive_warning() {
+  echo "[Error] Could not find the file $1"
+  echo "Please check that you downloaded ParGenes with git clone --recursive, as explained in the README."
+}
+
+check_recursive() {
+  f=raxml-ng/CMakeLists.txt
+  if [ ! -f $f ]; then
+    print_no_recursive_warning $f
+    exit
+  fi
+}
+
+check_recursive
 ./uninstall.sh
 build_mpi_scheduler
 build_raxml_lib
