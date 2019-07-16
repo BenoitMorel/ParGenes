@@ -36,6 +36,12 @@ To build the sources:
 ./install.sh
 ```
 
+To parallelize the compilation with 10 cores:
+```
+./install.sh 10
+```
+
+
 ## Updating the repository
 
 Instead of using:
