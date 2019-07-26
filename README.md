@@ -36,9 +36,6 @@ To build the sources:
 ./install.sh
 ```
 
-## Citing
-
-Before citing ParGenes, please make sure you read https://github.com/BenoitMorel/ParGenes/wiki/Citation 
 
 To parallelize the compilation with 10 cores:
 ```
@@ -67,4 +64,8 @@ Also please check the online help with `python3 pargenes/pargenes.py --help`
 
 A suggestion, a bug to report, a question? Please use the [RAxML google group](https://groups.google.com/forum/#!forum/raxml).
 
+
+## Citing
+
+Before citing ParGenes, please make sure you read https://github.com/BenoitMorel/ParGenes/wiki/Citation 
 
