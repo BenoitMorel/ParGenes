@@ -36,6 +36,10 @@ To build the sources:
 ./install.sh
 ```
 
+## Citing
+
+Before citing ParGenes, please make sure you read https://github.com/BenoitMorel/ParGenes/wiki/Citation 
+
 To parallelize the compilation with 10 cores:
 ```
 ./install.sh 10
