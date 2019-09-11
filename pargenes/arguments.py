@@ -107,7 +107,10 @@ def parse_arguments(args):
       action="store_true",
       default=False,
       help="Stop computing bootstrap trees after autoMRE bootstrap convergence test. You have to specify the maximum number of bootstrap trees with -b or --bs-tree")
-  
+  parser.add_argument("--raxml-binary", 
+      dest="raxml_binary",
+      default="",
+      help="Custom path to raxml-ng executable. Please refer to the wiki before setting this variable yourself.")
   parser.add_argument("--percentage-jobs-double-cores",
       dest="percentage_jobs_double_cores",
       type=float,
@@ -135,6 +138,10 @@ def parse_arguments(args):
       type=int,
       default=16,
       help="Number of cores to assign to each modeltest core (at least 4)")
+  parser.add_argument("--modeltest-binary", 
+      dest="modeltest_binary",
+      default="",
+      help="Custom path to modeltest-ng executable. Please refer to the wiki before setting this variable yourself.")
   # astral arguments
   parser.add_argument("--use-astral",
       dest="use_astral",
