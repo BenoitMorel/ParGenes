@@ -36,7 +36,6 @@ check_recursive() {
 }
 
 check_recursive
-./uninstall.sh
 
 cores=4
 if [ "$#" -eq 1 ]; then
