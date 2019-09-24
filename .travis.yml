@@ -12,7 +12,7 @@ addons:
       - cmake-data
       - cmake
       - g++-5
-      - mpich2 
+      - mpich 
       - libmpich-dev
       - python
 
