@@ -13,7 +13,6 @@ addons:
       - cmake
       - g++-5
       - mpich2 
-      - mpich2-doc
       - libmpich-dev
       - python
 
