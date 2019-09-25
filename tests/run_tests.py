@@ -9,7 +9,8 @@ tests_path = os.path.dirname(os.path.realpath(__file__))
 root = os.path.dirname(tests_path)
 pargenes_scripts = []
 pargenes_scripts.append(os.path.join(root, "pargenes", "pargenes.py"))
-pargenes_scripts.append(os.path.join(root, "pargenes", "pargenes-hpc.py"))
+if (not "darwin" in platform.system().lower()):
+  pargenes_scripts.append(os.path.join(root, "pargenes", "pargenes-hpc.py"))
 pargenes_scripts.append(os.path.join(root, "pargenes", "pargenes-hpc-debug.py"))
 example_data_path = os.path.join(tests_path, "smalldata")
 example_msas = os.path.join(example_data_path, "fasta_files")
