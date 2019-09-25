@@ -25,9 +25,7 @@ before_install:
   - if [ -n "${CXX_COMPILER}" ]; then export CXX="${CXX_COMPILER}"; fi
 
 install:
-  - export TRAVIS_ROOT=$HOME/travis
-  - mkdir $TRAVIS_ROOT
-  - sh ./travis/install-mpi.sh $TRAVIS_ROOT mpich
+  - if [ "$TRAVIS_OS_NAME" = "osx" ]; then  brew install mpich        ; fi
 
 script: 
   - ./install.sh
