@@ -164,6 +164,26 @@ def test_astral(pargenes_script):
   run_command(command, "astral_" + basename )
   check_all(output, True, False, False, True)
 
+def test_all(pargenes_script):
+  basename = get_basename(pargenes_script)
+  output = os.path.join(tests_output_dir, "test_all", basename)
+  try:
+    shutil.rmtree(output)
+  except:
+    pass
+  command = "python " + pargenes_script + " "
+  command += "-a " + example_msas + " "
+  command += "-o " + output + " "
+  command += "-r " + example_raxml_options + " "
+  command += "-c 4 "
+  command += "-m "
+  command += "-b 3 "
+  command += "-s 3 -p 3 "
+  command += "--use-astral "
+  command += " --modeltest-global-parameters " + example_modeltest_parameters
+  run_command(command, "all_" + basename )
+  check_all(output, True, True, True, True)
+
 try:
   os.makedirs(tests_output_dir)
 except:
@@ -176,6 +196,7 @@ for pargenes_script in pargenes_scripts:
   test_model_test(pargenes_script)
   test_bootstraps(pargenes_script)
   test_astral(pargenes_script)
+  test_all(pargenes_script)
 
 
 

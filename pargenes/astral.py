@@ -17,8 +17,8 @@ def extract_gene_trees_support(pargenes_dir, gene_trees_filename):
   count = 0
   with open(gene_trees_filename, "w") as writer:
     for f in os.listdir(results):
-      if (f.ends_with(".raxml.support")):
-        with open(f) as reader:
+      if (f.endswith(".raxml.support")):
+        with open(os.path.join(results, f)) as reader:
           writer.write(treat_newick(reader.read()))
         count += 1
   logger.info("ParGenes/Astral: " + str(count) + " gene trees (with support values) were found in ParGenes output directory")
