@@ -55,6 +55,7 @@ def improve_cores_assignment(msas, op):
   taxa_numbers.sort()
   average_taxa /= len(msas)
   average_sites /= len(msas)
+  logger.info("  Number of families: " + str(len(msas)))
   logger.info("  Average number of taxa: " + str(int(average_taxa)))
   logger.info("  Max number of taxa: " + str(max_taxa))
   logger.info("  Average number of sites: " + str(int(average_sites)))
@@ -175,6 +176,7 @@ def run(msas, random_trees, parsimony_trees, bootstraps, library, scheduler_mode
         msa_size = msa.taxa * msa.per_taxon_clv_size
       mlsearch_fasta_output_dir = os.path.join(mlsearch_run_results, name)
       commons.makedirs(mlsearch_fasta_output_dir)
+      # generate all the mlsearch commands
       for starting_tree in range(0, starting_trees):
         if (starting_trees > 1):
           prefix = os.path.join(mlsearch_fasta_output_dir, "multiple_runs", str(starting_tree))
@@ -197,9 +199,12 @@ def run(msas, random_trees, parsimony_trees, bootstraps, library, scheduler_mode
         writer.write("\n")
       bs_output_dir = os.path.join(mlsearch_run_bootstraps, name)
       commons.makedirs(bs_output_dir)
-      for current_bs in range(0, (bootstraps - 1) // chunk_size + 1):
+      # generate all the boostrap commands
+      per_family_bootstrap_runs = (bootstraps - 1) // chunk_size + 1
+      if (op.autoMRE):
+        per_family_bootstrap_runs = 1
+      for current_bs in range(0, per_family_bootstrap_runs):
         bsbase = name + "_bs" + str(current_bs)
-        bs_number = min(chunk_size, bootstraps - current_bs * chunk_size)
         writer.write(bsbase + " ")
         writer.write(str(max(1, msa.cores // 2)) + " " + str(msa_size * chunk_size))
         writer.write(" --bootstrap")
@@ -208,7 +213,11 @@ def run(msas, random_trees, parsimony_trees, bootstraps, library, scheduler_mode
         if (scheduler_mode != "fork"):
           writer.write(" --threads 1 ")
         writer.write(" --seed " + str(current_bs + op.seed + 1))
-        writer.write(" --bs-trees " + str(bs_number))
+        if (not op.autoMRE):
+          bs_number = min(chunk_size, bootstraps - current_bs * chunk_size)
+          writer.write(" --bs-trees " + str(bs_number))
+        else:
+          writer.write(" --bs-trees autoMRE{" + str(bootstraps) + "}")
         writer.write("\n")
   scheduler.run_scheduler(library, scheduler_mode, "--threads", commands_file, run_path, cores, op)  
 

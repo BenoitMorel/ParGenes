@@ -18,7 +18,7 @@ In addition, ParGenes:
 * can infer the optimal number of cores to assign to a given ParGenes call.
 
 ## Requirement
-
+* A linux or MacOS platform
 * gcc 5.0 or > (we did not try with clang yet)
 * CMake 3.6 or >
 * Either MPI or OpenMP. MPI for multiple nodes parallelization.
@@ -35,6 +35,13 @@ To build the sources:
 ```
 ./install.sh
 ```
+
+
+To parallelize the compilation with 10 cores:
+```
+./install.sh 10
+```
+
 
 ## Updating the repository
 
@@ -57,4 +64,8 @@ Also please check the online help with `python3 pargenes/pargenes.py --help`
 
 A suggestion, a bug to report, a question? Please use the [RAxML google group](https://groups.google.com/forum/#!forum/raxml).
 
+
+## Citing
+
+Before citing ParGenes, please make sure you read https://github.com/BenoitMorel/ParGenes/wiki/Citation 
 

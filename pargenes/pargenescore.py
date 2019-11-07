@@ -58,6 +58,10 @@ def main_raxml_runner(args, op):
   else:
     raxml_library = os.path.join(scriptdir, "..", "raxml-ng", "bin", "raxml-ng-mpi.so")
     modeltest_library = os.path.join(scriptdir, "..", "modeltest", "build", "src", "modeltest-ng-mpi.so")
+  if (len(op.raxml_binary) > 1):
+    raxml_library = op.raxml_binary
+  if (len(op.modeltest_binary) > 1):
+    modeltest_library = op.modeltest_binary
   if (checkpoint_index < 1):
     msas = commons.init_msas(op)
     raxml.run_parsing_step(msas, raxml_library, op.scheduler, os.path.join(output_dir, "parse_run"), op.cores, op)

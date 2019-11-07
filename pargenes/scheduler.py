@@ -52,15 +52,15 @@ def run_scheduler(library, scheduler, threads_arg, commands_filename, output_dir
     command.append("--fork-scheduler")
   else:
     command.append("--openmp-scheduler")
+  command.append(str(ranks))
   command.append(library)
   command.append(commands_filename)
   command.append(output_dir)
   if (op.job_failure_fatal):
-    command.append("1")
-  else:
-    command.append("0")
+    command.append("--jobs-failure-fatal")
   if (scheduler == "fork"):
     if (len(threads_arg) != 0):
+      command.append("--threads-arg")
       command.append(threads_arg)
   errorcode = run(command, output_dir, my_env)
   if (errorcode == 242):

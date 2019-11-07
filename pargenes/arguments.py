@@ -102,6 +102,15 @@ def parse_arguments(args):
       type=int,
       default=0,
       help="The number of bootstrap trees to compute")
+  parser.add_argument("--autoMRE",
+      dest="autoMRE",
+      action="store_true",
+      default=False,
+      help="Stop computing bootstrap trees after autoMRE bootstrap convergence test. You have to specify the maximum number of bootstrap trees with -b or --bs-tree")
+  parser.add_argument("--raxml-binary", 
+      dest="raxml_binary",
+      default="",
+      help="Custom path to raxml-ng executable. Please refer to the wiki before setting this variable yourself.")
   parser.add_argument("--percentage-jobs-double-cores",
       dest="percentage_jobs_double_cores",
       type=float,
@@ -129,6 +138,10 @@ def parse_arguments(args):
       type=int,
       default=16,
       help="Number of cores to assign to each modeltest core (at least 4)")
+  parser.add_argument("--modeltest-binary", 
+      dest="modeltest_binary",
+      default="",
+      help="Custom path to modeltest-ng executable. Please refer to the wiki before setting this variable yourself.")
   # astral arguments
   parser.add_argument("--use-astral",
       dest="use_astral",
@@ -160,6 +173,8 @@ def parse_arguments(args):
   check_argument_file(op.modeltest_global_parameters, "modeltest_global_parameters")
   check_mandatory_field(op.alignments_dir, "alignment directory (\"-a\"")
   check_mandatory_field(op.output_dir, "output directory (\"-o\")")
+  if (op.autoMRE and op.bootstraps < 1):
+    exit_msg("When using autoMRE option, you need to specify the maximum number of boostraps with --bs-trees")
   if (not len(os.listdir(op.alignments_dir))):
     exit_msg("Please provide a non empty alignments directory.")
   if (op.cores < 2):

@@ -4,6 +4,7 @@ import subprocess
 import shutil
 import time
 import shlex
+import platform
 
 tests_path = os.path.dirname(os.path.realpath(__file__)) 
 root = os.path.dirname(tests_path)

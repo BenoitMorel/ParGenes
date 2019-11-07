@@ -7,7 +7,7 @@ build_mpi_scheduler() {
   mkdir -p build
   cd build
   cmake .. || exit 1
-  make -j 40 || exit 1
+  make -j $1 || exit 1
   cd ../..
 }
 
@@ -19,7 +19,7 @@ build_raxml_lib() {
   mkdir -p build
   cd build
   cmake -DUSE_TERRAPHAST=OFF -DUSE_MPI=ON -DBUILD_AS_LIBRARY=ON .. || exit 1
-  make -j 40 || exit 1
+  make -j $1 || exit 1
   cd ../../
 }
 
@@ -32,7 +32,7 @@ build_raxml_exec() {
   cd build
   cmake -DUSE_TERRAPHAST=OFF -DUSE_MPI=OFF -DBUILD_AS_LIBRARY=OFF .. || exit 1
   cmake .. || exit 1
-  make -j 40 || exit 1
+  make -j $1 || exit 1
   cd ../../
 }
 
@@ -44,7 +44,7 @@ build_modeltest_lib() {
   mkdir -p build
   cd build
   cmake -DUSE_MPI=ON -DBUILD_AS_LIBRARY=ON .. || exit 1
-  make -j 40 || exit 1
+  make -j $1 || exit 1
   cd ../../
 }
 
@@ -56,7 +56,7 @@ build_modeltest_exec() {
   mkdir -p build
   cd build
   cmake -DUSE_MPI=OFF -DBUILD_AS_LIBRARY=OFF -DUSE_LIBPLL_CMAKE=ON .. || exit 1
-  make -j 40 || exit 1
+  make -j $1 || exit 1
   cd ../../
 }
 
@@ -86,10 +86,19 @@ check_recursive() {
 
 check_recursive
 ./uninstall.sh
-build_mpi_scheduler
-build_raxml_lib
-build_raxml_exec
-build_modeltest_lib
-build_modeltest_exec
+
+cores=4
+if [ "$#" -eq 1 ]; then
+  cores=$1
+  echo "yo"
+fi
+
+echo "Installing with $cores cores"
+
+build_mpi_scheduler $cores
+build_raxml_lib $cores
+build_raxml_exec $cores
+build_modeltest_lib $cores
+build_modeltest_exec $cores
 build_astral
 
