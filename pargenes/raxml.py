@@ -156,7 +156,7 @@ def run(msas, random_trees, parsimony_trees, bootstraps, library, scheduler_mode
   mlsearch_run_bootstraps = os.path.join(run_path, "bootstraps")
   commons.makedirs(mlsearch_run_results)
   starting_trees = random_trees + parsimony_trees
-  chunk_size = 10
+  chunk_size = 2
   msa_number = len(msas)
   if (msa_number < 50):
     chunk_size = 1
