@@ -18,7 +18,7 @@ In addition, ParGenes:
 * can infer the optimal number of cores to assign to a given ParGenes call.
 
 ## Requirement
-
+* A linux or MacOS platform
 * gcc 5.0 or > (we did not try with clang yet)
 * CMake 3.6 or >
 * Either MPI or OpenMP. MPI for multiple nodes parallelization.

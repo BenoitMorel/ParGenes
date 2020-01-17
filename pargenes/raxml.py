@@ -55,6 +55,7 @@ def improve_cores_assignment(msas, op):
   taxa_numbers.sort()
   average_taxa /= len(msas)
   average_sites /= len(msas)
+  logger.info("  Number of families: " + str(len(msas)))
   logger.info("  Average number of taxa: " + str(int(average_taxa)))
   logger.info("  Max number of taxa: " + str(max_taxa))
   logger.info("  Average number of sites: " + str(int(average_sites)))
