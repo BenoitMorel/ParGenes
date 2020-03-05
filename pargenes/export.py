@@ -34,7 +34,7 @@ def get_input_parameters():
       default=False,
       help="For each family, export the bootstrap trees")
   
-  parser.add_argument("--support-value-tree",
+  parser.add_argument("--support-values-tree",
       dest="support_value_tree",
       action="store_true",
       default=False,
