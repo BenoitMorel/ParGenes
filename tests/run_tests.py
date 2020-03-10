@@ -100,7 +100,7 @@ def run_command(command, run_name):
   sys.stdout.write("[" + run_name + "]: ")
   sys.stdout.flush()
   with open(logs, "wb", 0) as out:
-    subprocess.check_call(shlex.split(command), stdout = out)
+    subprocess.check_call(shlex.split(command))
   print("Success! (" + str(int((time.time() - start_time))) + "s)")
 
 def test_help():
