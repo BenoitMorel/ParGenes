@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 import pargenescore
 import sys
 import platform
