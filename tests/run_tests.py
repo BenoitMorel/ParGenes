@@ -6,12 +6,18 @@ import time
 import shlex
 import platform
 
+
+run_as_binary = "--run-as-binary" in sys.argv
+
 tests_path = os.path.dirname(os.path.realpath(__file__)) 
 root = os.path.dirname(tests_path)
+pargenes_script_names = ["pargenes.py", "pargenes-hpc.py", "pargenes-hpc-debug.py"]
 pargenes_scripts = []
-pargenes_scripts.append(os.path.join(root, "pargenes", "pargenes.py"))
-pargenes_scripts.append(os.path.join(root, "pargenes", "pargenes-hpc.py"))
-pargenes_scripts.append(os.path.join(root, "pargenes", "pargenes-hpc-debug.py"))
+if (run_as_binary):
+  pargenes_scripts = pargenes_script_names
+else:
+  for s in pargenes_script_names:
+    pargenes_scripts.append("python " + os.path.join(root, "pargenes", s))
 example_data_path = os.path.join(tests_path, "smalldata")
 example_msas = os.path.join(example_data_path, "fasta_files")
 example_raxml_options = os.path.join(example_data_path, "raxml_global_options.txt")
@@ -88,6 +94,7 @@ def check_all(run_dir, parse, modeltest, mlsearch, astral):
     check_astral(run_dir)
 
 def run_command(command, run_name):
+  print(command)
   start_time = time.time()
   logs = os.path.join(tests_output_dir, run_name + ".txt")
   sys.stdout.write("[" + run_name + "]: ")
@@ -97,7 +104,7 @@ def run_command(command, run_name):
   print("Success! (" + str(int((time.time() - start_time))) + "s)")
 
 def test_help():
-  command = "python " + pargenes_scripts[0] + " -h"
+  command = pargenes_scripts[0] + " -h"
   run_command(command, "help")
 
 def test_ml_search(pargenes_script):
@@ -107,7 +114,7 @@ def test_ml_search(pargenes_script):
     shutil.rmtree(output)
   except:
     pass
-  command = "python " + pargenes_script + " "
+  command = pargenes_script + " "
   command += "-a " + example_msas + " "
   command += "-o " + output + " "
   command += "-r " + example_raxml_options + " "
@@ -123,7 +130,7 @@ def test_model_test(pargenes_script):
     shutil.rmtree(output)
   except:
     pass
-  command = "python " + pargenes_script + " "
+  command = pargenes_script + " "
   command += "-a " + example_msas + " "
   command += "-o " + output + " "
   command += "-c 4 "
@@ -139,7 +146,7 @@ def test_bootstraps(pargenes_script):
     shutil.rmtree(output)
   except:
     pass
-  command = "python " + pargenes_script + " "
+  command = pargenes_script + " "
   command += "-a " + example_msas + " "
   command += "-o " + output + " "
   command += "-r " + example_raxml_options + " "
@@ -155,7 +162,7 @@ def test_astral(pargenes_script):
     shutil.rmtree(output)
   except:
     pass
-  command = "python " + pargenes_script + " "
+  command = pargenes_script + " "
   command += "-a " + example_msas + " "
   command += "-o " + output + " "
   command += "-r " + example_raxml_options + " "
@@ -172,7 +179,7 @@ def test_all(pargenes_script):
     shutil.rmtree(output)
   except:
     pass
-  command = "python " + pargenes_script + " "
+  command = pargenes_script + " "
   command += "-a " + example_msas + " "
   command += "-o " + output + " "
   command += "-r " + example_raxml_options + " "
