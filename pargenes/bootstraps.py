@@ -16,20 +16,29 @@ def run(output_dir, library, scheduler_mode, run_path, cores, op):
   support_results = os.path.join(run_path, "results")
   commons.makedirs(support_results)
   logger.info("Writing supports commands in " + commands_file)
+  bs_metrics = ["", "tbe"]
   with open(commands_file, "w") as writer:
     for fasta in os.listdir(ml_trees_dir):
-      ml_tree = os.path.join(ml_trees_dir, fasta, fasta + ".raxml.bestTree")
-      bs_trees = os.path.join(concatenated_dir, fasta + ".bs")
-      if (not os.path.exists(bs_trees) or os.stat(bs_trees).st_size == 0):
-        continue
-      writer.write("support_" + fasta + " 1 1")
-      writer.write(" --support")
-      writer.write(" --tree " + ml_tree)
-      writer.write(" --bs-trees " + bs_trees)
-      if (scheduler_mode != "fork"):
-        writer.write(" --threads 1")
-      writer.write(" --prefix " + os.path.join(support_results, fasta + ".support"))
-      writer.write("\n") 
+      for bs_metric in bs_metrics:
+        ml_tree = os.path.join(ml_trees_dir, fasta, fasta + ".raxml.bestTree")
+        bs_trees = os.path.join(concatenated_dir, fasta + ".bs")
+        if (not os.path.exists(bs_trees) or os.stat(bs_trees).st_size == 0):
+          continue
+        writer.write("support_" + fasta)
+        if (len(bs_metric) > 0):
+          writer.write("_" + bs_metric)
+        writer.write(" 1 1")
+        writer.write(" --support")
+        writer.write(" --tree " + ml_tree)
+        writer.write(" --bs-trees " + bs_trees)
+        if (len(bs_metric) > 0):
+          writer.write(" --bs-metric " + bs_metric)
+        if (scheduler_mode != "fork"):
+          writer.write(" --threads 1")
+        writer.write(" --prefix " + os.path.join(support_results, fasta + ".support"))
+        if (len(bs_metric) > 0):
+          writer.write("." + bs_metric)
+        writer.write("\n") 
   scheduler.run_scheduler(library, scheduler_mode, "--threads", commands_file, run_path, cores, op)  
 
 
