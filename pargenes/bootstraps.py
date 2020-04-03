@@ -6,7 +6,7 @@ import scheduler
 import logger
 import multiprocessing 
 
-def run(output_dir, library, scheduler_mode, run_path, cores, op):
+def run(msas, output_dir, library, scheduler_mode, run_path, cores, op):
   """ Use the MPI scheduler to run raxml --support on all the MSAs. 
   This call builds the trees withs support values from bootstraps"""
   ml_trees_dir = os.path.join(output_dir, "mlsearch_run", "results")
@@ -19,6 +19,7 @@ def run(output_dir, library, scheduler_mode, run_path, cores, op):
   bs_metrics = ["", "tbe"]
   with open(commands_file, "w") as writer:
     for fasta in os.listdir(ml_trees_dir):
+      raxml_arguments = msas[fasta].get_raxml_arguments_str()
       for bs_metric in bs_metrics:
         ml_tree = os.path.join(ml_trees_dir, fasta, fasta + ".raxml.bestTree")
         bs_trees = os.path.join(concatenated_dir, fasta + ".bs")
@@ -38,6 +39,8 @@ def run(output_dir, library, scheduler_mode, run_path, cores, op):
         writer.write(" --prefix " + os.path.join(support_results, fasta + ".support"))
         if (len(bs_metric) > 0):
           writer.write("." + bs_metric)
+        writer.write(" ")
+        writer.write(raxml_arguments)
         writer.write("\n") 
   scheduler.run_scheduler(library, scheduler_mode, "--threads", commands_file, run_path, cores, op)  
 
