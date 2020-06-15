@@ -84,24 +84,28 @@ def check_astral(run_dir):
     assert(("taxa_" + str(i)) in output_species_tree_str)
   
 def check_all(run_dir, parse, modeltest, mlsearch, astral):
-  if (parse):
-    check_parse(run_dir)
-  if (modeltest):
-    check_modeltest(run_dir)
-  if (mlsearch):
-    check_ml_search(run_dir)
-  if (astral):
-    check_astral(run_dir)
+  try:
+    if (parse):
+      check_parse(run_dir)
+    if (modeltest):
+      check_modeltest(run_dir)
+    if (mlsearch):
+      check_ml_search(run_dir)
+    if (astral):
+      check_astral(run_dir)
+  except:
+    print("FAILURE!!!!")
+    return 1
+  print("Success!")
+  return 0
 
 def run_command(command, run_name):
-  print(command)
-  start_time = time.time()
+  #print(command)
   logs = os.path.join(tests_output_dir, run_name + ".txt")
   sys.stdout.write("[" + run_name + "]: ")
   sys.stdout.flush()
   with open(logs, "wb", 0) as out:
     subprocess.check_call(shlex.split(command), stdout = out)
-  print("Success! (" + str(int((time.time() - start_time))) + "s)")
 
 def test_help():
   command = pargenes_scripts[0] + " -h"
@@ -121,7 +125,7 @@ def test_ml_search(pargenes_script):
   command += "-c 4 "
   command += "-s 3 -p 3 "
   run_command(command, "ml_search_" + basename )
-  check_all(output, True, False, True, False)
+  return check_all(output, True, False, True, False)
 
 def test_model_test(pargenes_script):
   basename = get_basename(pargenes_script)
@@ -137,7 +141,7 @@ def test_model_test(pargenes_script):
   command += " -m"
   command += " --modeltest-global-parameters " + example_modeltest_parameters
   run_command(command, "modeltest_" + basename)
-  check_all(output, True, True, True, False)
+  return check_all(output, True, True, True, False)
 
 def test_bootstraps(pargenes_script):
   basename = get_basename(pargenes_script)
@@ -153,7 +157,7 @@ def test_bootstraps(pargenes_script):
   command += "-c 4 "
   command += " -b 3"
   run_command(command, "bootstraps" + basename)
-  check_all(output, True, False, True, False)
+  return check_all(output, True, False, True, False)
 
 def test_astral(pargenes_script):
   basename = get_basename(pargenes_script)
@@ -170,7 +174,7 @@ def test_astral(pargenes_script):
   command += "-s 3 -p 3 "
   command += "--use-astral "
   run_command(command, "astral_" + basename )
-  check_all(output, True, False, False, True)
+  return check_all(output, True, False, False, True)
 
 def test_all(pargenes_script):
   basename = get_basename(pargenes_script)
@@ -190,7 +194,9 @@ def test_all(pargenes_script):
   command += "--use-astral "
   command += " --modeltest-global-parameters " + example_modeltest_parameters
   run_command(command, "all_" + basename )
-  check_all(output, True, True, True, True)
+  return  check_all(output, True, True, True, True)
+
+
 
 try:
   os.makedirs(tests_output_dir)
@@ -198,13 +204,20 @@ except:
   pass
 
 test_help()
-
+failures = 0
 for pargenes_script in pargenes_scripts:
-  test_ml_search(pargenes_script)
-  test_model_test(pargenes_script)
-  test_bootstraps(pargenes_script)
-  test_astral(pargenes_script)
-  test_all(pargenes_script)
+  failures += test_ml_search(pargenes_script)
+  failures += test_model_test(pargenes_script)
+  failures += test_bootstraps(pargenes_script)
+  failures += test_astral(pargenes_script)
+  failures += test_all(pargenes_script)
+
+print("")
+if (failures > 0):
+  print("ERROR: " + str(failures) + " tests failed. Please check you installation.")
+  sys.exit(1)
+else:
+  print("All tests ran successfully")
 
 
 
