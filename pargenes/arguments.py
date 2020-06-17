@@ -2,6 +2,7 @@ import argparse
 import sys
 import os
 import logger
+import version
 
 def exit_msg(msg):
   logger.error(msg)
@@ -23,7 +24,9 @@ def check_argument_dir(f, name):
 def parse_arguments(args):
   parser = argparse.ArgumentParser(args)
   # general arguments
-   
+  parser.add_argument('-V', '--version', 
+      action='version', 
+      version="ParGenes ("+version.get_pargenes_version_string()+")")   
   parser.add_argument("--dry-run",
       dest="dry_run",
       action="store_true",
@@ -162,7 +165,6 @@ def parse_arguments(args):
     type=int,
     default=0,
     help="Number of time the scheduler should try to restart after an error")
-  print("before parse:")
   op = parser.parse_args()
   print("after parse:")
   check_argument_dir(op.alignments_dir, "alignment")
