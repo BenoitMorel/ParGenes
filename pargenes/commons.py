@@ -28,7 +28,6 @@ class MSA:
     self.flag_disable_sorting = False 
     self.name = name
     self.path = path
-    self.valid = True
 
     self.add_raxml_arguments_str(raxml_arguments)
     self.modeltest_arguments = modeltest_arguments
@@ -135,6 +134,9 @@ def init_msas(op):
         continue
       del msa_filter[f]
     path = os.path.join(op.alignments_dir, f)
+    if (os.path.isdir(path)):
+      print("[ERROR] The input alignment directory contains at least one subdirectory. Please make sure that this directory contains only MSA files.")
+      sys.exit(1)
     name = get_msa_name(f)
     msas[name] = MSA(name, path, raxml_options, modeltest_options)
     if (op.disable_job_sorting):
