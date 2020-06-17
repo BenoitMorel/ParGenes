@@ -12,12 +12,11 @@ def makedirs(path):
 
 class MSA:
   """ group all the information related to one MSA """
-
   def __init__(self, name, path, raxml_arguments, modeltest_arguments):
-    self.name = ""
-    self.path = ""
-    self.binary_path = ""
+    self.name = name
+    self.path = path
     self.valid = True
+    self.binary_path = ""
     self.taxa = 0
     self.per_taxon_clv_size = 0
     self.patterns = 0
@@ -26,9 +25,6 @@ class MSA:
     self.raxml_args = []
     self.modeltest_arguments = ""
     self.flag_disable_sorting = False 
-    self.name = name
-    self.path = path
-
     self.add_raxml_arguments_str(raxml_arguments)
     self.modeltest_arguments = modeltest_arguments
 
