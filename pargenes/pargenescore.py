@@ -14,11 +14,11 @@ import logger
 import astral
 import report
 import datetime
-
+import version
 
 def print_header(args):
   logger.info("########################")
-  logger.info("#    PARGENES v1.0.1   #")
+  logger.info("#    PARGENES " + version.get_pargenes_version_string() + "   #")
   logger.info("########################")
   logger.info("")
   print(datetime.datetime.now())
