@@ -30,6 +30,9 @@ def run_scheduler(library, scheduler, threads_arg, commands_filename, output_dir
   sys.stdout.flush()
   command = []
   my_env = os.environ.copy()
+  if (not os.path.isfile(commands_filename)):
+    print("Internal error when running scheduler: " + commands_filename + " is not a valid file. Please report this issue to ParGenes team. Aborting")
+    report.report_and_exit(op.output_dir, 238)
   if (scheduler == "openmp"):
     my_env["OMP_NUM_THREADS"] = str(ranks) + "," + str(ranks) + "," + str(ranks)
     my_env["OMP_DYNAMIC"] = "false"
