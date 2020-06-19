@@ -4,6 +4,7 @@ import os
 import commons
 import logger
 import errorcodes
+import report
 
 def print_help_in_error(output_dir):
       logger.error("Please check the logs in " + os.path.join(output_dir, "logs.txt"))
