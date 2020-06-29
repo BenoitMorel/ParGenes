@@ -109,6 +109,13 @@ def main_raxml_runner(args, op):
       astral_jar = os.path.join(scriptdir, "..", "ASTRAL", "Astral", "astral.jar")
       astral.run_astral_pargenes(astral_jar,  op)
       checkpoint.write_checkpoint(output_dir, 7)
+  all_invalid = True
+  for name, msa in msas.items():
+    if (msa.valid):
+      all_invalid = False
+  if (all_invalid):
+    print("[Error] ParGenes failed to analyze all MSAs.")
+    report.report_and_exit(op.output_dir, 1)
   print_stats(op)
   return 0
 

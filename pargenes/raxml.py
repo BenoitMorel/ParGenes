@@ -53,8 +53,9 @@ def improve_cores_assignment(msas, op):
     max_taxa = max(max_taxa, msa.taxa)
     max_sites = max(max_sites, msa.patterns)
   taxa_numbers.sort()
-  average_taxa /= len(msas)
-  average_sites /= len(msas)
+  if (len(msas) > 0):
+    average_taxa /= len(msas)
+    average_sites /= len(msas)
   logger.info("  Number of families: " + str(len(msas)))
   logger.info("  Average number of taxa: " + str(int(average_taxa)))
   logger.info("  Max number of taxa: " + str(max_taxa))
@@ -71,7 +72,7 @@ def improve_cores_assignment(msas, op):
 def  predict_number_cores(msas, op):
   msa_count = len(msas)
   total_cost = 0
-  worst_percpu_cost = 0
+  worst_percpu_cost = 1
   runs_number = op.parsimony_starting_trees + op.random_starting_trees + op.bootstraps
   for name, msa in msas.items():
     if (not msa.valid):
