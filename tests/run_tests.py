@@ -105,7 +105,11 @@ def run_command(command, run_name):
   sys.stdout.write("[" + run_name + "]: ")
   sys.stdout.flush()
   with open(logs, "wb", 0) as out:
-    subprocess.check_call(shlex.split(command), stdout = out)
+    try:
+      subprocess.check_call(shlex.split(command), stdout = out)
+    except:
+      print("Test failed, restarting with logs enabled and continue option")
+      subprocess.check_call(shlex.split(command + " --continue"))
 
 def test_help():
   command = pargenes_scripts[0] + " -h"

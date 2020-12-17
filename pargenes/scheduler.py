@@ -25,11 +25,24 @@ def run(command, output_dir, my_env):
   p.wait()
   return p.returncode
 
+def check_mpi_exec_command(op):
+  command = ["mpiexec", "--help"]
+  try:
+    FNULL = open(os.devnull, 'w')
+    subprocess.check_call(command, stdout = FNULL)
+  except:
+    print("Cannot run mpiexec. Aborting")
+    report.report_and_exit(op.output_dir, 167) 
+
+
 def run_scheduler(library, scheduler, threads_arg, commands_filename, output_dir, ranks, op):
   """ Run the mpi scheduler program """
   sys.stdout.flush()
   command = []
   my_env = os.environ.copy()
+  if (not os.path.isfile(library)):
+    print("Error in run_scheduler: the binary " + library + " does not exist. Please check your installation")
+    report.report_and_exit(op.output_dir, 238) 
   if (not os.path.isfile(commands_filename)):
     print("Internal error when running scheduler: " + commands_filename + " is not a valid file. Please report this issue to ParGenes team. Aborting")
     report.report_and_exit(op.output_dir, 238)
@@ -38,6 +51,7 @@ def run_scheduler(library, scheduler, threads_arg, commands_filename, output_dir
     my_env["OMP_DYNAMIC"] = "false"
     #command.append("OMP_NUM_TRHEADS=" + str(ranks))
   if (scheduler != "openmp" and scheduler != "fork"):
+    check_mpi_exec_command(op)
     command.append("mpiexec")
     command.append("-n")
     command.append(str(ranks))
