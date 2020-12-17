@@ -115,7 +115,9 @@ def run_command(command, run_name, outputdir):
             print("Printing the report file content: ")
             print(open(report_file).read())
           else:
-            print("No report file found")
+            print("No report file found in " + report_file)
+        else:
+          print("Not trying to print report file")
       print("Test failed, restarting with logs enabled and continue option")
       subprocess.check_call(shlex.split(command + " --continue"))
 
