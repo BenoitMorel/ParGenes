@@ -99,7 +99,7 @@ def check_all(run_dir, parse, modeltest, mlsearch, astral):
   print("Success!")
   return 0
 
-def run_command(command, run_name):
+def run_command(command, run_name, outputdir):
   #print(command)
   logs = os.path.join(tests_output_dir, run_name + ".txt")
   sys.stdout.write("[" + run_name + "]: ")
@@ -108,12 +108,20 @@ def run_command(command, run_name):
     try:
       subprocess.check_call(shlex.split(command), stdout = out)
     except:
+      if (outputdir != None):
+        if ("--report" in sys.argv):
+          report_file = os.path.join(outputdir, "report.txt")
+          if (os.path.isfile(report_file)):
+            print("Printing the report file content: ")
+            print(open(report_file).read())
+          else:
+            print("No report file found")
       print("Test failed, restarting with logs enabled and continue option")
       subprocess.check_call(shlex.split(command + " --continue"))
 
 def test_help():
   command = pargenes_scripts[0] + " -h"
-  run_command(command, "help")
+  run_command(command, "help", outputdir = None)
 
 def test_ml_search(pargenes_script):
   basename = get_basename(pargenes_script)
@@ -128,7 +136,7 @@ def test_ml_search(pargenes_script):
   command += "-r " + example_raxml_options + " "
   command += "-c 4 "
   command += "-s 3 -p 3 "
-  run_command(command, "ml_search_" + basename )
+  run_command(command, "ml_search_" + basename, output)
   return check_all(output, True, False, True, False)
 
 def test_model_test(pargenes_script):
@@ -144,7 +152,7 @@ def test_model_test(pargenes_script):
   command += "-c 4 "
   command += " -m"
   command += " --modeltest-global-parameters " + example_modeltest_parameters
-  run_command(command, "modeltest_" + basename)
+  run_command(command, "modeltest_" + basename, output)
   return check_all(output, True, True, True, False)
 
 def test_bootstraps(pargenes_script):
@@ -160,7 +168,7 @@ def test_bootstraps(pargenes_script):
   command += "-r " + example_raxml_options + " "
   command += "-c 4 "
   command += " -b 3"
-  run_command(command, "bootstraps" + basename)
+  run_command(command, "bootstraps" + basename, output)
   return check_all(output, True, False, True, False)
 
 def test_astral(pargenes_script):
@@ -177,7 +185,7 @@ def test_astral(pargenes_script):
   command += "-c 4 "
   command += "-s 3 -p 3 "
   command += "--use-astral "
-  run_command(command, "astral_" + basename )
+  run_command(command, "astral_" + basename, output)
   return check_all(output, True, False, False, True)
 
 def test_all(pargenes_script):
@@ -197,7 +205,7 @@ def test_all(pargenes_script):
   command += "-s 3 -p 3 "
   command += "--use-astral "
   command += " --modeltest-global-parameters " + example_modeltest_parameters
-  run_command(command, "all_" + basename )
+  run_command(command, "all_" + basename, output)
   return  check_all(output, True, True, True, True)
 
 
