@@ -13,8 +13,8 @@ def print_help_in_error(output_dir):
 
 def get_mpi_scheduler_exec():
   """ Get the path to the mpi scheduler executable """
-  repo_root = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
-  return os.path.join(repo_root, "MPIScheduler", "build", "mpi-scheduler")
+  scriptdir = os.path.dirname(os.path.realpath(__file__))
+  return os.path.join(scriptdir, "..", "pargenes_binaries", "mpi-scheduler")
 
 def run(command, output_dir, my_env):
   logs_file = commons.get_log_file(output_dir, "logs")

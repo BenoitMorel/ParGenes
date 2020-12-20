@@ -8,12 +8,14 @@ check_file_exists()
     exit 1
   fi
 
+bindir="pargenes/pargenes_binaries"
+
 if [ "$(expr substr $(uname -s) 1 5)" == "Linux" ]; then
-  check_file_exists "raxml-ng/bin/raxml-ng-mpi.so"
-  check_file_exists "modeltest/build/src/modeltest-ng-mpi.so"
+  check_file_exists "$bindir/raxml-ng-mpi.so"
+  check_file_exists "$bindir/modeltest-ng-mpi.so"
 fi
-check_file_exists "raxml-ng/bin/raxml-ng"
-check_file_exists "modeltest/bin/modeltest-ng"
-check_file_exists "MPIScheduler/build/mpi-scheduler"
+check_file_exists "$bindir/raxml-ng"
+check_file_exists "$bindir/modeltest-ng"
+check_file_exists "$bindir/mpi-scheduler"
 echo "End of checks... No error detected!"
 

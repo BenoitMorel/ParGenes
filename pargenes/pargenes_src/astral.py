@@ -91,14 +91,11 @@ def run_astral(pargenes_dir, astral_jar, parameters_file):
   p.wait()
   if (0 != p.returncode):
     logger.error("Astral execution failed")
-    report.report_and_exit(op.output_dir, 1)
+    report.report_and_exit(pargenes_dir, 1)
 
 
 def run_astral_pargenes(astral_jar, op):
-  pargenes_dir = op.output_dir
-  scriptdir = os.path.dirname(os.path.realpath(__file__))
-  astral_jar = os.path.join(scriptdir, "..", "ASTRAL", "Astral", "astral.jar")
-  run_astral(pargenes_dir, astral_jar, op.astral_global_parameters)
+  run_astral(op.output_dir, astral_jar, op.astral_global_parameters)
 
 if (__name__ == '__main__'):
   if (len(sys.argv) != 2 and len(sys.argv) != 3):
@@ -114,7 +111,7 @@ if (__name__ == '__main__'):
   logger.init_logger(pargenes_dir)
   logger.timed_log(start, "Starting astral pargenes script...")
   scriptdir = os.path.dirname(os.path.realpath(__file__))
-  astral_jar = os.path.join(scriptdir, "..", "ASTRAL", "Astral", "astral.jar")
+  astral_jar = os.path.join(scriptdir, "..", "pargenes_binaries", "astral.jar")
   run_astral(pargenes_dir, astral_jar, parameters_file)
   logger.timed_log(start, "End of astral pargenes script...")
 

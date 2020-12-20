@@ -1,4 +1,4 @@
 
 def get_pargenes_version_string():
-  return "v1.1.2"
+  return "v1.2.0"
 

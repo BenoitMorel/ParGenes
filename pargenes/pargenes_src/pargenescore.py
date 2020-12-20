@@ -52,12 +52,14 @@ def main_raxml_runner(args, op):
   scriptdir = os.path.dirname(os.path.realpath(__file__))
   modeltest_run_path = os.path.join(output_dir, "modeltest_run")
   raxml_run_path = os.path.join(output_dir, "mlsearch_run")
+  binaries_dir = os.path.join(scriptdir, "..", "pargenes_binaries")
+  print("Binaries directory: " + binaries_dir)
   if (op.scheduler != "split"):
-    raxml_library = os.path.join(scriptdir, "..", "raxml-ng", "bin", "raxml-ng")
-    modeltest_library = os.path.join(scriptdir, "..", "modeltest", "bin", "modeltest-ng")
+    raxml_library = os.path.join(binaries_dir, "raxml-ng")
+    modeltest_library = os.path.join(binaries_dir, "modeltest-ng")
   else:
-    raxml_library = os.path.join(scriptdir, "..", "raxml-ng", "bin", "raxml-ng-mpi.so")
-    modeltest_library = os.path.join(scriptdir, "..", "modeltest", "build", "src", "modeltest-ng-mpi.so")
+    raxml_library = os.path.join(binaries_dir, "raxml-ng-mpi.so")
+    modeltest_library = os.path.join(binaries_dir, "modeltest-ng-mpi.so")
   if (len(op.raxml_binary) > 1):
     raxml_library = op.raxml_binary
   if (len(op.modeltest_binary) > 1):
@@ -106,7 +108,7 @@ def main_raxml_runner(args, op):
       checkpoint.write_checkpoint(output_dir, 6)
   if (op.use_astral):
     if (checkpoint_index < 7):
-      astral_jar = os.path.join(scriptdir, "..", "ASTRAL", "Astral", "astral.jar")
+      astral_jar = os.path.join(binaries_dir, "astral.jar")
       astral.run_astral_pargenes(astral_jar,  op)
       checkpoint.write_checkpoint(output_dir, 7)
   all_invalid = True
