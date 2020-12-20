@@ -10,7 +10,9 @@ check_file_exists()
 
 bindir="pargenes/pargenes_binaries"
 
-if [ "$(expr substr $(uname -s) 1 5)" == "Linux" ]; then
+if [[ "$OSTYPE" == "darwin"* ]]; then
+  echo "Not checking .so files... OK"
+else
   check_file_exists "$bindir/raxml-ng-mpi.so"
   check_file_exists "$bindir/modeltest-ng-mpi.so"
 fi

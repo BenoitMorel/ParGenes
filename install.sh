@@ -100,7 +100,9 @@ finish_install() {
   install "MPIScheduler/build/mpi-scheduler"
   install "raxml-ng/bin/raxml-ng"
   install "modeltest/bin/modeltest-ng" 
-  if [ "$(expr substr $(uname -s) 1 5)" == "Linux" ]; then
+  if [[ "$OSTYPE" == "darwin"* ]]; then
+    echo "MacOS install, skipping dynamic libraries installation"
+  else
     install "raxml-ng/bin/raxml-ng-mpi.so"
     install "modeltest/build/src/modeltest-ng-mpi.so"
   fi
