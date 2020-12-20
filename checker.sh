@@ -10,6 +10,7 @@ check_file_exists()
 
 bindir="pargenes/pargenes_binaries"
 
+echo "Running checker.sh..."
 if [[ "$OSTYPE" == "darwin"* ]]; then
   echo "Not checking .so files... OK"
 else
