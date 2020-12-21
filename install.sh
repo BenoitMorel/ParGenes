@@ -64,7 +64,11 @@ build_modeltest_exec() {
   cd modeltest
   mkdir -p build
   cd build
-  cmake -DUSE_MPI=OFF -DBUILD_AS_LIBRARY=OFF -DUSE_LIBPLL_CMAKE=ON .. || exit 1
+  if [[ "$OSTYPE" == "darwin"* ]]; then
+    cmake -DUSE_MPI=OFF .. || exit 1
+  else
+    cmake -DUSE_MPI=OFF -DBUILD_AS_LIBRARY=OFF -DUSE_LIBPLL_CMAKE=ON .. || exit 1
+  fi
   make -j $1 || exit 1
   cd ../../
 }
