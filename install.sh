@@ -121,9 +121,13 @@ fi
 
 echo "Installing with $cores cores"
 build_mpi_scheduler $cores
-build_raxml_lib $cores
+if [[ "$OSTYPE" == "darwin"* ]]; then
+  echo "MacOS install, not installing raxml and modeltest as libraries"
+else
+  build_raxml_lib $cores
+  build_modeltest_lib $cores
+fi
 build_raxml_exec $cores
-build_modeltest_lib $cores
 build_modeltest_exec $cores
 build_astral
 finish_install
