@@ -4,26 +4,27 @@ A massively parallel tool for model selection and tree inference on thousands of
 
 ## Features
 
-ParGenes is for you if:
-* you have several MSAs (typically gene alignments).
-* you want to run maximum likelihood tree inference (RAxML) independently on each of them. For instance, to get one gene tree per gene alignment.
-* you want to run these jobs in parallel, (single or multiple nodes).
+ParGenes is a parallel tool that takes as input a set of multiple sequence alignments (typically from different genes) and infers their corresponding phylogenetic trees. 
 
-In addition, ParGenes:
-* can find the best-fit model with ModelTest and use this model in the RAxML calls.
-* has a checkpoint mechanism.
-* filters out and reports a list of the MSAs that RAxML can not process.
-* handles multiple starting trees, bootstrap replicates, support value. ParGenes can run these searches simultaneously, and thus improves RAxML parallelization scheme.  
-* provides a (global or per-MSA) way to customize the modeltest and RAxML calls.
-* can infer the optimal number of cores to assign to a given ParGenes call.
+ParGenes supports the following features:
+* best-fit model selection with ModelTest
+* phylogenetic tree inference with RAxML-NG (with customizable number of starting trees and bootstrap trees)
+* automatic parallelization to make the best use of the available computing cores
+* checkpointing: ParGenes can be restarted without effort after an interuption
+* error reporting for the MSAs that fail to be treated
+* options to customize the tree inference parameters
+* optional call to ASTRAL to infer a species tree from the inferred phylogenetic trees
 
 ## Requirement
-* A linux or MacOS platform
-* gcc 5.0 or > (we did not try with clang yet)
+* Linux or MacOS
+* gcc 5.0 or > 
 * CMake 3.6 or >
-* Either MPI or OpenMP. MPI for multiple nodes parallelization.
+* Either MPI or OpenMP. MPI for multiple nodes parallelization (clusters).
 
 ## Installation
+
+(Please note that, on linux, you can also install through [`bioconda`](https://anaconda.org/bioconda/pargenes))
+
 
 Please use git,  and clone with --recursive!!!
 
