@@ -60,10 +60,13 @@ def main_raxml_runner(args, op):
   else:
     raxml_library = os.path.join(binaries_dir, "raxml-ng-mpi.so")
     modeltest_library = os.path.join(binaries_dir, "modeltest-ng-mpi.so")
+  astral_jar = os.path.join(binaries_dir, "astral.jar")
   if (len(op.raxml_binary) > 1):
     raxml_library = op.raxml_binary
   if (len(op.modeltest_binary) > 1):
     modeltest_library = op.modeltest_binary
+  if (len(op.astral_jar) > 1):
+    astral_jar = op.astral_jar
   if (checkpoint_index < 1):
     msas = commons.init_msas(op)
     raxml.run_parsing_step(msas, raxml_library, op.scheduler, os.path.join(output_dir, "parse_run"), op.cores, op)
@@ -108,7 +111,6 @@ def main_raxml_runner(args, op):
       checkpoint.write_checkpoint(output_dir, 6)
   if (op.use_astral):
     if (checkpoint_index < 7):
-      astral_jar = os.path.join(binaries_dir, "astral.jar")
       astral.run_astral_pargenes(astral_jar,  op)
       checkpoint.write_checkpoint(output_dir, 7)
   all_invalid = True

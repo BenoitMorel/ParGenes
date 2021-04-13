@@ -154,6 +154,10 @@ def parse_arguments(args):
   parser.add_argument("--astral-global-parameters", 
       dest="astral_global_parameters", 
       help="A file containing additional parameters to pass to astral")
+  parser.add_argument("--astral-jar", 
+      dest="astral_jar",
+      default="",
+      help="Custom path to ASTRAL jar file.")
   # experiments
   parser.add_argument("--experiment-disable-jobs-sorting",
       dest="disable_job_sorting",
