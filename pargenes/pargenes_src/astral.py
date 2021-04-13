@@ -76,13 +76,19 @@ def run_astral(pargenes_dir, astral_jar, parameters_file):
     pass
   gene_trees = get_gene_trees_file(pargenes_dir)
   extract_gene_trees(pargenes_dir, gene_trees)
+  library_path = os.path.abspath(os.path.join(astral_jar, os.pardir))
+  library_path = os.path.join(library_path, "lib")
+  #astral_jar = os.path.basename(astral_jar)
   command = ""
-  command += "java -jar "
+  command += "java "
+  command += "-D\"java.library.path=" + library_path + "\" "
+  command +="-jar "
   command += astral_jar + " "
   command += "-i " + gene_trees + " "
   command += "-o " + astral_output + " " 
   for arg in astral_args:
     command += arg + " "
+  sys.stderr.write(command)
   command = command[:-1]
   split_command = command.split(" ")
   out = open(astral_logs, "w")
