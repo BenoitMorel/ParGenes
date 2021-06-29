@@ -106,7 +106,8 @@ def main_raxml_runner(args, op):
       bootstraps.concatenate_bootstraps(output_dir, min(16, op.cores))
       logger.timed_log("end of bootstraps concatenation")
       checkpoint.write_checkpoint(output_dir, 5)
-    if (checkpoint_index < 6):
+    starting_trees = op.random_starting_trees + op.parsimony_starting_trees
+    if (checkpoint_index < 6 and starting_trees > 0):
       bootstraps.run(msas, output_dir, raxml_library, op.scheduler, os.path.join(output_dir, "supports_run"), op.cores, op)
       logger.timed_log("end of supports mpi-scheduler run")
       checkpoint.write_checkpoint(output_dir, 6)
