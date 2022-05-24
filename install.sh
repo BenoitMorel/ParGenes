@@ -80,7 +80,7 @@ build_astral() {
   cd ASTRAL
   unzip -o *.zip
   cd Astral
-  mv astral.5.6.3.jar astral.jar
+  mv astral.*.jar astral.jar
   cd ../../
 }
 
