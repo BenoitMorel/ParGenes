@@ -15,6 +15,7 @@ import astral
 import report
 import datetime
 import version
+import constraint
 
 def print_header(args):
   logger.info("########################")
@@ -51,6 +52,7 @@ def main_raxml_runner(args, op):
   logger.timed_log("end of MSAs initializations")
   scriptdir = os.path.dirname(os.path.realpath(__file__))
   modeltest_run_path = os.path.join(output_dir, "modeltest_run")
+  constrain_run_path = os.path.join(output_dir, "constrain_run")
   raxml_run_path = os.path.join(output_dir, "mlsearch_run")
   binaries_dir = os.path.join(scriptdir, "..", "pargenes_binaries")
   print("Binaries directory: " + binaries_dir)
@@ -92,6 +94,14 @@ def main_raxml_runner(args, op):
       raxml.analyse_parsed_msas(msas, op)
       logger.timed_log("end of the second parsing step") 
       checkpoint.write_checkpoint(output_dir, 2)
+  if (checkpoint_index < 3): 
+    print("TODO UPDATE CHECKPOINT")
+    if (op.constrain_search):
+      print("Computing consensus trees ")
+      samples = 100
+      constraint.compute_constrain(msas, samples, raxml_library, op.scheduler, constrain_run_path, op.cores, op)
+      logger.timed_log("end of consensus tree building")
+  
   if (checkpoint_index < 3):
     raxml.run(msas, op.random_starting_trees, op.parsimony_starting_trees, op.bootstraps, raxml_library, op.scheduler, raxml_run_path, op.cores, op)
     logger.timed_log("end of mlsearch mpi-scheduler run")

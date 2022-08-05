@@ -75,6 +75,11 @@ def parse_arguments(args):
       action="store_true",
       default=False,
       help="Run the scheduler with valgrind")
+  parser.add_argument("--constrain-search",
+      dest="constrain_search",
+      action="store_true",
+      default=False,
+      help="Constrain the raxml searches")
   parser.add_argument("--job-failure-fatal",
       dest="job_failure_fatal",
       action="store_true",

@@ -5,7 +5,7 @@ import scheduler
 import multiprocessing
 import pickle
 import logger
-
+import constraint
 
 def parse_msa_info(log_file, msa, core_assignment):
   """ Parse the raxml log_file and store the number of 
@@ -195,7 +195,9 @@ def run(msas, random_trees, parsimony_trees, bootstraps, library, scheduler_mode
           writer.write(" --tree pars{1} ")
         else:
           writer.write(" --tree rand{1} ")
-
+        if (op.constrain_search):
+          writer.write(" --tree-constraint " + constraint.get_constraint(op, name))
+          writer.write(" --force")
         writer.write(" --seed " + str(starting_tree + op.seed + 1) + " ")
         writer.write("\n")
       bs_output_dir = os.path.join(mlsearch_run_bootstraps, name)
