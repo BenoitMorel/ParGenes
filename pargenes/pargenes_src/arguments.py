@@ -24,25 +24,25 @@ def check_argument_dir(f, name):
 def parse_arguments(args):
   parser = argparse.ArgumentParser(args)
   # general arguments
-  parser.add_argument('-V', '--version', 
-      action='version', 
-      version="ParGenes ("+version.get_pargenes_version_string()+")")   
+  parser.add_argument('-V', '--version',
+      action='version',
+      version="ParGenes ("+version.get_pargenes_version_string()+")")
   parser.add_argument("--dry-run",
       dest="dry_run",
       action="store_true",
       default=False,
       help="")
-  parser.add_argument('-a', "--alignments-dir", 
-      dest="alignments_dir", 
+  parser.add_argument('-a', "--alignments-dir",
+      dest="alignments_dir",
       help="Directory containing the fasta files")
-  parser.add_argument('-o', "--output-dir", 
-      dest="output_dir", 
+  parser.add_argument('-o', "--output-dir",
+      dest="output_dir",
       help="Output directory")
-  parser.add_argument("-c", "--cores", 
+  parser.add_argument("-c", "--cores",
       dest="cores",
       type=int,
       help="The number of computational cores available for computation. Should at least 2.")
-  parser.add_argument("--seed", 
+  parser.add_argument("--seed",
       dest="seed",
       type=int,
       help="Random seed, for reproductibility of RAxML-NG runs. Set to 0 by default",
@@ -53,7 +53,7 @@ def parse_arguments(args):
       default=False,
       help="Allow pargenes to continue the analysis from the last checkpoint")
   parser.add_argument("--msa-filter",
-      dest="msa_filter", 
+      dest="msa_filter",
       help="A file containing the names of the msa files to process")
   parser.add_argument("-d", "--datatype",
       dest="datatype",
@@ -86,27 +86,27 @@ def parse_arguments(args):
       default=False,
       help="Stop ParGenes when a job fails")
   # raxml arguments
-  parser.add_argument("--per-msa-raxml-parameters", 
-      dest="per_msa_raxml_parameters", 
+  parser.add_argument("--per-msa-raxml-parameters",
+      dest="per_msa_raxml_parameters",
       help="A file containing per-msa raxml parameters")
-  parser.add_argument("-s", "--random-starting-trees", 
-      dest="random_starting_trees", 
+  parser.add_argument("-s", "--random-starting-trees",
+      dest="random_starting_trees",
       type=int,
       default=1,
       help="The number of starting trees")
-  parser.add_argument("-p", "--parsimony-starting-trees", 
-      dest="parsimony_starting_trees", 
+  parser.add_argument("-p", "--parsimony-starting-trees",
+      dest="parsimony_starting_trees",
       type=int,
       default=0,
       help="The number of starting parsimony trees")
-  parser.add_argument("-r", "--raxml-global-parameters", 
+  parser.add_argument("-r", "--raxml-global-parameters",
       dest="raxml_global_parameters", 
       help="A file containing the parameters to pass to raxml")
-  parser.add_argument("-R", "--raxml-global-parameters-string", 
-      dest="raxml_global_parameters_string", 
+  parser.add_argument("-R", "--raxml-global-parameters-string",
+      dest="raxml_global_parameters_string",
       help="List of parameters to pass to raxml (see also --raxml-global-parameters)")
-  parser.add_argument("-b", "--bs-trees", 
-      dest="bootstraps", 
+  parser.add_argument("-b", "--bs-trees",
+      dest="bootstraps",
       type=int,
       default=0,
       help="The number of bootstrap trees to compute")
@@ -115,7 +115,7 @@ def parse_arguments(args):
       action="store_true",
       default=False,
       help="Stop computing bootstrap trees after autoMRE bootstrap convergence test. You have to specify the maximum number of bootstrap trees with -b or --bs-tree")
-  parser.add_argument("--raxml-binary", 
+  parser.add_argument("--raxml-binary",
       dest="raxml_binary",
       default="",
       help="Custom path to raxml-ng executable. Please refer to the wiki before setting this variable yourself.")
@@ -130,11 +130,11 @@ def parse_arguments(args):
       action="store_true",
       default=False,
       help="Autodetect the model with modeltest")
-  parser.add_argument("--modeltest-global-parameters", 
-      dest="modeltest_global_parameters", 
+  parser.add_argument("--modeltest-global-parameters",
+      dest="modeltest_global_parameters",
       help="A file containing the parameters to pass to modeltest")
   parser.add_argument("--per-msa-modeltest-parameters",
-      dest="per_msa_modeltest_parameters", 
+      dest="per_msa_modeltest_parameters",
       help="A file containing per-msa modeltest parameters")
   parser.add_argument("--modeltest-criteria",
       dest="modeltest_criteria",
@@ -146,7 +146,7 @@ def parse_arguments(args):
       type=int,
       default=16,
       help="Number of cores to assign to each modeltest core (at least 4)")
-  parser.add_argument("--modeltest-binary", 
+  parser.add_argument("--modeltest-binary",
       dest="modeltest_binary",
       default="",
       help="Custom path to modeltest-ng executable. Please refer to the wiki before setting this variable yourself.")
@@ -156,13 +156,26 @@ def parse_arguments(args):
       action="store_true",
       default=False,
       help="Infer a species tree with astral")
-  parser.add_argument("--astral-global-parameters", 
+  parser.add_argument("--astral-global-parameters",
       dest="astral_global_parameters", 
       help="A file containing additional parameters to pass to astral")
-  parser.add_argument("--astral-jar", 
+  parser.add_argument("--astral-jar",
       dest="astral_jar",
       default="",
       help="Custom path to ASTRAL jar file.")
+  # aster arguments
+  parser.add_argument("--use-aster",
+      dest="use_aster",
+      action="store_true",
+      default=False,
+      help="Infer a species tree with aster")
+  parser.add_argument("--aster-global-parameters",
+      dest="aster_global_parameters",
+      help="A file containing additional parameters to pass to aster")
+  parser.add_argument("--aster-bin",
+      dest="aster_bin",
+      default="astral",
+      help="Name or custom path to aster binary file (astral|astral-hybrid|astral-pro|caster-pair|caster-site|caster-site_branchlength)")
   # experiments
   parser.add_argument("--experiment-disable-jobs-sorting",
       dest="disable_job_sorting",
