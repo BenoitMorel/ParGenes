@@ -11,3 +11,6 @@
 [submodule "ASTRAL"]
 	path = ASTRAL
 	url = https://github.com/smirarab/ASTRAL.git
+[submodule "ASTER"]
+	path = ASTER
+	url = https://github.com/chaoszhang/ASTER.git
