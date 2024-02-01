@@ -56,57 +56,30 @@ def get_additional_parameters(parameters_file):
   else:
     return []
 
-###################################
-#def get_alignments_list(pargenes_dir):
-#""" Collect a list of alignments as input to aster (caster*)
-#  - pargenes_dir     (str):        pargenes output directory
-#"""
-#
-#  return list_or_file
-###################################
-
 def run_aster(pargenes_dir, aster_bin, parameters_file):
-  """ Run aster on the ParGenes ML trees or Alignment files
+  """ Run aster on the ParGenes ML trees
   - pargenes_dir     (str):        pargenes output directory
-  - aster_bin        (str):        name of binary
-  - parameters_file  (list(str)):  a file with the list of additional arguments to pass to astral
+  - aster_bin        (str):        name of aster binary (<astral|astral-hybrid|astral-pro>)
+  - parameters_file  (list(str)):  a file with the list of additional arguments to pass to aster
   """
   aster_args = get_additional_parameters(parameters_file)
   aster_run_dir = os.path.join(pargenes_dir, "aster_run")
-  aster_output = os.path.join(astral_run_dir, "output_species_tree.newick")
-  aster_logs = os.path.join(astral_run_dir, "aster_logs.txt")
+  aster_output = os.path.join(aster_run_dir, "output_species_tree.newick")
+  aster_logs = os.path.join(aster_run_dir, "aster_logs.txt")
   logger.info("Aster additional parameters:")
   logger.info(aster_args)
   try:
     os.makedirs(aster_run_dir)
   except:
     pass
-  #gene_trees = get_gene_trees_file(pargenes_dir)
-  #extract_gene_trees(pargenes_dir, gene_trees)
-  ###########
-  #library_path = os.path.abspath(os.path.join(aster_bin, os.pardir))
-  #library_path = os.path.join(library_path, "lib")
-  ##astral_jar = os.path.basename(astral_jar)
-  #command = ""
-  #command += "java "
-  #command += "-D\"java.library.path=" + library_path + "\" "
-  #command +="-jar "
-  #command += astral_jar + " "
-  #command += "-i " + gene_trees + " "
-  #command += "-o " + astral_output + " "
-  ###########
-  #astral -t 4 -i gene_trees.newick -o astral.output_species_tree.newick
-  command = aster_bin + " "
-  # Need to check if we are using trees or alignments as input!
-  if aster_bin.startswith("astral"):
-    gene_trees = get_gene_trees_file(pargenes_dir)
-    extract_gene_trees(pargenes_dir, gene_trees)
-    command += "-i " + gene_trees + " "
-  elif aster_bin.startswith("caster"):
-    ##################### Need the list of alignments
-    #command += "-i " + alignment_list + " " #######
+  gene_trees = get_gene_trees_file(pargenes_dir)
+  extract_gene_trees(pargenes_dir, gene_trees)
+  library_path = os.path.abspath(os.path.join(aster_bin, os.pardir))
+  aster_bin = os.path.basename(aster_bin)
+  command = ""
+  command += aster_bin + " "
+  command += "-i " + gene_trees + " "
   command += "-o " + aster_output + " "
-  ###########
   for arg in aster_args:
     command += arg + " "
   sys.stderr.write(command)
@@ -126,7 +99,7 @@ def run_aster_pargenes(aster_bin, op):
 if (__name__ == '__main__'):
   if (len(sys.argv) != 2 and len(sys.argv) != 3):
     print("Error: syntax is:")
-    print("<aster_binary> pargenes_dir [aster_parameters_file]")
+    print("<aster_bin> pargenes_dir [aster_parameters_file]")
     print("aster_parameters_file is optional and should contain additional parameters to pass to aster call)")
     exit(1)
   pargenes_dir = sys.argv[1]
@@ -137,10 +110,7 @@ if (__name__ == '__main__'):
   logger.init_logger(pargenes_dir)
   logger.timed_log(start, "Starting aster pargenes script...")
   scriptdir = os.path.dirname(os.path.realpath(__file__))
-  #########################
-  #aster_bin = os.path.join(scriptdir, "..", "pargenes_binaries", aster_xxxxxxxxxx)
-  #aster_bin = os.path.join(scriptdir, "..", "pargenes_binaries", "astral.jar")
-  #########################
+  aster_bin = os.path.join(scriptdir, "..", "pargenes_binaries", aster_bin)
   run_aster(pargenes_dir, aster_bin, parameters_file)
   logger.timed_log(start, "End of aster pargenes script...")
 
