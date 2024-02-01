@@ -100,7 +100,7 @@ def parse_arguments(args):
     default=0,
     help="The number of starting parsimony trees")
   parser.add_argument("-r", "--raxml-global-parameters",
-    dest="raxml_global_parameters", 
+    dest="raxml_global_parameters",
     help="A file containing the parameters to pass to raxml")
   parser.add_argument("-R", "--raxml-global-parameters-string",
     dest="raxml_global_parameters_string",
@@ -157,7 +157,7 @@ def parse_arguments(args):
     default=False,
     help="Infer a species tree with astral")
   parser.add_argument("--astral-global-parameters",
-    dest="astral_global_parameters", 
+    dest="astral_global_parameters",
     help="A file containing additional parameters to pass to astral")
   parser.add_argument("--astral-jar",
     dest="astral_jar",
@@ -168,7 +168,7 @@ def parse_arguments(args):
     dest="use_aster",
     action="store_true",
     default=False,
-    help="Infer a species tree with aster")
+    help="Infer a species tree with aster. Default is to use (aster) astral, but this can be changed with option --aster-bin")
   parser.add_argument("--aster-global-parameters",
     dest="aster_global_parameters",
     help="A file containing additional parameters to pass to aster")
