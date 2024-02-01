@@ -8,13 +8,13 @@ ParGenes is a parallel tool that takes as input a set of multiple sequence align
 
 ParGenes supports the following features:
 
-* best-fit model selection with ModelTest
-* phylogenetic tree inference with RAxML-NG (with customizable number of starting trees and bootstrap trees)
+* best-fit model selection with [ModelTest-NG](https://github.com/ddarriba/modeltest)
+* phylogenetic tree inference with [RAxML-NG](https://github.com/amkozlov/raxml-ng) (with customizable number of starting trees and bootstrap trees)
 * automatic parallelization to make the best use of the available computing cores
 * check pointing: ParGenes can be restarted without effort after an interruption
 * error reporting for the MSAs that fail to be treated
 * options to customize the tree inference parameters
-* optional call to ASTRAL/ASTER to infer a species tree from the inferred phylogenetic trees
+* optional call to [ASTRAL](https://github.com/smirarab/ASTRAL)/[ASTER](https://github.com/chaoszhang/ASTER) to infer a species tree from the inferred phylogenetic trees
 
 ## Requirement
 
@@ -54,7 +54,7 @@ The `gitpull.sh` will update all the changes properly.
 
 ## Running
 
-See the wiki (<https://github.com/BenoitMorel/ParGenes/wiki/Running-ParGenes>)
+See the wiki (<https://github.com/BenoitMorel/ParGenes/wiki/Running-ParGenes>).
 
 ## Documentation and Support
 
