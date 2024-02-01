@@ -175,20 +175,7 @@ def parse_arguments(args):
   parser.add_argument("--aster-bin",
     dest="aster_bin",
     default="astral",
-    help="Name or custom path to aster binary file (astral|astral-hybrid|astral-pro|caster-pair|caster-site|caster-site_branchlength)")
-  # caster arguments
-  parser.add_argument("--use-caster",
-    dest="use_caster",
-    action="store_true",
-    default=False,
-    help="Infer a species tree with caster")
-  parser.add_argument("--caster-global-parameters",
-    dest="caster_global_parameters",
-    help="A file containing additional parameters to pass to caster")
-  parser.add_argument("--caster-bin",
-    dest="caster_bin",
-    default="caster-site",
-    help="Name or custom path to caster binary file (caster-pair|caster-site|caster-site_branchlength)")
+    help="Name or custom path to aster binary file (astral|astral-hybrid|astral-pro)")
   # experiments
   parser.add_argument("--experiment-disable-jobs-sorting",
     dest="disable_job_sorting",
