@@ -21,7 +21,7 @@ def extract_gene_trees_support(pargenes_dir, gene_trees_filename):
         with open(os.path.join(results, f)) as reader:
           writer.write(treat_newick(reader.read()))
         count += 1
-  logger.info("ParGenes/Astral: " + str(count) + " gene trees (with support values) were found in ParGenes output directory")
+  logger.info("ParGenes/Aster: " + str(count) + " gene trees (with support values) were found in ParGenes output directory")
 
 def extract_gene_trees_ml(pargenes_dir, gene_trees_filename):
   results = os.path.join(pargenes_dir, "mlsearch_run", "results")
@@ -74,7 +74,7 @@ def run_aster(pargenes_dir, aster_bin, parameters_file):
     pass
   gene_trees = get_gene_trees_file(pargenes_dir)
   extract_gene_trees(pargenes_dir, gene_trees)
-  library_path = os.path.abspath(os.path.join(aster_bin, os.pardir))
+  #library_path = os.path.abspath(os.path.join(aster_bin, os.pardir))
   aster_bin = os.path.basename(aster_bin)
   command = ""
   command += aster_bin + " "
@@ -100,7 +100,7 @@ if (__name__ == '__main__'):
   if (len(sys.argv) != 2 and len(sys.argv) != 3):
     print("Error: syntax is:")
     print("<aster_bin> pargenes_dir [aster_parameters_file]")
-    print("aster_parameters_file is optional and should contain additional parameters to pass to aster call)")
+    print("aster_parameters_file is optional and should contain additional parameters to pass to aster call")
     exit(1)
   pargenes_dir = sys.argv[1]
   parameters_file = None
