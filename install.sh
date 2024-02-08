@@ -122,7 +122,9 @@ finish_install() {
   fi
   install "ASTRAL/Astral/astral.jar"
   install "ASTRAL/Astral/lib"
-  install "ASTER/bin"
+  install "ASTER/bin/astral"
+  install "ASTER/bin/astral-pro"
+  install "ASTER/bin/astral-hybrid"
   echo ""
 }
 
