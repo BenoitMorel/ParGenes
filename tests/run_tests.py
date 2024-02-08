@@ -6,10 +6,9 @@ import time
 import shlex
 import platform
 
-
 run_as_binary = "--run-as-binary" in sys.argv
 
-tests_path = os.path.dirname(os.path.realpath(__file__)) 
+tests_path = os.path.dirname(os.path.realpath(__file__))
 root = os.path.dirname(tests_path)
 pargenes_script_names = ["pargenes.py", "pargenes-hpc.py", "pargenes-hpc-debug.py"]
 pargenes_scripts = []
@@ -46,9 +45,9 @@ def check_parse(run_dir):
 
 def check_modeltest(run_dir):
   modeltest_dir = os.path.join(run_dir, "modeltest_run")
-  assert len(os.listdir(os.path.join(modeltest_dir, "running_jobs"))) == 0 
+  assert len(os.listdir(os.path.join(modeltest_dir, "running_jobs"))) == 0
   mlsearch_dir = os.path.join(run_dir, "mlsearch_run")
-  assert len(os.listdir(os.path.join(mlsearch_dir, "running_jobs"))) == 0  
+  assert len(os.listdir(os.path.join(mlsearch_dir, "running_jobs"))) == 0
   for msa, best_model in list(zip(valid_msas, best_models)):
     results = os.path.join(modeltest_dir, "results", msa)
     assert os.path.isdir(results)
@@ -59,10 +58,9 @@ def check_modeltest(run_dir):
     model = open(bestModel).readlines()[0].split(",")[0].split("{")[0]
     assert model == best_model
 
-
 def check_ml_search(run_dir):
   mlsearch_dir = os.path.join(run_dir, "mlsearch_run")
-  assert len(os.listdir(os.path.join(mlsearch_dir, "running_jobs"))) == 0  
+  assert len(os.listdir(os.path.join(mlsearch_dir, "running_jobs"))) == 0
   for msa in valid_msas:
     results = os.path.join(mlsearch_dir, "results", msa)
     prefix = os.path.join(results, msa + ".raxml.")
@@ -75,14 +73,14 @@ def check_astral(run_dir):
   astral_dir = os.path.join(run_dir, "astral_run")
   input_gene_trees = os.path.join(astral_dir, "gene_trees.newick")
   output_species_tree = os.path.join(astral_dir, "output_species_tree.newick")
-  assert(os.path.isfile(output_species_tree))
+  assert(os.path.isfile(input_gene_trees))
   assert(os.path.isfile(output_species_tree))
   input_gene_trees_lines = open(input_gene_trees).readlines()
   assert(len(input_gene_trees_lines) == 4)
   output_species_tree_str = open(output_species_tree).readlines()[0]
   for i in range(0, 10):
     assert(("taxa_" + str(i)) in output_species_tree_str)
-  
+
 def check_all(run_dir, parse, modeltest, mlsearch, astral):
   try:
     if (parse):
@@ -210,8 +208,6 @@ def test_all(pargenes_script):
   run_command(command, "all_" + basename, output)
   return  check_all(output, True, True, True, True)
 
-
-
 try:
   os.makedirs(tests_output_dir)
 except:
@@ -232,6 +228,4 @@ if (failures > 0):
   sys.exit(1)
 else:
   print("All tests ran successfully")
-
-
 
