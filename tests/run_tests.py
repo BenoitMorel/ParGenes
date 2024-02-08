@@ -150,7 +150,7 @@ def test_ml_search(pargenes_script):
   command += "-c 4 "
   command += "-s 3 -p 3 "
   run_command(command, "ml_search_" + basename, output)
-  return check_all(output, True, False, True, False)
+  return check_all(output, True, False, True, False, False)
 
 def test_model_test(pargenes_script):
   basename = get_basename(pargenes_script)
@@ -166,7 +166,7 @@ def test_model_test(pargenes_script):
   command += " -m"
   command += " --modeltest-global-parameters " + example_modeltest_parameters
   run_command(command, "modeltest_" + basename, output)
-  return check_all(output, True, True, True, False)
+  return check_all(output, True, True, True, False, False)
 
 def test_bootstraps(pargenes_script):
   basename = get_basename(pargenes_script)
@@ -182,7 +182,7 @@ def test_bootstraps(pargenes_script):
   command += "-c 4 "
   command += " -b 3"
   run_command(command, "bootstraps" + basename, output)
-  return check_all(output, True, False, True, False)
+  return check_all(output, True, False, True, False, False)
 
 def test_astral(pargenes_script):
   basename = get_basename(pargenes_script)
@@ -199,7 +199,7 @@ def test_astral(pargenes_script):
   command += "-s 3 -p 3 "
   command += "--use-astral "
   run_command(command, "astral_" + basename, output)
-  return check_all(output, True, False, False, True)
+  return check_all(output, True, False, False, True, False)
 
 def test_aster(pargenes_script):
   # Testfirst with default aster binary astral
@@ -218,7 +218,7 @@ def test_aster(pargenes_script):
   command += "-s 3 -p 3 "
   command += "--use-aster "
   run_command(command, "aster_" + basename, output)
-  return check_all(output, True, False, False, True)
+  return check_all(output, True, False, False, False, True)
 
 def test_all(pargenes_script):
   basename = get_basename(pargenes_script)
@@ -238,7 +238,7 @@ def test_all(pargenes_script):
   command += "--use-astral "
   command += " --modeltest-global-parameters " + example_modeltest_parameters
   run_command(command, "all_" + basename, output)
-  return  check_all(output, True, True, True, True)
+  return  check_all(output, True, True, True, True, False)
 
 def test_all_aster(pargenes_script):
   basename = get_basename(pargenes_script)
@@ -258,7 +258,7 @@ def test_all_aster(pargenes_script):
   command += "--use-aster "
   command += " --modeltest-global-parameters " + example_modeltest_parameters
   run_command(command, "all_aster_" + basename, output)
-  return  check_all(output, True, True, True, True)
+  return  check_all(output, True, True, True, False, True)
 
 try:
   os.makedirs(tests_output_dir)
