@@ -86,7 +86,6 @@ def run_astral(pargenes_dir, astral_jar, parameters_file):
   command += "-o " + astral_output + " "
   for arg in astral_args:
     command += arg + " "
-  sys.stderr.write(command)
   command = command[:-1]
   split_command = command.split(" ")
   out = open(astral_logs, "w")

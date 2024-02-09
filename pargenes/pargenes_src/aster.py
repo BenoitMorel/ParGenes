@@ -82,7 +82,6 @@ def run_aster(pargenes_dir, aster_bin, parameters_file):
   command += "-o " + aster_output + " "
   for arg in aster_args:
     command += arg + " "
-  sys.stderr.write(command)
   command = command[:-1]
   split_command = command.split(" ")
   out = open(aster_logs, "w")
@@ -110,7 +109,7 @@ if (__name__ == '__main__'):
   logger.init_logger(pargenes_dir)
   logger.timed_log(start, "Starting aster pargenes script...")
   scriptdir = os.path.dirname(os.path.realpath(__file__))
-  aster_bin = os.path.join(scriptdir, "..", "pargenes_binaries", "aster")
+  aster_bin = os.path.join(scriptdir, "..", "pargenes_binaries", "astral")
   run_aster(pargenes_dir, aster_bin, parameters_file)
   logger.timed_log(start, "End of aster pargenes script...")
 
