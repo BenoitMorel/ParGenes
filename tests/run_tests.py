@@ -182,7 +182,7 @@ def test_bootstraps(pargenes_script):
   command += "-r " + example_raxml_options + " "
   command += "-c 4 "
   command += " -b 3"
-  run_command(command, "bootstraps" + basename, output)
+  run_command(command, "bootstraps_" + basename, output)
   return check_all(output, True, False, True, False, False)
 
 def test_astral(pargenes_script):
