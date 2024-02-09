@@ -62,16 +62,15 @@ def main_raxml_runner(args, op):
     modeltest_library = os.path.join(binaries_dir, "modeltest-ng-mpi.so")
   astral_jar = os.path.join(binaries_dir, "astral.jar")
   aster_bin = os.path.join(binaries_dir, "astral")
-  if (len(op.raxml_binary) > 1):
+  if (op.raxml_binary):
     raxml_library = op.raxml_binary
-  if (len(op.modeltest_binary) > 1):
+  if (op.modeltest_binary):
     modeltest_library = op.modeltest_binary
-  if (len(op.astral_jar) > 1):
+  if (op.astral_jar):
     astral_jar = op.astral_jar
   astral_jar = os.path.abspath(astral_jar)
-  if (len(op.aster_bin) > 1):
+  if (op.aster_bin):
     aster_bin = op.aster_bin
-  # Test here if op.aster_bin is either aster,aster-pro,aster-hybrid (which all are in binaries_dir) or valid path?
   aster_bin = os.path.abspath(aster_bin)
   if (checkpoint_index < 1):
     msas = commons.init_msas(op)

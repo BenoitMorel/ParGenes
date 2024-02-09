@@ -161,7 +161,6 @@ def parse_arguments(args):
     help="A file containing additional parameters to pass to astral")
   parser.add_argument("--astral-jar",
     dest="astral_jar",
-    default="",
     help="Custom path to ASTRAL jar file.")
   # aster arguments
   parser.add_argument("--use-aster",
@@ -174,7 +173,6 @@ def parse_arguments(args):
     help="A file containing additional parameters to pass to aster")
   parser.add_argument("--aster-bin",
     dest="aster_bin",
-    default="",
     help="Name or custom path to aster binary file (astral|astral-hybrid|astral-pro)")
   # experiments
   parser.add_argument("--experiment-disable-jobs-sorting",
@@ -197,6 +195,8 @@ def parse_arguments(args):
   check_argument_file(op.modeltest_global_parameters, "modeltest_global_parameters")
   check_argument_file(op.astral_global_parameters, "astral_global_parameters")
   check_argument_file(op.aster_global_parameters, "aster_global_parameters")
+  check_argument_file(op.astral_jar, "astral_jar")
+  check_argument_file(op.aster_bin, "aster_bin")
   check_mandatory_field(op.alignments_dir, "alignment directory (\"-a\"")
   check_mandatory_field(op.output_dir, "output directory (\"-o\")")
   if (op.autoMRE and op.bootstraps < 1):
