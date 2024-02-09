@@ -17,6 +17,7 @@ if (run_as_binary):
 else:
   for s in pargenes_script_names:
     pargenes_scripts.append("python " + os.path.join(root, "pargenes", s))
+
 example_data_path = os.path.join(tests_path, "smalldata")
 example_msas = os.path.join(example_data_path, "fasta_files")
 example_raxml_options = os.path.join(example_data_path, "raxml_global_options.txt")
@@ -82,7 +83,7 @@ def check_astral(run_dir):
     assert(("taxa_" + str(i)) in output_species_tree_str)
 
 def check_aster(run_dir):
-  astral_dir = os.path.join(run_dir, "aster_run")
+  aster_dir = os.path.join(run_dir, "aster_run")
   input_gene_trees = os.path.join(aster_dir, "gene_trees.newick")
   output_species_tree = os.path.join(aster_dir, "output_species_tree.newick")
   assert(os.path.isfile(input_gene_trees))
