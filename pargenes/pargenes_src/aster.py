@@ -75,7 +75,7 @@ def run_aster(pargenes_dir, aster_bin, parameters_file):
   gene_trees = get_gene_trees_file(pargenes_dir)
   extract_gene_trees(pargenes_dir, gene_trees)
   library_path = os.path.abspath(os.path.join(aster_bin, os.pardir)) # TODO: check if needed
-  aster_bin = os.path.basename(aster_bin)
+  #aster_bin = os.path.basename(aster_bin)
   command = ""
   command += aster_bin + " "
   command += "-i " + gene_trees + " "
@@ -110,7 +110,7 @@ if (__name__ == '__main__'):
   logger.init_logger(pargenes_dir)
   logger.timed_log(start, "Starting aster pargenes script...")
   scriptdir = os.path.dirname(os.path.realpath(__file__))
-  aster_bin = os.path.join(scriptdir, "..", "pargenes_binaries", aster_bin)
+  aster_bin = os.path.join(scriptdir, "..", "pargenes_binaries", "aster")
   run_aster(pargenes_dir, aster_bin, parameters_file)
   logger.timed_log(start, "End of aster pargenes script...")
 
