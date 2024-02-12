@@ -16,7 +16,7 @@ ParGenes supports the following features:
 * options to customize the tree inference parameters
 * optional call to [ASTRAL](https://github.com/smirarab/ASTRAL)/[ASTER](https://github.com/chaoszhang/ASTER) to infer a species tree from the inferred phylogenetic trees
 
-## Requirement
+## Requirements
 
 * Linux or MacOS
 * gcc 5.0 or >
@@ -27,23 +27,25 @@ ParGenes supports the following features:
 
 (Please note that, on Linux, you can also install through [`bioconda`](https://anaconda.org/bioconda/pargenes))
 
-Please use `git`, and clone with `--recursive`!!!
+Please use `git`, and clone with `--recursive`!
 
-```
-git clone --recursive https://github.com/BenoitMorel/ParGenes.git
-```
+    $ git clone --recursive https://github.com/BenoitMorel/ParGenes.git
 
 To build the sources:
 
-```
-./install.sh
-```
+    $ ./install.sh
 
 To parallelize the compilation with 10 cores:
 
-```
-./install.sh 10
-```
+    $ ./install.sh 10
+
+**To install with ASTER capacity, use the following:**
+
+    $ git clone --recurse-submodules https://github.com/nylander/ParGenes.git
+    $ cd ParGenes
+    $ git checkout aster
+    $ git submodule update --init --recursive
+    $ ./install.sh
 
 ## Updating the repository
 
@@ -55,6 +57,16 @@ The `gitpull.sh` will update all the changes properly.
 ## Running
 
 See the wiki (<https://github.com/BenoitMorel/ParGenes/wiki/Running-ParGenes>).
+
+**Run with ASTER:**
+
+Additinal options are `--use-aster`, `--aster-bin`, and
+`--aster-global-parameters`.  The `--aster-bin` takes an option, which is
+either the name or path to any of the ASTER-astral binaries (`astral`,
+astral-hybrid`, or `astral-pro`), or the path to a local copy of any of these.
+Additional arguments to any of these programs can be passed by using the option
+`--aster-global-parameters`, which takes a file as input.  See
+<https://github.com/chaoszhang/ASTER> for descriptions of these software.
 
 ## Documentation and Support
 
