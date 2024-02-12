@@ -21,6 +21,14 @@ def check_argument_dir(f, name):
   if (None != f and not os.path.isdir(f)):
     exit_msg("Error: invalid " + name + " directory: " + f)
 
+def check_argument_astral_jar(f, name):
+  if '/' in f:
+    check_argument_file(f, name)
+    jar_lib = os.path.dirname(f) + '/' + 'lib'
+    check_argument_dir(jar_lib, "astral.jar lib folder")
+  else:
+    exit_msg("Error: invalid path to " + name + " directory: " + f)
+
 def check_argument_aster_bin(f, name):
   if '/' in f:
     check_argument_file(f, name)
@@ -208,9 +216,9 @@ def parse_arguments(args):
   check_argument_file(op.astral_global_parameters, "astral_global_parameters")
   check_argument_file(op.aster_global_parameters, "aster_global_parameters")
   if (op.astral_jar):
-    check_astral_jar_argument(op.astral_jar, "astral_jar")
+    check_argument_astral_jar(op.astral_jar, "astral_jar")
   if op.aster_bin:
-    check_aster_bin_argument(op.aster_bin, "aster_bin")
+    check_argument_aster_bin(op.aster_bin, "aster_bin")
   check_mandatory_field(op.alignments_dir, "alignment directory (\"-a\"")
   check_mandatory_field(op.output_dir, "output directory (\"-o\")")
   if (op.autoMRE and op.bootstraps < 1):

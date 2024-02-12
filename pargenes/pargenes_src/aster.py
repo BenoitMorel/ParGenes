@@ -74,8 +74,8 @@ def run_aster(pargenes_dir, aster_bin, parameters_file):
     pass
   gene_trees = get_gene_trees_file(pargenes_dir)
   extract_gene_trees(pargenes_dir, gene_trees)
-  library_path = os.path.abspath(os.path.join(aster_bin, os.pardir)) # TODO: check if needed
-  #aster_bin = os.path.basename(aster_bin)
+  #library_path = os.path.abspath(os.path.join(aster_bin, os.pardir)) # TODO: check if needed
+  #aster_bin = os.path.basename(aster_bin)# TODO: check if needed
   command = ""
   command += aster_bin + " "
   command += "-i " + gene_trees + " "
