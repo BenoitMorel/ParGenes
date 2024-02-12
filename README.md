@@ -63,7 +63,7 @@ See the wiki (<https://github.com/BenoitMorel/ParGenes/wiki/Running-ParGenes>).
 Additinal options are `--use-aster`, `--aster-bin`, and
 `--aster-global-parameters`.  The `--aster-bin` takes an option, which is
 either the name or path to any of the ASTER-astral binaries (`astral`,
-astral-hybrid`, or `astral-pro`), or the path to a local copy of any of these.
+`astral-hybrid`, or `astral-pro`), or the path to a local copy of any of these.
 Additional arguments to any of these programs can be passed by using the option
 `--aster-global-parameters`, which takes a file as input.  See
 <https://github.com/chaoszhang/ASTER> for descriptions of these software.
