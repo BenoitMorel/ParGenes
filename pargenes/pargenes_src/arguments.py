@@ -25,11 +25,11 @@ def check_argument_aster_bin(f, name):
   if '/' in f:
     check_argument_file(f, name)
   else:
-    scriptdir = os.path.dirname(os.path.realpath(__file__))
-    binaries_dir = os.path.join(scriptdir, "..", "pargenes_binaries")
+    script_dir = os.path.dirname(os.path.realpath(__file__))
+    binaries_dir = os.path.join(script_dir, "..", "pargenes_binaries")
     aster_bins = [fn for fn in glob.glob('astral*', root_dir=binaries_dir) if not fn.endswith('.jar')]
-    if f not in aster_files:
-      exit_msg("Error: invalid name '" + f + "'. Valid options are " + '|'.join(aster_files) +  "\n")
+    if f not in aster_bins:
+      exit_msg("Error: invalid name '" + f + "'. Valid options are " + '|'.join(aster_bins) +  "\n")
 
 # parse the command line and return the arguments
 def parse_arguments(args):
@@ -197,6 +197,7 @@ def parse_arguments(args):
     default=0,
     help="Number of time the scheduler should try to restart after an error")
   op = parser.parse_args()
+  # after parse
   print("after parse:")
   check_argument_dir(op.alignments_dir, "alignment")
   check_argument_file(op.msa_filter, "msa filter")
@@ -206,8 +207,10 @@ def parse_arguments(args):
   check_argument_file(op.modeltest_global_parameters, "modeltest_global_parameters")
   check_argument_file(op.astral_global_parameters, "astral_global_parameters")
   check_argument_file(op.aster_global_parameters, "aster_global_parameters")
-  check_argument_file(op.astral_jar, "astral_jar")
-  check_argument_aster_bin(op.aster_bin, "aster_bin")
+  if (op.astral_jar):
+    check_astral_jar_argument(op.astral_jar, "astral_jar")
+  if op.aster_bin:
+    check_aster_bin_argument(op.aster_bin, "aster_bin")
   check_mandatory_field(op.alignments_dir, "alignment directory (\"-a\"")
   check_mandatory_field(op.output_dir, "output directory (\"-o\")")
   if (op.autoMRE and op.bootstraps < 1):

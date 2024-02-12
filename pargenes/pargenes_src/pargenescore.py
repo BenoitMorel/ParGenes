@@ -60,15 +60,23 @@ def main_raxml_runner(args, op):
   else:
     raxml_library = os.path.join(binaries_dir, "raxml-ng-mpi.so")
     modeltest_library = os.path.join(binaries_dir, "modeltest-ng-mpi.so")
-  astral_jar = os.path.join(binaries_dir, "astral.jar")
-  aster_bin = os.path.join(binaries_dir, "astral")
   if (op.raxml_binary):
     raxml_library = op.raxml_binary
   if (op.modeltest_binary):
     modeltest_library = op.modeltest_binary
-  if (op.astral_jar):
-    astral_jar = op.astral_jar
-  astral_jar = os.path.abspath(astral_jar)
+  if (op.use_astral):
+    if (op.astral_jar):
+      astral_jar = os.path.abspath(op.astral_jar)
+    else:
+      astral_jar = os.path.join(binaries_dir, "astral.jar")
+  elif (op.use_aster):
+    if (op.aster_bin):
+      if '/' in op.aster_bin:
+        aster_bin = os.path.abspath(op.aster_bin)
+      else:
+        aster_bin = os.path.join(binaries_dir, op.aster_bin)
+    else:
+      aster_bin = os.path.join(binaries_dir, "astral")
   if (op.aster_bin):
     aster_bin = op.aster_bin
   aster_bin = os.path.abspath(aster_bin)
