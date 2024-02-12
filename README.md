@@ -58,15 +58,18 @@ The `gitpull.sh` will update all the changes properly.
 
 See the wiki (<https://github.com/BenoitMorel/ParGenes/wiki/Running-ParGenes>).
 
-**Run with ASTER:**
+#### Run with ASTER
 
-Additinal options are `--use-aster`, `--aster-bin`, and
-`--aster-global-parameters`.  The `--aster-bin` takes an option, which is
-either the name or path to any of the ASTER-astral binaries (`astral`,
-`astral-hybrid`, or `astral-pro`), or the path to a local copy of any of these.
-Additional arguments to any of these programs can be passed by using the option
-`--aster-global-parameters`, which takes a file as input.  See
-<https://github.com/chaoszhang/ASTER> for descriptions of these software.
+As an alternative to the default ASTRAL III software, the newer species-tree
+implementations from ASTER can be used. Specifically, the (ASTER) programs
+`astral`, `astral-hybrid` and `astral-pro` are made available.  The added
+options for pargenes are:
+
+- `--use-aster`  Use ASTER instead of ASTRAL. Note: should not be combined with `--use-astral`.
+- `--aster-bin <name or path>`  Name or path to programs `astral`, `astral-hybrid`, or `astral-pro`.
+- `--aster-global-parameters <text file>` Pass extra parameters to any of the chosen ASTER programs in a text file.
+
+See <https://github.com/chaoszhang/ASTER> for more description of the ASTER implementations.
 
 ## Documentation and Support
 
