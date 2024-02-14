@@ -35,7 +35,9 @@ def check_argument_aster_bin(f, name):
   else:
     script_dir = os.path.dirname(os.path.realpath(__file__))
     binaries_dir = os.path.join(script_dir, "..", "pargenes_binaries")
-    aster_bins = [fn for fn in glob.glob('astral*', root_dir=binaries_dir) if not fn.endswith('.jar')]
+    #aster_bins = [fn for fn in glob.glob('astral*', root_dir=binaries_dir) if not fn.endswith('.jar')] # root_dir does not work on both 3.8 and 3.10
+    search_pattern = binaries_dir + '/' + 'astral*'
+    aster_bins = [os.path.basename(fn) for fn in glob.glob(search_pattern) if not fn.endswith('.jar')]
     if f not in aster_bins:
       exit_msg("Error: invalid name '" + f + "'. Valid options are " + '|'.join(aster_bins) +  "\n")
 
