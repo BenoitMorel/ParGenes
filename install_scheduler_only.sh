@@ -13,12 +13,12 @@ build_mpi_scheduler() {
   echo "*********************************"
   echo "** Installing mpi_scheduler... **"
   echo "*********************************"
-  cd MPIScheduler || exit 1
+  cd MPIScheduler || exit
   mkdir -p build
   cd build || exit 1
   cmake .. || exit 1
   make -j "$1" || exit 1
-  cd ../.. || exit 1
+  cd ../.. || exit
 }
 
 build_raxml_lib() {
@@ -65,7 +65,11 @@ build_modeltest_exec() {
   cd modeltest || exit 1
   mkdir -p build
   cd build || exit 1
-  cmake -DUSE_MPI=OFF -DBUILD_AS_LIBRARY=OFF -DUSE_LIBPLL_CMAKE=ON .. || exit 1
+  if [[ "$OSTYPE" == "darwin"* ]]; then
+    cmake -DUSE_MPI=OFF .. || exit 1
+  else
+    cmake -DUSE_MPI=OFF -DBUILD_AS_LIBRARY=OFF -DUSE_LIBPLL_CMAKE=ON .. || exit 1
+  fi
   make -j "$1" || exit 1
   cd ../../ || exit 1
 }
@@ -77,9 +81,17 @@ build_astral() {
   cd ASTRAL || exit 1
   unzip -o ./*.zip
   cd Astral || exit 1
-  #mv astral.5.6.3.jar astral.jar
   mv astral.*.jar astral.jar
   cd ../../ || exit 1
+}
+
+build_aster() {
+  echo "******************************************"
+  echo "** Installing ASTER...                 **"
+  echo "******************************************"
+  cd ASTER || exit 1
+  make -j "$1" || exit 1
+  cd .. || exit 1
 }
 
 print_no_recursive_warning() {
@@ -102,14 +114,17 @@ finish_install() {
   install "MPIScheduler/build/mpi-scheduler"
   install "raxml-ng/bin/raxml-ng"
   install "modeltest/bin/modeltest-ng"
-  #if [ "$(expr substr $(uname -s) 1 5)" == "Linux" ]; then
-  if [ "$(uname -s)" == "Linux" ]; then
+  if [[ "$OSTYPE" == "darwin"* ]]; then
+    echo "MacOS install, skipping dynamic libraries installation"
+  else
     install "raxml-ng/bin/raxml-ng-mpi.so"
     install "modeltest/build/src/modeltest-ng-mpi.so"
   fi
   install "ASTRAL/Astral/astral.jar"
   install "ASTRAL/Astral/lib"
-  install "ASTER/bin"
+  install "ASTER/bin/astral"
+  install "ASTER/bin/astral-pro"
+  install "ASTER/bin/astral-hybrid"
   echo ""
 }
 
