@@ -12,6 +12,7 @@ import checkpoint
 import shutil
 import logger
 import astral
+import aster
 import report
 import datetime
 import version
@@ -27,9 +28,6 @@ def print_header(args):
   logger.info(" ".join(args))
   logger.info("")
 
-
-
-
 def print_stats(op):
   failed_commands = os.path.join(op.output_dir, "failed_commands.txt")
   if (os.path.isfile(failed_commands)):
@@ -37,7 +35,7 @@ def print_stats(op):
     logger.warning("Total number of jobs that failed: " + str(failed_number))
     logger.warning("For a detailed list, see " + failed_commands)
 
-def main_raxml_runner(args, op): 
+def main_raxml_runner(args, op):
   """ Run pargenes from the parsed arguments op """
   start = time.time()
   output_dir = op.output_dir
@@ -62,14 +60,23 @@ def main_raxml_runner(args, op):
   else:
     raxml_library = os.path.join(binaries_dir, "raxml-ng-mpi.so")
     modeltest_library = os.path.join(binaries_dir, "modeltest-ng-mpi.so")
-  astral_jar = os.path.join(binaries_dir, "astral.jar")
-  if (len(op.raxml_binary) > 1):
+  if (op.raxml_binary):
     raxml_library = op.raxml_binary
-  if (len(op.modeltest_binary) > 1):
+  if (op.modeltest_binary):
     modeltest_library = op.modeltest_binary
-  if (len(op.astral_jar) > 1):
-    astral_jar = op.astral_jar
-  astral_jar = os.path.abspath(astral_jar)
+  if (op.use_astral):
+    if (op.astral_jar):
+      astral_jar = os.path.abspath(op.astral_jar)
+    else:
+      astral_jar = os.path.join(binaries_dir, "astral.jar")
+  elif (op.use_aster):
+    if (op.aster_bin):
+      if '/' in op.aster_bin:
+        aster_bin = os.path.abspath(op.aster_bin)
+      else:
+        aster_bin = os.path.join(binaries_dir, op.aster_bin)
+    else:
+      aster_bin = os.path.join(binaries_dir, "astral")
   if (checkpoint_index < 1):
     msas = commons.init_msas(op)
     raxml.run_parsing_step(msas, raxml_library, op.scheduler, os.path.join(output_dir, "parse_run"), op.cores, op)
@@ -81,7 +88,7 @@ def main_raxml_runner(args, op):
   if (op.dry_run):
     logger.info("End of the dry run. Exiting")
     return 0
-  logger.timed_log("end of anlysing parsing results") 
+  logger.timed_log("end of anlysing parsing results")
   if (op.use_modeltest):
     if (checkpoint_index < 2):
       modeltest.run(msas, output_dir, modeltest_library, modeltest_run_path, op)
@@ -92,16 +99,15 @@ def main_raxml_runner(args, op):
       shutil.move(os.path.join(output_dir, "parse_run"), os.path.join(output_dir, "old_parse_run"))
       raxml.run_parsing_step(msas, raxml_library, op.scheduler, os.path.join(output_dir, "parse_run"), op.cores, op)
       raxml.analyse_parsed_msas(msas, op)
-      logger.timed_log("end of the second parsing step") 
+      logger.timed_log("end of the second parsing step")
       checkpoint.write_checkpoint(output_dir, 2)
-  if (checkpoint_index < 3): 
+  if (checkpoint_index < 3):
     print("TODO UPDATE CHECKPOINT")
     if (op.constrain_search):
       print("Computing consensus trees ")
       samples = 100
       constraint.compute_constrain(msas, samples, raxml_library, op.scheduler, constrain_run_path, op.cores, op)
       logger.timed_log("end of consensus tree building")
-  
   if (checkpoint_index < 3):
     raxml.run(msas, op.random_starting_trees, op.parsimony_starting_trees, op.bootstraps, raxml_library, op.scheduler, raxml_run_path, op.cores, op)
     logger.timed_log("end of mlsearch mpi-scheduler run")
@@ -125,6 +131,10 @@ def main_raxml_runner(args, op):
     if (checkpoint_index < 7):
       astral.run_astral_pargenes(astral_jar,  op)
       checkpoint.write_checkpoint(output_dir, 7)
+  elif (op.use_aster):
+    if (checkpoint_index < 7):
+      aster.run_aster_pargenes(aster_bin,  op)
+      checkpoint.write_checkpoint(output_dir, 7)
   all_invalid = True
   for name, msa in msas.items():
     if (msa.valid):
@@ -141,20 +151,18 @@ def run_pargenes(args):
   try:
     op = arguments.parse_arguments(args)
   except Exception as inst:
-    logger.info("[Error] " + str(type(inst)) + " " + str(inst)) 
+    logger.info("[Error] " + str(type(inst)) + " " + str(inst))
     sys.exit(1)
   try:
     ret =  main_raxml_runner(args, op)
   except Exception as inst:
-    logger.info("[Error] " + str(type(inst)) + " " + str(inst)) 
+    logger.info("[Error] " + str(type(inst)) + " " + str(inst))
     report.report_and_exit(op.output_dir, 1)
   end = time.time()
   logger.timed_log("END OF THE RUN OF " + os.path.basename(__file__))
   if (ret != 0):
-    logger.info("Something went wrong, please check the logs") 
-
+    logger.info("Something went wrong, please check the logs")
 
 if __name__ == '__main__':
   run_pargenes(sys.argv)
-
 

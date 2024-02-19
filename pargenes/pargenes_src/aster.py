@@ -10,7 +10,7 @@ def treat_newick(newick):
   return newick.replace("@", "at")
 
 def get_gene_trees_file(pargenes_dir):
-  return os.path.join(pargenes_dir, "astral_run", "gene_trees.newick")
+  return os.path.join(pargenes_dir, "aster_run", "gene_trees.newick")
 
 def extract_gene_trees_support(pargenes_dir, gene_trees_filename):
   results = os.path.join(pargenes_dir, "supports_run", "results")
@@ -21,7 +21,7 @@ def extract_gene_trees_support(pargenes_dir, gene_trees_filename):
         with open(os.path.join(results, f)) as reader:
           writer.write(treat_newick(reader.read()))
         count += 1
-  logger.info("ParGenes/Astral: " + str(count) + " gene trees (with support values) were found in ParGenes output directory")
+  logger.info("ParGenes/Aster: " + str(count) + " gene trees (with support values) were found in ParGenes output directory")
 
 def extract_gene_trees_ml(pargenes_dir, gene_trees_filename):
   results = os.path.join(pargenes_dir, "mlsearch_run", "results")
@@ -35,7 +35,7 @@ def extract_gene_trees_ml(pargenes_dir, gene_trees_filename):
         count += 1
       except:
         continue
-  logger.info("ParGenes/Astral: " + str(count) + " trees were found in ParGenes output directory")
+  logger.info("ParGenes/Aster: " + str(count) + " trees were found in ParGenes output directory")
 
 def extract_gene_trees(pargenes_dir, gene_trees_filename):
   """ Get all ParGenes ML gene trees and store then in gene_trees_filename
@@ -50,60 +50,56 @@ def extract_gene_trees(pargenes_dir, gene_trees_filename):
 def get_additional_parameters(parameters_file):
   if (parameters_file == None or parameters_file == ""):
     return []
-  astral_options = open(parameters_file, "r").readlines()
-  if (len(astral_options) != 0):
-    return astral_options[0][:-1].split(" ")
+  aster_options = open(parameters_file, "r").readlines()
+  if (len(aster_options) != 0):
+    return aster_options[0][:-1].split(" ")
   else:
     return []
 
-def run_astral(pargenes_dir, astral_jar, parameters_file):
-  """ Run astral on the ParGenes ML trees
+def run_aster(pargenes_dir, aster_bin, parameters_file):
+  """ Run aster on the ParGenes ML trees
   - pargenes_dir     (str):        pargenes output directory
-  - astral_jar       (str):        path to astral jar
-  - parameters_file  (list(str)):  a file with the list of additional arguments to pass to astral
+  - aster_bin        (str):        name of aster binary (<astral|astral-hybrid|astral-pro>)
+  - parameters_file  (list(str)):  a file with the list of additional arguments to pass to aster
   """
-  astral_args = get_additional_parameters(parameters_file)
-  astral_run_dir = os.path.join(pargenes_dir, "astral_run")
-  astral_output = os.path.join(astral_run_dir, "output_species_tree.newick")
-  astral_logs = os.path.join(astral_run_dir, "astral_logs.txt")
-  logger.info("Astral additional parameters:")
-  logger.info(astral_args)
+  aster_args = get_additional_parameters(parameters_file)
+  aster_run_dir = os.path.join(pargenes_dir, "aster_run")
+  aster_output = os.path.join(aster_run_dir, "output_species_tree.newick")
+  aster_logs = os.path.join(aster_run_dir, "aster_logs.txt")
+  logger.info("Aster additional parameters:")
+  logger.info(aster_args)
   try:
-    os.makedirs(astral_run_dir)
+    os.makedirs(aster_run_dir)
   except:
     pass
   gene_trees = get_gene_trees_file(pargenes_dir)
   extract_gene_trees(pargenes_dir, gene_trees)
-  library_path = os.path.abspath(os.path.join(astral_jar, os.pardir))
-  library_path = os.path.join(library_path, "lib")
-  #astral_jar = os.path.basename(astral_jar)
+  #library_path = os.path.abspath(os.path.join(aster_bin, os.pardir)) # TODO: check if needed
+  #aster_bin = os.path.basename(aster_bin)# TODO: check if needed
   command = ""
-  command += "java "
-  command += "-D\"java.library.path=" + library_path + "\" "
-  command +="-jar "
-  command += astral_jar + " "
+  command += aster_bin + " "
   command += "-i " + gene_trees + " "
-  command += "-o " + astral_output + " "
-  for arg in astral_args:
+  command += "-o " + aster_output + " "
+  for arg in aster_args:
     command += arg + " "
   command = command[:-1]
   split_command = command.split(" ")
-  out = open(astral_logs, "w")
-  logger.info("Starting astral... Logs will be redirected to " + astral_logs)
+  out = open(aster_logs, "w")
+  logger.info("Starting aster... Logs will be redirected to " + aster_logs)
   p = subprocess.Popen(split_command, stdout=out, stderr=out)
   p.wait()
   if (0 != p.returncode):
-    logger.error("Astral execution failed")
+    logger.error("Aster execution failed")
     report.report_and_exit(pargenes_dir, 1)
 
-def run_astral_pargenes(astral_jar, op):
-  run_astral(op.output_dir, astral_jar, op.astral_global_parameters)
+def run_aster_pargenes(aster_bin, op):
+  run_aster(op.output_dir, aster_bin, op.aster_global_parameters)
 
 if (__name__ == '__main__'):
   if (len(sys.argv) != 2 and len(sys.argv) != 3):
     print("Error: syntax is:")
-    print("python astral.py pargenes_dir [astral_parameters_file]")
-    print("astral_parameters_file is optional and should contain additional parameters to pass to astral call.")
+    print("<aster_bin> pargenes_dir [aster_parameters_file]")
+    print("aster_parameters_file is optional and should contain additional parameters to pass to aster call")
     exit(1)
   pargenes_dir = sys.argv[1]
   parameters_file = None
@@ -111,9 +107,9 @@ if (__name__ == '__main__'):
     parameters_file = sys.argv[2]
   start = time.time()
   logger.init_logger(pargenes_dir)
-  logger.timed_log(start, "Starting astral pargenes script...")
+  logger.timed_log(start, "Starting aster pargenes script...")
   scriptdir = os.path.dirname(os.path.realpath(__file__))
-  astral_jar = os.path.join(scriptdir, "..", "pargenes_binaries", "astral.jar")
-  run_astral(pargenes_dir, astral_jar, parameters_file)
-  logger.timed_log(start, "End of astral pargenes script...")
+  aster_bin = os.path.join(scriptdir, "..", "pargenes_binaries", "astral")
+  run_aster(pargenes_dir, aster_bin, parameters_file)
+  logger.timed_log(start, "End of aster pargenes script...")
 

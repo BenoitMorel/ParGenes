@@ -6,10 +6,9 @@ import time
 import shlex
 import platform
 
-
 run_as_binary = "--run-as-binary" in sys.argv
 
-tests_path = os.path.dirname(os.path.realpath(__file__)) 
+tests_path = os.path.dirname(os.path.realpath(__file__))
 root = os.path.dirname(tests_path)
 pargenes_script_names = ["pargenes.py", "pargenes-hpc.py", "pargenes-hpc-debug.py"]
 pargenes_scripts = []
@@ -18,6 +17,7 @@ if (run_as_binary):
 else:
   for s in pargenes_script_names:
     pargenes_scripts.append("python " + os.path.join(root, "pargenes", s))
+
 example_data_path = os.path.join(tests_path, "smalldata")
 example_msas = os.path.join(example_data_path, "fasta_files")
 example_raxml_options = os.path.join(example_data_path, "raxml_global_options.txt")
@@ -46,9 +46,9 @@ def check_parse(run_dir):
 
 def check_modeltest(run_dir):
   modeltest_dir = os.path.join(run_dir, "modeltest_run")
-  assert len(os.listdir(os.path.join(modeltest_dir, "running_jobs"))) == 0 
+  assert len(os.listdir(os.path.join(modeltest_dir, "running_jobs"))) == 0
   mlsearch_dir = os.path.join(run_dir, "mlsearch_run")
-  assert len(os.listdir(os.path.join(mlsearch_dir, "running_jobs"))) == 0  
+  assert len(os.listdir(os.path.join(mlsearch_dir, "running_jobs"))) == 0
   for msa, best_model in list(zip(valid_msas, best_models)):
     results = os.path.join(modeltest_dir, "results", msa)
     assert os.path.isdir(results)
@@ -59,10 +59,9 @@ def check_modeltest(run_dir):
     model = open(bestModel).readlines()[0].split(",")[0].split("{")[0]
     assert model == best_model
 
-
 def check_ml_search(run_dir):
   mlsearch_dir = os.path.join(run_dir, "mlsearch_run")
-  assert len(os.listdir(os.path.join(mlsearch_dir, "running_jobs"))) == 0  
+  assert len(os.listdir(os.path.join(mlsearch_dir, "running_jobs"))) == 0
   for msa in valid_msas:
     results = os.path.join(mlsearch_dir, "results", msa)
     prefix = os.path.join(results, msa + ".raxml.")
@@ -75,15 +74,27 @@ def check_astral(run_dir):
   astral_dir = os.path.join(run_dir, "astral_run")
   input_gene_trees = os.path.join(astral_dir, "gene_trees.newick")
   output_species_tree = os.path.join(astral_dir, "output_species_tree.newick")
-  assert(os.path.isfile(output_species_tree))
+  assert(os.path.isfile(input_gene_trees))
   assert(os.path.isfile(output_species_tree))
   input_gene_trees_lines = open(input_gene_trees).readlines()
   assert(len(input_gene_trees_lines) == 4)
   output_species_tree_str = open(output_species_tree).readlines()[0]
   for i in range(0, 10):
     assert(("taxa_" + str(i)) in output_species_tree_str)
-  
-def check_all(run_dir, parse, modeltest, mlsearch, astral):
+
+def check_aster(run_dir):
+  aster_dir = os.path.join(run_dir, "aster_run")
+  input_gene_trees = os.path.join(aster_dir, "gene_trees.newick")
+  output_species_tree = os.path.join(aster_dir, "output_species_tree.newick")
+  assert(os.path.isfile(input_gene_trees))
+  assert(os.path.isfile(output_species_tree))
+  input_gene_trees_lines = open(input_gene_trees).readlines()
+  assert(len(input_gene_trees_lines) == 4)
+  output_species_tree_str = open(output_species_tree).readlines()[0]
+  for i in range(0, 10):
+    assert(("taxa_" + str(i)) in output_species_tree_str)
+
+def check_all(run_dir, parse, modeltest, mlsearch, astral, aster):
   try:
     if (parse):
       check_parse(run_dir)
@@ -93,6 +104,8 @@ def check_all(run_dir, parse, modeltest, mlsearch, astral):
       check_ml_search(run_dir)
     if (astral):
       check_astral(run_dir)
+    if (aster):
+      check_aster(run_dir)
   except:
     print("FAILURE!!!!")
     return 1
@@ -100,7 +113,6 @@ def check_all(run_dir, parse, modeltest, mlsearch, astral):
   return 0
 
 def run_command(command, run_name, outputdir):
-  #print(command)
   logs = os.path.join(tests_output_dir, run_name + ".txt")
   sys.stdout.write("[" + run_name + "]: ")
   sys.stdout.flush()
@@ -139,7 +151,7 @@ def test_ml_search(pargenes_script):
   command += "-c 4 "
   command += "-s 3 -p 3 "
   run_command(command, "ml_search_" + basename, output)
-  return check_all(output, True, False, True, False)
+  return check_all(output, True, False, True, False, False)
 
 def test_model_test(pargenes_script):
   basename = get_basename(pargenes_script)
@@ -155,7 +167,7 @@ def test_model_test(pargenes_script):
   command += " -m"
   command += " --modeltest-global-parameters " + example_modeltest_parameters
   run_command(command, "modeltest_" + basename, output)
-  return check_all(output, True, True, True, False)
+  return check_all(output, True, True, True, False, False)
 
 def test_bootstraps(pargenes_script):
   basename = get_basename(pargenes_script)
@@ -170,8 +182,8 @@ def test_bootstraps(pargenes_script):
   command += "-r " + example_raxml_options + " "
   command += "-c 4 "
   command += " -b 3"
-  run_command(command, "bootstraps" + basename, output)
-  return check_all(output, True, False, True, False)
+  run_command(command, "bootstraps_" + basename, output)
+  return check_all(output, True, False, True, False, False)
 
 def test_astral(pargenes_script):
   basename = get_basename(pargenes_script)
@@ -188,7 +200,26 @@ def test_astral(pargenes_script):
   command += "-s 3 -p 3 "
   command += "--use-astral "
   run_command(command, "astral_" + basename, output)
-  return check_all(output, True, False, False, True)
+  return check_all(output, True, False, False, True, False)
+
+def test_aster(pargenes_script):
+  # Testfirst with default aster binary astral
+  # TODO: test with astral-hybrid and astral-pro
+  basename = get_basename(pargenes_script)
+  output = os.path.join(tests_output_dir, "test_aster", basename)
+  try:
+    shutil.rmtree(output)
+  except:
+    pass
+  command = pargenes_script + " "
+  command += "-a " + example_msas + " "
+  command += "-o " + output + " "
+  command += "-r " + example_raxml_options + " "
+  command += "-c 4 "
+  command += "-s 3 -p 3 "
+  command += "--use-aster "
+  run_command(command, "aster_" + basename, output)
+  return check_all(output, True, False, False, False, True)
 
 def test_all(pargenes_script):
   basename = get_basename(pargenes_script)
@@ -208,9 +239,27 @@ def test_all(pargenes_script):
   command += "--use-astral "
   command += " --modeltest-global-parameters " + example_modeltest_parameters
   run_command(command, "all_" + basename, output)
-  return  check_all(output, True, True, True, True)
+  return  check_all(output, True, True, True, True, False)
 
-
+def test_all_aster(pargenes_script):
+  basename = get_basename(pargenes_script)
+  output = os.path.join(tests_output_dir, "test_all", basename)
+  try:
+    shutil.rmtree(output)
+  except:
+    pass
+  command = pargenes_script + " "
+  command += "-a " + example_msas + " "
+  command += "-o " + output + " "
+  command += "-r " + example_raxml_options + " "
+  command += "-c 4 "
+  command += "-m "
+  command += "-b 3 "
+  command += "-s 3 -p 3 "
+  command += "--use-aster "
+  command += " --modeltest-global-parameters " + example_modeltest_parameters
+  run_command(command, "all_aster_" + basename, output)
+  return  check_all(output, True, True, True, False, True)
 
 try:
   os.makedirs(tests_output_dir)
@@ -224,7 +273,9 @@ for pargenes_script in pargenes_scripts:
   failures += test_model_test(pargenes_script)
   failures += test_bootstraps(pargenes_script)
   failures += test_astral(pargenes_script)
+  failures += test_aster(pargenes_script)
   failures += test_all(pargenes_script)
+  failures += test_all_aster(pargenes_script)
 
 print("")
 if (failures > 0):
@@ -232,6 +283,4 @@ if (failures > 0):
   sys.exit(1)
 else:
   print("All tests ran successfully")
-
-
 
