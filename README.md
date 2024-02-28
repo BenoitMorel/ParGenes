@@ -14,7 +14,7 @@ ParGenes supports the following features:
 * check pointing: ParGenes can be restarted without effort after an interruption
 * error reporting for the MSAs that fail to be treated
 * options to customize the tree inference parameters
-* optional call to [ASTRAL](https://github.com/smirarab/ASTRAL)/[ASTER](https://github.com/chaoszhang/ASTER) to infer a species tree from the inferred phylogenetic trees
+* optional call to [ASTRAL](https://github.com/smirarab/ASTRAL) or [ASTER](https://github.com/chaoszhang/ASTER) to infer a species tree from the inferred phylogenetic trees
 
 ## Requirements
 
@@ -39,14 +39,6 @@ To parallelize the compilation with 10 cores:
 
     $ ./install.sh 10
 
-**To install with ASTER capacity, use the following:**
-
-    $ git clone --recurse-submodules https://github.com/nylander/ParGenes.git
-    $ cd ParGenes
-    $ git checkout aster
-    $ git submodule update --init --recursive
-    $ ./install.sh
-
 ## Updating the repository
 
 Instead of using: `git pull`, please use: `./gitpull.sh`.
@@ -57,19 +49,6 @@ The `gitpull.sh` will update all the changes properly.
 ## Running
 
 See the wiki (<https://github.com/BenoitMorel/ParGenes/wiki/Running-ParGenes>).
-
-#### Run with ASTER
-
-As an alternative to the default ASTRAL III software, the newer species-tree
-implementations from ASTER can be used. Specifically, the (ASTER) programs
-`astral`, `astral-hybrid` and `astral-pro` are made available.  The added
-options for pargenes are:
-
-- `--use-aster`  Use ASTER instead of ASTRAL. Note: should not be combined with `--use-astral`.
-- `--aster-bin <name or path>`  Name or path to programs `astral`, `astral-hybrid`, or `astral-pro`.
-- `--aster-global-parameters <text file>` Pass extra parameters to any of the chosen ASTER programs in a text file.
-
-See <https://github.com/chaoszhang/ASTER> for more description of the ASTER implementations.
 
 ## Documentation and Support
 
